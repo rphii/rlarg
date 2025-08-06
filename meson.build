@@ -1,4 +1,4 @@
-project('rlc', 'c',
+project('rlarg', 'c',
   meson_version: '>=1.1')
 
 subdir('src')
@@ -6,9 +6,9 @@ subdir('bash')
 
 pkg = import('pkgconfig')
 pkg.generate(
-  libraries: rlc,
+  libraries: rlarg,
   version: '9999',
-  name: 'rlc',
-  description: 'Essential meta-package for rl.',
+  name: 'rlarg',
+  description: 'Argument parser for C.',
   )
 
