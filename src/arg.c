@@ -2,7 +2,8 @@
 #undef SSIZE_MAX
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include "file.h"
+#include <rl/so.h>
+#include <rl/array.h>
 
 /* ENUMS, STRUCTS, VECTORS {{{ */
 
@@ -47,27 +48,27 @@ const char *arglist_str(ArgList id) {
 }
 
 typedef struct ArgBase {
-    Str program;           // program name
-    Str desc;              // description of program
-    Str epilog;            // text below argument help
+    So program;           // program name
+    So desc;              // description of program
+    So epilog;            // text below argument help
     unsigned char prefix;   // default: -
     unsigned char flag_sep; // default: ,
     bool show_help;         // display help if no arguments provided
     bool compgen_wordlist; // generate compgen wordlist
     bool source_check;     // display config errors or not
-    VStr *rest_vec;
-    Str rest_desc;
+    VSo *rest_vec;
+    So rest_desc;
 } ArgBase;
 
 typedef union ArgXVal {
-    StrC *s;            // string
+    So *s;            // string
     ssize_t *z;         // number
     int *i;             // number
     double *f;          // double
     bool *b;            // bool
     void *x;            // exotic
     int e;              // enum
-    VStrC *v;           // vector
+    VSo *v;           // vector
     Color *c;           // color
 } ArgXVal;
 
@@ -92,7 +93,7 @@ typedef struct ArgX { /*{{{*/
     ArgXVal val;
     ArgXVal ref;
     int e; // enum
-    StrC type;
+    So type;
     struct ArgXTable *table; // table for below
     struct ArgXGroup *o; // options, flags
     struct ArgXGroup *group; // required for options / parent group
@@ -106,8 +107,8 @@ typedef struct ArgX { /*{{{*/
     } attr;
     struct {
         const unsigned char c;
-        const Str opt;
-        const Str desc;
+        const So opt;
+        const So desc;
     } info;
 
 } ArgX; /*}}}*/
@@ -115,9 +116,9 @@ typedef struct ArgX { /*{{{*/
 void argx_free(struct ArgX *argx);
 void argx_group_free_array(struct ArgXGroup **group);
 
-#include "lut.h"
-LUT_INCLUDE(TArgX, targx, Str, BY_VAL, struct ArgX, BY_REF);
-LUT_IMPLEMENT(TArgX, targx, Str, BY_VAL, struct ArgX, BY_REF, str_dhash, str_cmp, 0, argx_free);
+#include <rl/lut.h>
+LUT_INCLUDE(TArgX, targx, So, BY_VAL, struct ArgX, BY_REF);
+LUT_IMPLEMENT(TArgX, targx, So, BY_VAL, struct ArgX, BY_REF, so_hash, so_cmp, 0, argx_free);
 //typedef struct ArgX *TArgX;
 
 int argx_cmp_index(ArgX *a, ArgX *b) {
@@ -126,7 +127,7 @@ int argx_cmp_index(ArgX *a, ArgX *b) {
     return a->attr.callback.priority - b->attr.callback.priority;
 }
 
-#include "vec.h"
+#include <rl/vec.h>
 
 VEC_INCLUDE(VArgX, vargx, ArgX *, BY_VAL, BASE);
 VEC_INCLUDE(VArgX, vargx, ArgX *, BY_VAL, ERR);
@@ -136,12 +137,12 @@ VEC_IMPLEMENT(VArgX, vargx, ArgX *, BY_VAL, ERR);
 VEC_IMPLEMENT(VArgX, vargx, ArgX *, BY_VAL, SORT, argx_cmp_index);
 
 typedef struct ArgXTable {
-    StrC desc;
+    So desc;
     TArgX lut;
 } ArgXTable;
 
 typedef struct ArgXGroup {
-    StrC desc;
+    So desc;
     ArgXTable *table;
     struct Arg *root; // required literally only for assigning short options
     struct ArgX *parent; // required for options
@@ -157,7 +158,7 @@ VEC_IMPLEMENT(VArgXGroup, vargxgroup, ArgXGroup *, BY_REF, ERR);
 //VEC_IMPLEMENT(VArgXGroup, vargxgroup, ArgXGroup *, BY_REF, SORT, argx_group_free_array);
 
 typedef struct ArgStream {
-    VStr vals;
+    VSo vals;
     size_t i;
     VArgX queue;
     bool force_done_parsing;
@@ -175,13 +176,13 @@ typedef struct ArgParse {
         ArgX *helpx;
     } help;
     struct {
-        VStr *vec;
-        Str desc;
+        VSo *vec;
+        So desc;
         ArgXGroup *pos;
     } rest;
-    VStr config;
-    VStr config_files_expand;
-    VStr config_files_base;
+    VSo config;
+    VSo config_files_expand;
+    VSo config_files_base;
 } ArgParse;
 
 typedef struct ArgPrint {
@@ -191,29 +192,29 @@ typedef struct ArgPrint {
         int c;      // spacing until short option
         int opt;    // spacing until long option
     } bounds;
-    StrAlign p_al2;
+    So_Align_Cache p_al2;
     bool compgen_nfirst;
 } ArgPrint;
 
 typedef struct ArgFmt {
-    StrFmtX group;
-    StrFmtX group_delim;
-    StrFmtX type;
-    StrFmtX type_delim;
-    StrFmtX one_of;
-    StrFmtX one_of_set;
-    StrFmtX one_of_delim;
-    StrFmtX flag;
-    StrFmtX flag_set;
-    StrFmtX flag_delim;
-    StrFmtX val;
-    StrFmtX val_delim;
-    StrFmtX c;
-    StrFmtX opt;
-    StrFmtX pos;
-    StrFmtX env;
-    StrFmtX desc;
-    StrFmtX program;
+    So_Fx group;
+    So_Fx group_delim;
+    So_Fx type;
+    So_Fx type_delim;
+    So_Fx one_of;
+    So_Fx one_of_set;
+    So_Fx one_of_delim;
+    So_Fx flag;
+    So_Fx flag_set;
+    So_Fx flag_delim;
+    So_Fx val;
+    So_Fx val_delim;
+    So_Fx c;
+    So_Fx opt;
+    So_Fx pos;
+    So_Fx env;
+    So_Fx desc;
+    So_Fx program;
 } ArgFmt;
 
 typedef struct Arg {
@@ -238,7 +239,7 @@ typedef struct Arg {
 /* FUNCTION PROTOTYPES {{{ */
 
 #define ERR_arg_config_from_str(...) "failed loading config"
-ErrDecl arg_config_from_str(struct Arg *arg, StrC text);
+ErrDecl arg_config_from_str(struct Arg *arg, So text);
 
 /*}}}*/
 
@@ -249,7 +250,7 @@ ErrDecl arg_config_from_str(struct Arg *arg, StrC text);
 void argstream_free(ArgStream *stream) {
     if(!stream) return;
     vargx_free(&stream->queue);
-    vstr_free(&stream->vals);
+    vso_free(&stream->vals);
     memset(stream, 0, sizeof(*stream));
 }
 
@@ -267,7 +268,7 @@ ATTR_NODISCARD struct ArgXGroup *wargx_new(void) {
     return group;
 }
 
-struct ArgXGroup *argx_group(struct Arg *arg, Str desc, bool explicit_help) {
+struct ArgXGroup *argx_group(struct Arg *arg, So desc, bool explicit_help) {
     size_t len = vargxgroup_length(arg->groups);
     (void)vargxgroup_resize(&arg->groups, len + 1);
     //array_resize(arg->groups, len + 1);
@@ -286,7 +287,7 @@ ArgXGroup *arg_pos(Arg *arg) {
     return &arg->pos;
 }
 
-void arg_init(struct Arg *arg, Str program, Str description, Str epilog) {
+void arg_init(struct Arg *arg, So program, So description, So epilog) {
     ASSERT_ARG(arg);
     arg->base.program = program;
     arg->base.desc = description;
@@ -294,10 +295,10 @@ void arg_init(struct Arg *arg, Str program, Str description, Str epilog) {
     arg->base.prefix = ARG_INIT_DEFAULT_PREFIX;
     arg->base.show_help = ARG_INIT_DEFAULT_SHOW_HELP;
     arg->base.flag_sep = ARG_INIT_DEFAULT_FLAG_SEP;
-    arg->pos.desc = str("Usage");
+    arg->pos.desc = so("Usage");
     arg->pos.root = arg;
     arg->pos.table = &arg->tables.pos;
-    arg->pos.desc = str("Usage");
+    arg->pos.desc = so("Usage");
     arg->parse.base = &arg->base;
     arg->print.bounds.c = 2;
     arg->print.bounds.opt = 6;
@@ -328,13 +329,13 @@ void arg_init_prefix(struct Arg *arg, unsigned char prefix) {
     arg->base.prefix = prefix;
 }
 
-void arg_init_rest(struct Arg *arg, Str description, VStr *rest) {
+void arg_init_rest(struct Arg *arg, So description, VSo *rest) {
     ASSERT_ARG(arg);
     arg->base.rest_vec = rest;
     arg->base.rest_desc = description;
 }
 
-void arg_init_pipe(struct Arg *arg, VStr *out, pthread_mutex_t *mutex) {
+void arg_init_pipe(struct Arg *arg, VSo *out, pthread_mutex_t *mutex) {
     ASSERT_ARG(arg);
     ASSERT_ARG(out);
     ASSERT_ARG(mutex);
@@ -369,6 +370,23 @@ void arg_init_fmt(struct Arg *arg) {
     arg->fmt.one_of_delim.fg = COLOR_GRAY;
     arg->fmt.type_delim.fg = COLOR_GRAY;
     arg->fmt.type.fg = COLOR_GREEN;
+    so_al_config(&arg->fmt.group.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.group_delim.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.type.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.type_delim.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.one_of.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.one_of_set.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.flag.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.flag_set.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.flag_delim.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.val.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.val_delim.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.c.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.opt.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.pos.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.env.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.desc.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.program.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
 }
 
 #define ERR_argx_group_push(...) "failed adding argument x"
@@ -377,21 +395,21 @@ ErrDecl argx_group_push(ArgXGroup *group, ArgX *in, ArgX **out) {
     ASSERT_ARG(in);
     //ASSERT_ARG(group->table);
     TArgXKV *xkv = targx_once(&group->table->lut, in->info.opt, in);
-    if(!xkv) THROW("option '%.*s' already exists!", STR_F(in->info.opt));
+    if(!xkv) THROW("option '%.*s' already exists!", SO_F(in->info.opt));
     array_push(group->list, xkv->val);
     //return xkv->val;
     if(out) *out = xkv->val;
     return 0;
 error:
-    //ABORT("critical error in " F("[%.*s]", BOLD) " -- aborting", STR_STR_F(group->desc));
+    //ABORT("critical error in " F("[%.*s]", BOLD) " -- aborting", STR_SO_F(group->desc));
     return -1;
 }
 
-struct ArgX *argx_init(struct ArgXGroup *group, const unsigned char c, StrC optX, StrC descX) {
+struct ArgX *argx_init(struct ArgXGroup *group, const unsigned char c, So optX, So descX) {
     ASSERT_ARG(group);
-    Str opt = str_trim(optX);
-    Str desc = str_trim(descX);
-    if(!str_len_raw(opt)) ABORT("cannot add an empty long-opt argument");
+    So opt = so_trim(optX);
+    So desc = so_trim(descX);
+    if(!so_len(opt)) ABORT("cannot add an empty long-opt argument");
     ArgX x = {
         .info = {c, opt, desc},
         .group = group,
@@ -400,14 +418,14 @@ struct ArgX *argx_init(struct ArgXGroup *group, const unsigned char c, StrC optX
     ArgX *argx = 0;
     TRYC(argx_group_push(group, &x, &argx));
     if(c) {
-        if(!group->root) ABORT("cannot specify short option '%c' for '%.*s'", c, STR_F(opt));
+        if(!group->root) ABORT("cannot specify short option '%c' for '%.*s'", c, SO_F(opt));
         ArgX *xx = group->root->opt_short[c];
-        if(xx) ABORT("already specified short option '%c' for '%.*s'; cannot set for '%.*s' as well.", c, STR_F(xx->info.opt), STR_F(opt));
+        if(xx) ABORT("already specified short option '%c' for '%.*s'; cannot set for '%.*s' as well.", c, SO_F(xx->info.opt), SO_F(opt));
         group->root->opt_short[c] = argx;
     }
     return argx;
 error:
-    ABORT("critical error in " F("[%.*s]", BOLD) " -- aborting", STR_F(group->desc));
+    ABORT("critical error in " F("[%.*s]", BOLD) " -- aborting", SO_F(group->desc));
     return 0;
 }
 
@@ -415,7 +433,7 @@ error:
 
 /* 1) ASSIGN MAIN ID {{{ */
 
-void argx_str(ArgX *x, Str *val, Str *ref) {
+void argx_str(ArgX *x, So *val, So *ref) {
     ASSERT_ARG(x);
     ASSERT_ARG(val);
     x->id = ARG_STRING;
@@ -470,7 +488,7 @@ void argx_flag_set(ArgX *x, bool *val, bool *ref) {
     x->val.b = val;
     x->ref.b = ref;
 }
-void argx_type(struct ArgX *x, StrC type) {
+void argx_type(struct ArgX *x, So type) {
     ASSERT_ARG(x);
     x->type = type;
 }
@@ -478,7 +496,7 @@ void argx_none(ArgX *x) {
     ASSERT_ARG(x);
     x->id = ARG_NONE;
 }
-void argx_vstr(struct ArgX *x, VStr *val, VStr *ref) {
+void argx_vstr(struct ArgX *x, VSo *val, VSo *ref) {
     ASSERT_ARG(x);
     ASSERT_ARG(val);
     x->id = ARG_VECTOR;
@@ -520,13 +538,13 @@ void argx_help(struct ArgX *x, struct Arg *arg) {
     arg->parse.help.helpx = x;
 }
 
-struct ArgX *argx_pos(struct Arg *arg, Str opt, Str desc) {
+struct ArgX *argx_pos(struct Arg *arg, So opt, So desc) {
     ASSERT_ARG(arg);
     ArgX *x = argx_init(&arg->pos, 0, opt, desc);
     return x;
 }
 
-struct ArgX *argx_env(struct ArgXGroup *group, StrC opt, StrC desc, bool hide_value) {
+struct ArgX *argx_env(struct ArgXGroup *group, So opt, So desc, bool hide_value) {
     ASSERT_ARG(group);
     ArgX *x = argx_init(group, 0, opt, desc);
     x->attr.is_env = true;
@@ -534,7 +552,7 @@ struct ArgX *argx_env(struct ArgXGroup *group, StrC opt, StrC desc, bool hide_va
     return x;
 }
 
-struct ArgX *argx_get(struct ArgXGroup *group, Str opt) {
+struct ArgX *argx_get(struct ArgXGroup *group, So opt) {
     ASSERT_ARG(group);
     ASSERT_ARG(group->table);
     TArgXKV *kv = targx_get_kv(&group->table->lut, opt);
@@ -547,21 +565,21 @@ struct ArgX *argx_get(struct ArgXGroup *group, Str opt) {
 
 void argx_int_mm(ArgX *x, int min, int max) {
     ASSERT_ARG(x);
-    if(x->id != ARG_INT) ABORT("wrong argx type in '%.*s' to set min/max: %s", STR_F(x->info.opt), arglist_str(x->id));
+    if(x->id != ARG_INT) ABORT("wrong argx type in '%.*s' to set min/max: %s", SO_F(x->info.opt), arglist_str(x->id));
     x->attr.min.i = min;
     x->attr.max.i = max;
 }
 
 void argx_ssz_mm(ArgX *x, ssize_t min, ssize_t max) {
     ASSERT_ARG(x);
-    if(x->id != ARG_SSZ) ABORT("wrong argx type in '%.*s' to set min/max: %s", STR_F(x->info.opt), arglist_str(x->id));
+    if(x->id != ARG_SSZ) ABORT("wrong argx type in '%.*s' to set min/max: %s", SO_F(x->info.opt), arglist_str(x->id));
     x->attr.min.z = min;
     x->attr.max.z = max;
 }
 
 void argx_dbl_mm(ArgX *x, double min, double max) {
     ASSERT_ARG(x);
-    if(x->id != ARG_FLOAT) ABORT("wrong argx type in '%.*s' to set min/max: %s", STR_F(x->info.opt), arglist_str(x->id));
+    if(x->id != ARG_FLOAT) ABORT("wrong argx type in '%.*s' to set min/max: %s", SO_F(x->info.opt), arglist_str(x->id));
     x->attr.min.f = min;
     x->attr.max.f = max;
 }
@@ -579,13 +597,13 @@ void argx_opt_enum(struct ArgX *x, int val) {
     ASSERT_ARG(x);
     /* TODO: order of this thing below (the || ... ) ? */
     if(!(x->group && x->group->parent) || x->group->parent->id != ARG_OPTION) {
-        ABORT("can only set enums to child nodes of options " F("[%.*s]", BOLD), STR_F(x->info.opt));
+        ABORT("can only set enums to child nodes of options " F("[%.*s]", BOLD), SO_F(x->info.opt));
     }
     if(!x->group->parent->val.i) {
-        ABORT("parent " F("[%.*s]", BOLD) " has to be assigned to an enum", STR_F(x->group->parent->info.opt));
+        ABORT("parent " F("[%.*s]", BOLD) " has to be assigned to an enum", SO_F(x->group->parent->info.opt));
     }
     x->e = val;
-    //printff("SET [%.*s] ENUM TO %i", STR_F(x->info.opt), val);
+    //printff("SET [%.*s] ENUM TO %i", SO_F(x->info.opt), val);
 }
 void argx_hide_value(struct ArgX *x, bool hide_value) {
     ASSERT_ARG(x);
@@ -598,7 +616,7 @@ void argx_hide_value(struct ArgX *x, bool hide_value) {
 
 /* PRINTING FUNCTIONS {{{ */
 
-void argx_fmt_type(Str *out, Arg *arg, ArgX *argx) { /*{{{*/
+void argx_fmt_type(So *out, Arg *arg, ArgX *argx) { /*{{{*/
     switch(argx->id) {
         case ARG_COLOR:
         case ARG_STRING:
@@ -609,54 +627,54 @@ void argx_fmt_type(Str *out, Arg *arg, ArgX *argx) { /*{{{*/
         case ARG_VECTOR:
         case ARG_TRY_OPT:
         case ARG_FLOAT: {
-            str_fmtx(out, arg->fmt.type_delim, "<");
-            str_fmtx(out, arg->fmt.type, "%.*s", STR_F(argx->type.len ? argx->type : str_l(arglist_str(argx->id))));
-            str_fmtx(out, arg->fmt.type_delim, ">");
+            so_fmt_fx(out, arg->fmt.type_delim, "<");
+            so_fmt_fx(out, arg->fmt.type, "%.*s", SO_F(argx->type.len ? argx->type : so_l(arglist_str(argx->id))));
+            so_fmt_fx(out, arg->fmt.type_delim, ">");
         } break;
         case ARG_OPTION: {
             ArgXGroup *g = argx->o;
             if(array_len(g->list)) {
-                str_fmtx(out, arg->fmt.one_of_delim, "<");
+                so_fmt_fx(out, arg->fmt.one_of_delim, "<");
                 for(size_t i = 0; i < array_len(g->list); ++i) {
-                    if(i) str_fmtx(out, arg->fmt.one_of_delim, "|");
+                    if(i) so_fmt_fx(out, arg->fmt.one_of_delim, "|");
                     ArgX *x = array_at(g->list, i);
                     if(g && g->parent && g->parent->val.i && *g->parent->val.i == x->e) {
-                        str_fmtx(out, arg->fmt.one_of_set, "%.*s", STR_F(x->info.opt));
+                        so_fmt_fx(out, arg->fmt.one_of_set, "%.*s", SO_F(x->info.opt));
                     } else {
-                        str_fmtx(out, arg->fmt.one_of, "%.*s", STR_F(x->info.opt));
+                        so_fmt_fx(out, arg->fmt.one_of, "%.*s", SO_F(x->info.opt));
                     }
                 }
-                str_fmtx(out, arg->fmt.one_of_delim, ">");
+                so_fmt_fx(out, arg->fmt.one_of_delim, ">");
             }
         } break;
         case ARG_FLAGS: {
             ArgXGroup *g = argx->o;
             if(array_len(g->list)) {
-                str_fmtx(out, arg->fmt.flag_delim, "<");
+                so_fmt_fx(out, arg->fmt.flag_delim, "<");
                 for(size_t i = 0; i < array_len(g->list); ++i) {
-                    if(i) str_fmtx(out, arg->fmt.flag_delim, "|");
+                    if(i) so_fmt_fx(out, arg->fmt.flag_delim, "|");
                     ArgX *x = array_at(g->list, i);
                     ASSERT_ARG(x->group);
                     ASSERT_ARG(x->group->parent);
-                    ASSERT(x->id == ARG_FLAG, "the option [%.*s] in [--%.*s] should be set as a %s", STR_F(x->info.opt), STR_F(x->group->parent->info.opt), arglist_str(ARG_FLAG));
+                    ASSERT(x->id == ARG_FLAG, "the option [%.*s] in [--%.*s] should be set as a %s", SO_F(x->info.opt), SO_F(x->group->parent->info.opt), arglist_str(ARG_FLAG));
                     if(*x->val.b) {
-                        str_fmtx(out, arg->fmt.flag_set, "%.*s", STR_F(x->info.opt));
+                        so_fmt_fx(out, arg->fmt.flag_set, "%.*s", SO_F(x->info.opt));
                     } else {
-                        str_fmtx(out, arg->fmt.flag, "%.*s", STR_F(x->info.opt));
+                        so_fmt_fx(out, arg->fmt.flag, "%.*s", SO_F(x->info.opt));
                     }
                 }
-                str_fmtx(out, arg->fmt.flag_delim, ">");
+                so_fmt_fx(out, arg->fmt.flag_delim, ">");
             }
         } break;
         case ARG_HELP: {
-            str_fmtx(out, arg->fmt.type_delim, "<");
-            str_fmtx(out, arg->fmt.type, "arg");
-            str_fmtx(out, arg->fmt.type_delim, ">");
+            so_fmt_fx(out, arg->fmt.type_delim, "<");
+            so_fmt_fx(out, arg->fmt.type, "arg");
+            so_fmt_fx(out, arg->fmt.type_delim, ">");
         } break;
         case ARG_NONE:
         case ARG__COUNT: break;
     }
-    //////str_push(out, ' ');
+    //////so_push(out, ' ');
     //////TODO maybe set??? (above)
 } /*}}}*/
 
@@ -669,7 +687,7 @@ void arg_help_set(struct Arg *arg, struct ArgX *x) {
     }
 }
 
-bool argx_fmt_val(Str *out, Arg *arg, ArgX *x, ArgXVal val, StrC prefix) {
+bool argx_fmt_val(So *out, Arg *arg, ArgX *x, ArgXVal val, So prefix) {
     ASSERT_ARG(out);
     ASSERT_ARG(arg);
     ASSERT_ARG(x);
@@ -683,59 +701,59 @@ bool argx_fmt_val(Str *out, Arg *arg, ArgX *x, ArgXVal val, StrC prefix) {
         case ARG_HELP: {} break;
         case ARG_BOOL: {
             if(!val.b) break;
-            str_fmtx(out, arg->fmt.val_delim, "%.*s", STR_F(prefix));
-            str_fmtx(out, arg->fmt.val, "%s", *val.b ? "true" : "false");
+            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, "%s", *val.b ? "true" : "false");
             did_fmt = true;
         } break;
         case ARG_COLOR: {
             if(!val.c) break;
-            str_fmtx(out, arg->fmt.val_delim, "%.*s", STR_F(prefix));
-            color_fmt_rgb(out, *val.c);
+            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
+            so_fmt_color(out, *val.c, SO_COLOR_RGB);
             did_fmt = true;
         } break;
         case ARG_FLOAT: {
             if(!val.f) break;
-            str_fmtx(out, arg->fmt.val_delim, "%.*s", STR_F(prefix));
-            str_fmtx(out, arg->fmt.val, "%f", *val.f);
+            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, "%f", *val.f);
             did_fmt = true;
         } break;
         case ARG_INT: {
             if(!val.i) break;
-            str_fmtx(out, arg->fmt.val_delim, "%.*s", STR_F(prefix));
-            str_fmtx(out, arg->fmt.val, "%i", *val.i);
+            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, "%i", *val.i);
             did_fmt = true;
         } break;
         case ARG_FLAG: {
             if(!val.b) break;
-            str_fmtx(out, arg->fmt.val_delim, "%.*s", STR_F(prefix));
-            str_fmtx(out, arg->fmt.val, "%s", *val.b ? "true" : "false");
+            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, "%s", *val.b ? "true" : "false");
             did_fmt = true;
         } break;
         case ARG_SSZ: {
             if(!val.z) break;
-            str_fmtx(out, arg->fmt.val_delim, "%.*s", STR_F(prefix));
-            str_fmtx(out, arg->fmt.val, "%zu", *val.z);
+            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, "%zu", *val.z);
             did_fmt = true;
         } break;
         case ARG_STRING: {
             if(!val.s) break;
             if(!val.s->len) break;
-            str_fmtx(out, arg->fmt.val_delim, "%.*s", STR_F(prefix));
-            str_fmtx(out, arg->fmt.val, "%.*s", STR_F(*val.s));
+            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, "%.*s", SO_F(*val.s));
             did_fmt = true;
         } break;
         case ARG_VECTOR: {
             if(!val.v) break;
-            str_fmtx(out, arg->fmt.val_delim, "%.*s", STR_F(prefix));
-            str_fmtx(out, arg->fmt.val_delim, "[");
+            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val_delim, "[");
             size_t len = array_len(*val.v);
             for(size_t i = 0; i < len; ++i) {
-                if(i) str_fmtx(out, arg->fmt.val_delim, ",");
-                if(len > 1) str_push(out, '\n');
-                Str s = array_at(*val.v, i);
-                str_fmtx(out, arg->fmt.val, "%.*s", STR_F(s));
+                if(i) so_fmt_fx(out, arg->fmt.val_delim, ",");
+                if(len > 1) so_push(out, '\n');
+                So s = array_at(*val.v, i);
+                so_fmt_fx(out, arg->fmt.val, "%.*s", SO_F(s));
             }
-            str_fmtx(out, arg->fmt.val_delim, "]");
+            so_fmt_fx(out, arg->fmt.val_delim, "]");
             did_fmt = true;
         } break;
         case ARG__COUNT:
@@ -746,54 +764,54 @@ error:
     return false;
 }
 
-void argx_fmt(Str *out, Arg *arg, ArgX *x, bool detailed) {
+void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
     ASSERT_ARG(out);
     ASSERT_ARG(arg);
     ASSERT_ARG(x);
-    Str tmp = {0};
+    So tmp = {0};
     bool no_type = false;
     if(x->group == &arg->pos) {
         /* format POSITIONAL values: full option */
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.pos, "%.*s", STR_F(x->info.opt));
-        str_fmt_al(out, &arg->print.p_al2, arg->print.bounds.opt, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_clear(&tmp);
+        so_fmt_fx(out, arg->fmt.pos, "%.*s", SO_F(x->info.opt));
+        //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.opt, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
     } else if(x->group->table == &arg->tables.opt && !x->attr.is_env) {
         /* format OPTIONAL value: short option + full option */
         if(x->info.c) {
-            str_clear(&tmp);
-            str_fmtx(&tmp, arg->fmt.c, "%c%c", arg->base.prefix, x->info.c);
-            str_fmt_al(out, &arg->print.p_al2, arg->print.bounds.c, arg->print.bounds.c + 2, arg->print.bounds.max, "%.*s", STR_F(tmp));
+            so_clear(&tmp);
+            so_fmt_fx(out, arg->fmt.c, "%c%c", arg->base.prefix, x->info.c);
+            //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.c, arg->print.bounds.c + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
         }
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.opt, "%c%c%.*s", arg->base.prefix, arg->base.prefix, STR_F(x->info.opt));
-        str_fmt_al(out, &arg->print.p_al2, arg->print.bounds.opt, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_clear(&tmp);
+        so_fmt_fx(out, arg->fmt.opt, "%c%c%.*s", arg->base.prefix, arg->base.prefix, SO_F(x->info.opt));
+        //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.opt, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
     } else {
         ////desc = false;
         //size_t i0 = x->group && x->group.parent ? 
-        str_clear(&tmp);
-        //StrFmtX fmt = x->attr.is_env ? arg->fmt.env : arg->fmt.pos;
-        StrFmtX fmt = x->attr.is_env ? arg->fmt.env : arg->fmt.one_of;
+        so_clear(&tmp);
+        //So_Fx fmt = x->attr.is_env ? arg->fmt.env : arg->fmt.pos;
+        So_Fx fmt = x->attr.is_env ? arg->fmt.env : arg->fmt.one_of;
         size_t i0 = x->attr.is_env ? arg->print.bounds.c : arg->print.bounds.opt + 2;
-        str_fmtx(&tmp, fmt, "%.*s", STR_F(x->info.opt));
-        str_fmt_al(out, &arg->print.p_al2, i0, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_fmt_fx(out, fmt, "%.*s", SO_F(x->info.opt));
+        //////so_fmt_al(out, &arg->print.p_al2, i0, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     if(x->info.desc.len) {
-        str_clear(&tmp);
-        argx_fmt_type(&tmp, arg, x);
-        str_fmt_al(out, &arg->print.p_al2, arg->print.p_al2.i0_prev, arg->print.bounds.opt + 2, arg->print.bounds.max, " %.*s", STR_F(tmp));
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.desc, "%.*s", STR_F(x->info.desc));
-        str_fmt_al(out, &arg->print.p_al2, arg->print.bounds.desc, arg->print.bounds.opt + 4, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_clear(&tmp);
+        argx_fmt_type(out, arg, x);
+        //////so_fmt_al(out, &arg->print.p_al2, arg->print.p_al2.i0_prev, arg->print.bounds.opt + 2, arg->print.bounds.max, " %.*s", SO_F(tmp));
+        so_clear(&tmp);
+        so_fmt_fx(out, arg->fmt.desc, "%.*s", SO_F(x->info.desc));
+        //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.desc, arg->print.bounds.opt + 4, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     no_type = (detailed);
     if(!no_type) {
-        str_clear(&tmp);
-        if(argx_fmt_val(&tmp, arg, x, x->val, str("="))) {
-            str_fmt_al(out, &arg->print.p_al2, arg->print.p_al2.progress, arg->print.bounds.opt + 4, arg->print.bounds.max, " ");
+        so_clear(&tmp);
+        if(argx_fmt_val(out, arg, x, x->val, so("="))) {
+            //////so_fmt_al(out, &arg->print.p_al2, arg->print.p_al2.progress, arg->print.bounds.opt + 4, arg->print.bounds.max, " ");
         }
-        str_fmt_al(out, &arg->print.p_al2, arg->print.bounds.desc, arg->print.bounds.opt + 4, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.desc, arg->print.bounds.opt + 4, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
-    str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+    //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
     if(detailed) {
         if(x->id == ARG_OPTION && x->o) {
             for(size_t i = 0; i < array_len(x->o->list); ++i) {
@@ -801,96 +819,96 @@ void argx_fmt(Str *out, Arg *arg, ArgX *x, bool detailed) {
                 argx_fmt(out, arg, argx, false);
             }
         } else if(x->id == ARG_FLAGS) {
-            //str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+            ////////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
             //for(size_t i = 0; i < vargx_length(x->o->vec); ++i) {
             //    ArgX *argx = vargx_get_at(&x->o->vec, i);
-            //    str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+            ////////    so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
             //    argx_fmt(out, arg, argx, false);
             //}
         }
-        str_clear(&tmp);
-        if(argx_fmt_val(&tmp, arg, x, x->val, str("current value: "))) {
-            str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
-            str_fmt_al(out, &arg->print.p_al2, 0, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_clear(&tmp);
+        if(argx_fmt_val(out, arg, x, x->val, so("current value: "))) {
+            //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+            //////so_fmt_al(out, &arg->print.p_al2, 0, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
         }
-        str_clear(&tmp);
-        if(argx_fmt_val(&tmp, arg, x, x->ref, str("default value: "))) {
-            str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
-            str_fmt_al(out, &arg->print.p_al2, 0, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_clear(&tmp);
+        if(argx_fmt_val(out, arg, x, x->ref, so("default value: "))) {
+            //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+            //////so_fmt_al(out, &arg->print.p_al2, 0, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
         }
-        str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+        //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
         /* done */
     }
-    str_free(&tmp);
+    so_free(&tmp);
 }
 
-void argx_fmt_group(Str *out, Arg *arg, ArgXGroup *group) {
+void argx_fmt_group(So *out, Arg *arg, ArgXGroup *group) {
     ASSERT_ARG(out);
     ASSERT_ARG(arg);
     ASSERT_ARG(group);
     /* empty groups we don't care about */
-    Str tmp = {0};
+    So tmp = {0};
     if(!array_len(group->list) && !(group == &arg->pos)) {
         return;
     }
     /* group title */
     if(group->desc.len) {
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.group, "%.*s:", STR_F(group->desc));
-        str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_clear(&tmp);
+        so_fmt_fx(out, arg->fmt.group, "%.*s:", SO_F(group->desc));
+        //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     if(arg->parse.help.get && arg->parse.help.group) {
         if(arg->parse.help.group != group) {
-            str_clear(&tmp);
-            str_fmtx(&tmp, arg->fmt.group_delim, "<collapsed>", STR_F(group->desc));
-            str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, " %.*s\n", STR_F(tmp));
-            str_free(&tmp);
+            so_clear(&tmp);
+            so_fmt_fx(out, arg->fmt.group_delim, "<collapsed>", SO_F(group->desc));
+            //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, " %.*s\n", SO_F(tmp));
+            so_free(&tmp);
             return;
         }
     } else if(group->explicit_help) {
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.group_delim, "--help '%.*s'", STR_F(group->desc), STR_F(group->desc));
-        str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, " %.*s\n", STR_F(tmp));
-        str_free(&tmp);
+        so_clear(&tmp);
+        so_fmt_fx(out, arg->fmt.group_delim, "--help '%.*s'", SO_F(group->desc), SO_F(group->desc));
+        //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, " %.*s\n", SO_F(tmp));
+        so_free(&tmp);
         return;
     }
     /* usage / group title */
     if(group != &arg->pos) {
-        str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+        //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
     } else {
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.program, "%.*s ", STR_F(arg->base.program));
-        str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_clear(&tmp);
+        so_fmt_fx(out, arg->fmt.program, "%.*s ", SO_F(arg->base.program));
+        //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     /* each thing */
     for(size_t i = 0; i < array_len(group->list); ++i) {
         ArgX *x = array_at(group->list, i);
-        str_clear(&tmp);
+        so_clear(&tmp);
         argx_fmt(out, arg, x, false);
     }
 #if 0
     /* rest */
     if(arg->parse.rest.vec) {
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.pos, "%.*s ", STR_F(arg->parse.rest.desc));
-        str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_clear(&tmp);
+        so_fmt_fx(&tmp, arg->fmt.pos, "%.*s ", SO_F(arg->parse.rest.desc));
+        //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
 #endif
-    str_free(&tmp);
+    so_free(&tmp);
 }
 
-void argx_fmt_specific(Str *out, Arg *arg, ArgParse *parse, ArgX *x) { /*{{{*/
-    Str tmp = {0};
+void argx_fmt_specific(So *out, Arg *arg, ArgParse *parse, ArgX *x) { /*{{{*/
+    So tmp = {0};
     if(x->group) {
         if(x->group->parent) {
             argx_fmt_specific(out, arg, parse, x->group->parent);
         } else {
-            str_fmtx(&tmp, arg->fmt.group, "%.*s:", STR_F(x->group->desc));
-            str_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s\n", STR_F(tmp));
+            so_fmt_fx(out, arg->fmt.group, "%.*s:", SO_F(x->group->desc));
+            //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s\n", SO_F(tmp));
         }
     }
     argx_fmt(out, arg, x, (x == parse->help.x));
-    str_free(&tmp);
+    so_free(&tmp);
     //argx_print(base, x, false);
 } /*}}}*/
 
@@ -912,7 +930,7 @@ void argx_compgen(struct Arg *arg, struct ArgX *x) {
             if(!x->o) break;
             for(size_t i = 0; i < array_len(x->o->list); ++i) {
                 ArgX *argx = array_at(x->o->list, i);
-                argx_print_opt(&arg->print.compgen_nfirst, "%.*s", STR_F(argx->info.opt));
+                argx_print_opt(&arg->print.compgen_nfirst, "%.*s", SO_F(argx->info.opt));
             }
         } break;
         case ARG_BOOL: {
@@ -921,7 +939,7 @@ void argx_compgen(struct Arg *arg, struct ArgX *x) {
         case ARG_HELP: {
             for(size_t i = 0; i < vargxgroup_length(arg->groups); ++i) {
                 ArgXGroup *group = *vargxgroup_get_at(&arg->groups, i);
-                argx_print_opt(&arg->print.compgen_nfirst, "%.*s", STR_F(group->desc));
+                argx_print_opt(&arg->print.compgen_nfirst, "%.*s", SO_F(group->desc));
             }
         } break;
         default: break;
@@ -954,11 +972,11 @@ void arg_compgen(struct Arg *arg) {
             ArgX *x = (*kv)->val;
             if(x->attr.is_env) continue;
             if(x->group && x->group->parent) {
-                argx_print_opt(&arg->print.compgen_nfirst, "%.*s", STR_F(x->info.opt));
+                argx_print_opt(&arg->print.compgen_nfirst, "%.*s", SO_F(x->info.opt));
             } else {
                 int len = array_len(arg->instream.vals);
                 if(len >= 1 && *arg->instream.vals[len - 1].str == '-') {
-                    argx_print_opt(&arg->print.compgen_nfirst, "%c%c%.*s", arg->base.prefix, arg->base.prefix, STR_F(x->info.opt));
+                    argx_print_opt(&arg->print.compgen_nfirst, "%c%c%.*s", arg->base.prefix, arg->base.prefix, SO_F(x->info.opt));
                 }
             }
         }
@@ -968,7 +986,7 @@ void arg_compgen(struct Arg *arg) {
         size_t i = arg->n_pos_parsed;
         if(i < array_len(arg->pos.list)) {
             ArgX *x = array_at(arg->pos.list, i);
-            //printff("X = %.*s", STR_F(x->info.opt));
+            //printff("X = %.*s", SO_F(x->info.opt));
             argx_compgen(arg, x);
         }
     }
@@ -981,8 +999,7 @@ int arg_help(struct Arg *arg) { /*{{{*/
         return 0;
     }
     ASSERT_ARG(arg);
-    Str out = {0};
-    Str tmp = {0};
+    So out = {0};
     /* if term width < min, adjust */
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -995,26 +1012,22 @@ int arg_help(struct Arg *arg) { /*{{{*/
         argx_fmt_specific(&out, arg, &arg->parse, arg->parse.help.x);
     } else {
         /* default help */
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.program, "%.*s:", STR_F(arg->base.program));
-        str_fmtx(&tmp, (StrFmtX){0}, " %.*s\n", STR_F(arg->base.desc));
-        str_fmt_al(&out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_fmt_fx(&out, arg->fmt.program, "%.*s:", SO_F(arg->base.program));
+        so_fmt_fx(&out, (So_Fx){0}, " %.*s\n", SO_F(arg->base.desc));
+        //////so_fmt_al(&out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", SO_F(tmp));
 
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.group, "%.*s:", STR_F(arg->pos.desc));
-        str_fmt_al(&out, &arg->print.p_al2, 0, arg->print.bounds.c, arg->print.bounds.max, "%.*s\n", STR_F(tmp));
-        str_clear(&tmp);
-        str_fmtx(&tmp, arg->fmt.program, "%.*s", STR_F(arg->base.program));
-        str_fmt_al(&out, &arg->print.p_al2, arg->print.bounds.c, arg->print.bounds.c + 2, arg->print.bounds.max, "%.*s", STR_F(tmp));
+        so_fmt_fx(&out, arg->fmt.group, "%.*s:", SO_F(arg->pos.desc));
+        //////so_fmt_al(&out, &arg->print.p_al2, 0, arg->print.bounds.c, arg->print.bounds.max, "%.*s\n", SO_F(tmp));
+        so_fmt_fx(&out, arg->fmt.program, "%.*s", SO_F(arg->base.program));
+        //////so_fmt_al(&out, &arg->print.p_al2, arg->print.bounds.c, arg->print.bounds.c + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
 
         for(size_t i = 0; i < array_len(arg->pos.list); ++i) {
             ArgX *argx = array_at(arg->pos.list, i);
-            str_clear(&tmp);
-            str_fmtx(&tmp, arg->fmt.pos, "%.*s", STR_F(argx->info.opt));
-            str_fmt_al(&out, &arg->print.p_al2, 0, arg->print.bounds.c, arg->print.bounds.max, " %.*s", STR_F(tmp));
+            so_fmt_fx(&out, arg->fmt.pos, "%.*s", SO_F(argx->info.opt));
+            //////so_fmt_al(&out, &arg->print.p_al2, 0, arg->print.bounds.c, arg->print.bounds.max, " %.*s", SO_F(tmp));
         }
         /*  */
-        str_fmt_al(&out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+        //////so_fmt_al(&out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
         for(size_t i = 0; i < array_len(arg->pos.list); ++i) {
             ArgX *argx = array_at(arg->pos.list, i);
             argx_fmt(&out, arg, argx, false);
@@ -1026,48 +1039,47 @@ int arg_help(struct Arg *arg) { /*{{{*/
                 ArgXGroup **group = vargxgroup_get_at(&arg->groups, i);
                 argx_fmt_group(&out, arg, *group);
             }
-            if(str_len_raw(arg->base.epilog)) {
-                //arg_handle_print(arg, ARG_PRINT_NONE, "%.*s", STR_F(arg->base.epilog));
+            if(so_len(arg->base.epilog)) {
+                //arg_handle_print(arg, ARG_PRINT_NONE, "%.*s", SO_F(arg->base.epilog));
                 //printf("\n");
-                str_fmt_al(&out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s\n", STR_F(arg->base.epilog));
+                //////so_fmt_al(&out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s\n", SO_F(arg->base.epilog));
             }
         }
     }
-    str_free(&tmp);
-    str_print(out);
-    str_free(&out);
+    so_print(out);
+    so_free(&out);
     arg->print.bounds.max = width_restore;
     return 0;
 } /*}}}*/
 
-void arg_config(struct Arg *arg, StrC conf) {
+void arg_config(struct Arg *arg, So conf) {
     ASSERT_ARG(arg);
     array_push(arg->parse.config, conf);
 }
 
-int arg_config_from_file(struct Arg *arg, Str filename) {
+int arg_config_from_file(struct Arg *arg, So filename) {
     ASSERT_ARG(arg);
-    Str expanded = {0};
-    str_fmt_expath(&expanded, filename, true);
+    So expanded = {0};
+    so_extend_wordexp(&expanded, filename, true);
     if(!expanded.len) return 0;
     for(size_t i = 0; i < array_len(arg->parse.config_files_expand); ++i) {
-        if(!str_cmp(array_at(arg->parse.config_files_expand, i), expanded)) {
-            str_free(&expanded);
+        if(!so_cmp(array_at(arg->parse.config_files_expand, i), expanded)) {
+            so_free(&expanded);
             return 0;
         }
     }
     array_push(arg->parse.config_files_expand, expanded);
-    Str text = {0};
-    if(file_str_read(expanded, &text)) goto error;
+    So text = {0};
+    if(so_file_read(expanded, &text)) goto error;
     array_push(arg->parse.config, text);
     if(!text.len) {
-        str_free(&text);
+        so_free(&text);
         return 0;
     }
     TRYC(arg_config_from_str(arg, text));
     return 0;
 error:
-    THROW_PRINT("failed reading file: '%.*s'\n", STR_F(expanded));
+    THROW_PRINT("failed reading file: '%.*s'\n", SO_F(expanded));
     return -1;
 }
 
@@ -1093,8 +1105,8 @@ RStr arg_info_opt(struct Arg *arg, void *x) {
 
 /* PARSING FUNCTIONS {{{ */
 
-#define ERR_arg_parse_getopt_long(table, x, opt, ...) "nothing found for '" F("%.*s", FG_BL_B) "'", STR_F(opt)
-ErrDecl arg_parse_getopt_long(ArgXTable *table, ArgX **x, StrC opt) {
+#define ERR_arg_parse_getopt_long(table, x, opt, ...) "nothing found for '" F("%.*s", FG_BL_B) "'", SO_F(opt)
+ErrDecl arg_parse_getopt_long(ArgXTable *table, ArgX **x, So opt) {
     ASSERT_ARG(table);
     ASSERT_ARG(x);
     *x = targx_get(&table->lut, opt);
@@ -1114,24 +1126,24 @@ error:
 }
 
 #define ERR_arg_parse_getv(...) "failed getting an argument"
-ErrDecl arg_parse_getv(ArgParse *parse, ArgStream *stream, Str *argV, bool *need_help) {
+ErrDecl arg_parse_getv(ArgParse *parse, ArgStream *stream, So *argV, bool *need_help) {
     ASSERT_ARG(parse);
     ASSERT_ARG(stream->vals);
     ASSERT_ARG(argV);
     bool pe = !stream->try_parse;
     /* parse->compgen? */
     unsigned int pfx = parse->base->prefix;
-    StrC result;
+    So result;
 repeat:
     if(stream->i < array_len(stream->vals)) {
-        Str argv = stream->vals[stream->i++];
+        So argv = stream->vals[stream->i++];
         result = argv;
-        if(!stream->force_done_parsing && str_len_raw(result) == 2 && str_at(result, 0) == pfx && str_at(result, 1) == pfx) {
+        if(!stream->force_done_parsing && so_len(result) == 2 && so_at(result, 0) == pfx && so_at(result, 1) == pfx) {
             stream->force_done_parsing = true;
             goto repeat;
         }
         *argV = result;
-        //printff("GOT ARGUMENT %.*s", STR_F(*argV));
+        //printff("GOT ARGUMENT %.*s", SO_F(*argV));
     } else {
         if(stream->force_done_parsing) {
         } else if(parse->base->compgen_wordlist) {
@@ -1171,15 +1183,15 @@ ArgXVal *argxval_to_set(ArgX *argx, ArgStream *stream) {
     return v;
 }
 
-#define ERR_argx_parse(parse, stream, argx, ...) "failed parsing argument " F("[%.*s]", BOLD FG_WT_B) " " F("%s", ARG_TYPE_F), STR_F(argx->info.opt), arglist_str(argx->id)
+#define ERR_argx_parse(parse, stream, argx, ...) "failed parsing argument " F("[%.*s]", BOLD FG_WT_B) " " F("%s", ARG_TYPE_F), SO_F(argx->info.opt), arglist_str(argx->id)
 ErrDecl argx_parse(ArgParse *parse, ArgStream *stream, ArgX *argx, bool *quit_early) {
     ASSERT_ARG(parse);
     ASSERT_ARG(argx);
-    //printff("PARSE [%.*s]", STR_F(argx->info.opt));
+    //printff("PARSE [%.*s]", SO_F(argx->info.opt));
     /* add to queue for post processing */
     bool pe = !stream->try_parse;
     TRYG(vargx_push_back(&stream->queue, argx));
-    StrC argV = str("");
+    So argV = so("");
     /* check if we want to get help for this */
     if(parse->help.get && !argx->attr.is_env) {
         if(!parse->help.x || (argx->group ? parse->help.x == argx->group->parent : false)) {
@@ -1194,13 +1206,13 @@ ErrDecl argx_parse(ArgParse *parse, ArgStream *stream, ArgX *argx, bool *quit_ea
     }
     /* actually begin parsing */
     bool need_help = false;
-    //printff("SETTING VALUE FOR %.*s ID %u", STR_F(argx->info.opt), argx->id);
+    //printff("SETTING VALUE FOR %.*s ID %u", SO_F(argx->info.opt), argx->id);
     switch(argx->id) {
         case ARG_BOOL: { //printff("GET VALUE FOR BOOL");
             if(stream->i < array_len(stream->vals)) {
-                TRYC_P(pe, arg_parse_getv(parse, stream, &argV, &need_help)); //printff("GOT VALUE [%.*s]", STR_F(argV));
+                TRYC_P(pe, arg_parse_getv(parse, stream, &argV, &need_help)); //printff("GOT VALUE [%.*s]", SO_F(argV));
                 if(need_help) break;
-                if(str_as_bool(argV, argxval_to_set(argx, stream)->b)) {
+                if(so_as_yes_or_no(argV, argxval_to_set(argx, stream)->b)) {
                     if(argx->attr.require_tf) {
                         THROW_P(pe, "failed parsing bool");
                     } else {
@@ -1223,27 +1235,27 @@ ErrDecl argx_parse(ArgParse *parse, ArgStream *stream, ArgX *argx, bool *quit_ea
         case ARG_SSZ: {
             TRYC_P(pe, arg_parse_getv(parse, stream, &argV, &need_help));
             if(need_help) break;
-            TRYC_P(pe, str_as_ssize(argV, argxval_to_set(argx, stream)->z, 0));
+            TRYC_P(pe, so_as_ssize(argV, argxval_to_set(argx, stream)->z, 0));
             if(!stream->is_config) ++argx->count;
         } break;
         case ARG_INT: {
             TRYC_P(pe, arg_parse_getv(parse, stream, &argV, &need_help));
             if(need_help) break;
             ssize_t z = 0;
-            TRYC_P(pe, str_as_ssize(argV, &z, 0));
+            TRYC_P(pe, so_as_ssize(argV, &z, 0));
             *argxval_to_set(argx, stream)->i = (int)z;
             if(!stream->is_config) ++argx->count;
         } break;
         case ARG_FLOAT: {
             TRYC_P(pe, arg_parse_getv(parse, stream, &argV, &need_help));
             if(need_help) break;
-            TRYC_P(pe, str_as_double(argV, argxval_to_set(argx, stream)->f));
+            TRYC_P(pe, so_as_double(argV, argxval_to_set(argx, stream)->f));
             if(!stream->is_config) ++argx->count;
         } break;
         case ARG_COLOR: {
             TRYC_P(pe, arg_parse_getv(parse, stream, &argV, &need_help));
             if(need_help) break;
-            TRYC_P(pe, str_as_color(argV, argxval_to_set(argx, stream)->c));
+            TRYC_P(pe, so_as_color(argV, argxval_to_set(argx, stream)->c));
             if(!stream->is_config) ++argx->count;
         } break;
         case ARG_STRING: {
@@ -1280,7 +1292,7 @@ ErrDecl argx_parse(ArgParse *parse, ArgStream *stream, ArgX *argx, bool *quit_ea
                     *x->val.b = false;
                 }
             }
-            for(Str flag = {0}; str_splice(argV, &flag, parse->base->flag_sep); ) {
+            for(So flag = {0}; so_splice(argV, &flag, parse->base->flag_sep); ) {
                 if(!flag.str) continue;
                 ArgX *x = 0;
                 TRYC_P(pe, arg_parse_getopt_long(argx->o->table, &x, flag));
@@ -1296,15 +1308,15 @@ ErrDecl argx_parse(ArgParse *parse, ArgStream *stream, ArgX *argx, bool *quit_ea
             ArgStream s = *stream;
             s.try_parse = true;
             /* get next value and parse */
-            Str argv = {0};
+            So argv = {0};
             if(arg_parse_getv(parse, &s, &argv, &discard_quit)) goto arg_try_opt_error;
             ArgX *x = 0;
             char pfx = parse->base->prefix;
             if(stream->is_config) {
                 if(arg_parse_getopt_long(argx->table, &x, argv)) goto arg_try_opt_error;
             } else {
-                if(!(argv.len > 2 && str_at(argv, 0) == pfx && str_at(argv, 1) == pfx)) goto arg_try_opt_error;
-                if(arg_parse_getopt_long(argx->table, &x, str_i0(argv, 2))) goto arg_try_opt_error;
+                if(!(argv.len > 2 && so_at(argv, 0) == pfx && so_at(argv, 1) == pfx)) goto arg_try_opt_error;
+                if(arg_parse_getopt_long(argx->table, &x, so_i0(argv, 2))) goto arg_try_opt_error;
             }
             if(argx_parse(parse, &s, x, &discard_quit)) goto arg_try_opt_error;
             goto arg_try_opt_done;
@@ -1328,7 +1340,7 @@ arg_try_opt_done:
         if(!(parse->base->compgen_wordlist && !argx->attr.callback.allow_compgen)) {
             if(argx->attr.callback.func(argx->attr.callback.data)) {
                 if(!(pe || stream->is_config)) {
-                    THROW_PRINT("failed executing function for " F("[%.*s]", BOLD) "\n", STR_F(argx->info.opt));
+                    THROW_PRINT("failed executing function for " F("[%.*s]", BOLD) "\n", SO_F(argx->info.opt));
                 }
                 goto error_skip_help;
             }
@@ -1341,7 +1353,7 @@ arg_try_opt_done:
     }
 error:
     if(!parse->help.get) {
-        //printff("HELP GET X: %.*s", STR_F(argx->info.opt));
+        //printff("HELP GET X: %.*s", SO_F(argx->info.opt));
         parse->help.get = true;
         parse->help.x = argx;
     }
@@ -1374,7 +1386,7 @@ void arg_parse_setref_argx(struct ArgX *argx) {
             if(argx->ref.c) *argx->val.c = *argx->ref.c;
         } break;
         case ARG_STRING: {
-            //printff("SETTING STR %.*s=%.*s", STR_F(argx->info.opt), STR_F(*argx->ref.s));
+            //printff("SETTING STR %.*s=%.*s", SO_F(argx->info.opt), SO_F(*argx->ref.s));
             if(argx->ref.s) *argx->val.s = *argx->ref.s;
         } break;
         case ARG_VECTOR: {
@@ -1425,16 +1437,16 @@ int argstream_parse(struct Arg *arg, ArgStream *stream, bool *quit_early) {
     ArgParse *parse = &arg->parse;
     /* check optional arguments */
     while(stream->i < array_len(stream->vals)) {
-        StrC argV = str("");
+        So argV = so("");
         TRYC(arg_parse_getv(parse, stream, &argV, &need_help));
         if(need_help) break;
         if(*quit_early) goto quit_early;
-        if(!str_len_raw(argV)) continue;
-        //printff(" [%.*s] %zu / %zu : config %u", STR_F(argV), stream->i, array_len(stream->vals), stream->is_config);
-        if(!stream->force_done_parsing && (stream->is_config || (str_len_raw(argV) >= 1 && str_at(argV, 0) == pfx))) {
+        if(!so_len(argV)) continue;
+        //printff(" [%.*s] %zu / %zu : config %u", SO_F(argV), stream->i, array_len(stream->vals), stream->is_config);
+        if(!stream->force_done_parsing && (stream->is_config || (so_len(argV) >= 1 && so_at(argV, 0) == pfx))) {
             /* regular checking for options */
-            if(stream->is_config || (str_len_raw(argV) >= 2 && str_at(argV, 1) == pfx)) {
-                StrC arg_query = stream->is_config ? argV : str_i0(argV, 2);
+            if(stream->is_config || (so_len(argV) >= 2 && so_at(argV, 1) == pfx)) {
+                So arg_query = stream->is_config ? argV : so_i0(argV, 2);
                 /* long option */
                 TRYC(arg_parse_getopt_long(&arg->tables.opt, &argx, arg_query));
                 if(!argx->attr.is_env) {
@@ -1443,17 +1455,17 @@ int argstream_parse(struct Arg *arg, ArgStream *stream, bool *quit_early) {
                     ASSERT_ARG(0);
                 }
             } else {
-                StrC arg_queries = str_i0(argV, 1);
+                So arg_queries = so_i0(argV, 1);
                 /* short option */
-                for(size_t i = 0; i < str_len_raw(arg_queries); ++i) {
-                    const unsigned char query = str_at(arg_queries, i);
+                for(size_t i = 0; i < so_len(arg_queries); ++i) {
+                    const unsigned char query = so_at(arg_queries, i);
                     TRYC(arg_parse_getopt_short(arg, &argx, query));
                     if(!argx->attr.is_env) {
                         TRYC(argx_parse(parse, stream, argx, quit_early));
                     } else {
                         ASSERT_ARG(0);
                     }
-                    //printff("SHORT OPTION! %.*s", STR_F(arg_queries));
+                    //printff("SHORT OPTION! %.*s", SO_F(arg_queries));
                 }
                 //ArgX *argx = arg->opt_short[
             }
@@ -1471,11 +1483,11 @@ int argstream_parse(struct Arg *arg, ArgStream *stream, bool *quit_early) {
         if(parse->help.get_explicit && stream->i < array_len(stream->vals)) {
             (void)arg_parse_getv(parse, stream, &argV, &need_help);
             ArgX *x = targx_get(&arg->tables.opt.lut, argV);
-            //printff("GET HELP [%.*s]", STR_F(argV));
+            //printff("GET HELP [%.*s]", SO_F(argV));
             if(argV.len) {
                 for(size_t j = 0; j < vargxgroup_length(arg->groups); ++j) {
                     ArgXGroup **group = vargxgroup_get_at(&arg->groups, j);
-                    if(!str_cmp(argV, (*group)->desc)) {
+                    if(!so_cmp(argV, (*group)->desc)) {
                         arg->parse.help.group = *group;
                     }
                 }
@@ -1501,12 +1513,12 @@ int argstream_parse(struct Arg *arg, ArgStream *stream, bool *quit_early) {
     for(size_t i = 0; i < vargx_length(stream->queue); ++i) {
         ArgX *x = vargx_get_at(&stream->queue, i);
         if(!x->attr.callback.priority) continue;
-        //printff("CHECK QUEUE [%.*s]", STR_F(x->info.opt));
+        //printff("CHECK QUEUE [%.*s]", SO_F(x->info.opt));
         if(x && x->attr.callback.func) {
             if(parse->base->compgen_wordlist && !x->attr.callback.allow_compgen) continue;
             if(x->attr.callback.func(x->attr.callback.data)) {
                 if(!(stream->is_config)) {
-                    THROW_PRINT("failed executing function for " F("[%.*s]", BOLD) "\n", STR_F(x->info.opt));
+                    THROW_PRINT("failed executing function for " F("[%.*s]", BOLD) "\n", SO_F(x->info.opt));
                 }
                 goto error_skip_help;
             }
@@ -1532,12 +1544,12 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
     ASSERT_ARG(argv);
     ArgParse *parse = &arg->parse;
     for(size_t i = 1; i < argc; ++i) {
-        array_push(arg->instream.vals, str_l(argv[i]));
+        array_push(arg->instream.vals, so_l(argv[i]));
     }
     parse->rest.vec = arg->base.rest_vec;
     parse->rest.desc = arg->base.rest_desc;
     parse->rest.pos = &arg->pos;
-    Str temp_clean_env = {0};
+    So temp_clean_env = {0};
     int err = 0;
     /* prepare parsing */
     ArgStream tmpstream = {0};
@@ -1547,12 +1559,12 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
     while((kv = targx_iter_all(&arg->tables.opt.lut, kv))) {
         ArgX *x = (*kv)->val;
         if(!x->attr.is_env) continue;
-        str_copy(&temp_clean_env, x->info.opt);
+        so_copy(&temp_clean_env, x->info.opt);
         char *cenv = getenv(temp_clean_env.str);
-        vstr_clear(&tmpstream.vals);
+        vso_clear(&tmpstream.vals);
         if(!cenv) continue;
         argstream_free(&tmpstream);
-        array_push(tmpstream.vals, str_l(cenv));
+        array_push(tmpstream.vals, so_l(cenv));
         TRYC(argx_parse(parse, &tmpstream, x, quit_early));
         //if(parse->help.get) goto error;
     }
@@ -1579,14 +1591,14 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
     }
 clean:
     argstream_free(&arg->instream);
-    vstr_free(&tmpstream.vals);
-    str_free(&temp_clean_env);
+    vso_free(&tmpstream.vals);
+    so_free(&temp_clean_env);
     /** NOTE: DO THIS OUTSIDE:
        if(*quit_early) {
            arg_free(&arg);
        }
     *************************/
-    //printff("done argparse [%.*s]", STR_F(arg->base.program));
+    //printff("done argparse [%.*s]", SO_F(arg->base.program));
     return err;
 error:
     //printff("error");
@@ -1598,21 +1610,21 @@ error:
 
 /* CONFIG FUNCTIONS {{{ */
 
-void arg_config_error(struct Arg *arg, StrC line, size_t line_nb, StrC opt, ArgX *argx) {
+void arg_config_error(struct Arg *arg, So line, size_t line_nb, So opt, ArgX *argx) {
     ASSERT_ARG(arg);
     if(arg->base.compgen_wordlist) return ; //0;
     if(line.str) {
         THROW_PRINT("config error on " F("line %zu", BOLD FG_MG_B) ":\n", line_nb + 1);
         if(!opt.str) {
-            ERR_PRINTF("        %.*s:\n", STR_F(line));
+            ERR_PRINTF("        %.*s:\n", SO_F(line));
             ERR_PRINTF("        ^");
         } else {
-            Str pre = str_ll(line.str, opt.str - line.str);
-            Str at = opt;
-            Str post = str_i0(line, str_len_raw(pre) + str_len_raw(at));
-            ERR_PRINTF("        %.*s" F("%.*s", BOLD FG_RD_B) "%.*s\n", STR_F(pre), STR_F(at), STR_F(post));
+            So pre = so_ll(line.str, opt.str - line.str);
+            So at = opt;
+            So post = so_i0(line, so_len(pre) + so_len(at));
+            ERR_PRINTF("        %.*s" F("%.*s", BOLD FG_RD_B) "%.*s\n", SO_F(pre), SO_F(at), SO_F(post));
             ERR_PRINTF("        %*s", (int)(opt.str - line.str), "");
-            for(size_t i = 0; i < str_len_raw(opt); ++i) {
+            for(size_t i = 0; i < so_len(opt); ++i) {
             ERR_PRINTF(F("~", BOLD FG_RD_B));
             }
         }
@@ -1627,36 +1639,36 @@ void arg_config_error(struct Arg *arg, StrC line, size_t line_nb, StrC opt, ArgX
     }
 }
 
-ErrDecl arg_config_from_str(struct Arg *arg, StrC text) {
+ErrDecl arg_config_from_str(struct Arg *arg, So text) {
     ASSERT_ARG(arg);
     int err = 0;
     size_t line_nb = 0;
-    StrC line = {0}, opt = {0}, conf = text;
+    So line = {0}, opt = {0}, conf = text;
     bool pe = true;
     bool quit_early = false;
-    if(!str_len_raw(conf)) return 0;
+    if(!so_len(conf)) return 0;
     ArgX *argx = 0;
     ArgStream stream = {0};
-    for(memset(&line, 0, sizeof(line)); str_splice(conf, &line, '\n'); ++line_nb) {
+    for(memset(&line, 0, sizeof(line)); so_splice(conf, &line, '\n'); ++line_nb) {
         if(!line.str) continue;
-        line = str_trim(line);
-        line = str_iE(line, str_find_ch(line, '#'));
+        line = so_trim(line);
+        line = so_iE(line, so_find_ch(line, '#'));
         argx = 0;
         pe = true;
         if(!line.len) continue;
-        //printff("LINE:%.*s", STR_F(line));
+        //printff("LINE:%.*s", SO_F(line));
 #if 1
         argstream_free(&stream);
         stream.is_config = true;
-        for(memset(&opt, 0, sizeof(opt)); str_splice(line, &opt, '='); ) {
-            array_push(stream.vals, str_trim(opt));
+        for(memset(&opt, 0, sizeof(opt)); so_splice(line, &opt, '='); ) {
+            array_push(stream.vals, so_trim(opt));
         }
         TRYC(argstream_parse(arg, &stream, &quit_early));
 #else
-        for(memset(&opt, 0, sizeof(opt)); str_splice(line, &opt, '='); ) {
-            //printff(" OPT:%.*s, pe=%u",STR_F(opt), pe);
+        for(memset(&opt, 0, sizeof(opt)); so_splice(line, &opt, '='); ) {
+            //printff(" OPT:%.*s, pe=%u",SO_F(opt), pe);
             if(!opt.str) continue;
-            opt = str_trim(opt);
+            opt = so_trim(opt);
             if(!argx) {
                 TRYC_P(pe, arg_parse_getopt_long(&arg->tables.opt, &argx, opt));
                 if(argx->id == ARG_HELP) {
@@ -1673,7 +1685,7 @@ ErrDecl arg_config_from_str(struct Arg *arg, StrC text) {
 #if 0
                     argx_parse(&parse, 
 #else
-                //printff("  setting value for [%.*s] : %.*s : id %u", STR_F(argx->info.opt), STR_F(opt), argx->id);
+                //printff("  setting value for [%.*s] : %.*s : id %u", SO_F(argx->info.opt), SO_F(opt), argx->id);
                 switch(argx->id) {
                     case ARG_OPTION: {
                         ASSERT_ARG(argx->o);
@@ -1684,28 +1696,28 @@ ErrDecl arg_config_from_str(struct Arg *arg, StrC text) {
                     } break;
                     case ARG_BOOL: {
                         bool *b = argx->ref.b ? argx->ref.b : argx->val.b;
-                        TRYC_P(pe, str_as_bool(opt, b));
+                        TRYC_P(pe, so_as_bool(opt, b));
                     } break;
                     case ARG_SSZ: {
                         ssize_t *z = argx->ref.z ? argx->ref.z : argx->val.z;
-                        TRYC_P(pe, str_as_ssize(opt, z, 0));
+                        TRYC_P(pe, so_as_ssize(opt, z, 0));
                     } break;
                     case ARG_INT: {
                         int *i = argx->ref.i ? argx->ref.i : argx->val.i;
                         ssize_t z = 0;
-                        TRYC_P(pe, str_as_ssize(opt, &z, 0));
+                        TRYC_P(pe, so_as_ssize(opt, &z, 0));
                         *i = (int)z;
                     } break;
                     case ARG_FLOAT: {
                         double *f = argx->ref.f ? argx->ref.f : argx->val.f;
-                        TRYC_P(pe, str_as_double(opt, f));
+                        TRYC_P(pe, so_as_double(opt, f));
                     } break;
                     case ARG_COLOR: {
                         Color *c = argx->ref.c ? argx->ref.c : argx->val.c;
-                        TRYC_P(pe, str_as_color(opt, c));
+                        TRYC_P(pe, so_as_color(opt, c));
                     } break;
                     case ARG_STRING: {
-                        Str *s = argx->ref.s ? argx->ref.s : argx->val.s;
+                        So *s = argx->ref.s ? argx->ref.s : argx->val.s;
                         *s = opt;
                     } break;
                     case ARG_FLAG: {
@@ -1722,7 +1734,7 @@ ErrDecl arg_config_from_str(struct Arg *arg, StrC text) {
                             bool *b = x->ref.b ? x->ref.b : x->val.b;
                             *b = false;
                         }
-                        for(Str flag = {0}; str_splice(opt, &flag, arg->base.flag_sep); ) {
+                        for(So flag = {0}; so_splice(opt, &flag, arg->base.flag_sep); ) {
                             if(!flag.str) continue;
                             ArgX *x = 0;
                             TRYC_P(pe, arg_parse_getopt_long(argx->o->table, &x, flag));
@@ -1731,7 +1743,7 @@ ErrDecl arg_config_from_str(struct Arg *arg, StrC text) {
                         }
                     } break;
                     case ARG_VECTOR: {
-                        VStr *v = argx->ref.v ? argx->ref.v : argx->val.v;
+                        VSo *v = argx->ref.v ? argx->ref.v : argx->val.v;
                         array_push(*v, opt);
                     } break;
                     case ARG_TRY_OPT:
@@ -1797,7 +1809,7 @@ void argx_group_free_array(ArgXGroup **group) {
 
 void argx_free(ArgX *argx) {
     if(!argx) return;
-    //if(argx->id == ARG_OPTION) printff("free [%.*s]", STR_F(argx->info.opt));
+    //if(argx->id == ARG_OPTION) printff("free [%.*s]", SO_F(argx->info.opt));
     ASSERT_ARG(argx);
     if((argx->id == ARG_OPTION || argx->id == ARG_FLAGS)) {
         argx_group_free(argx->o);
@@ -1806,7 +1818,7 @@ void argx_free(ArgX *argx) {
     if(argx->id == ARG_VECTOR) {
         array_free(*argx->val.v);
     }
-    //if(argx->id == ARG_OPTION) printff("done [%.*s]", STR_F(argx->info.opt));
+    //if(argx->id == ARG_OPTION) printff("done [%.*s]", SO_F(argx->info.opt));
     memset(argx, 0, sizeof(*argx));
 };
 
@@ -1824,10 +1836,10 @@ void arg_free(struct Arg **parg) {
     argx_table_free(&arg->tables.opt);
     argx_table_free(&arg->tables.pos);
 
-    vstr_free(&arg->parse.config);
-    vstr_free(&arg->parse.config_files_base);
-    vstr_free(&arg->parse.config_files_expand);
-    if(arg->base.rest_vec) vstr_free(arg->base.rest_vec);
+    vso_free(&arg->parse.config);
+    vso_free(&arg->parse.config_files_base);
+    vso_free(&arg->parse.config_files_expand);
+    if(arg->base.rest_vec) vso_free(arg->base.rest_vec);
     free(*parg);
     *parg = 0;
     //printff("FREED ARGS");
@@ -1837,7 +1849,7 @@ void arg_free(struct Arg **parg) {
 
 void argx_builtin_env_compgen(ArgXGroup *group) {
     ASSERT_ARG(group);
-    struct ArgX *x = argx_env(group, str("COMPGEN_WORDLIST"), str("Generate input for autocompletion"), false);
+    struct ArgX *x = argx_env(group, so("COMPGEN_WORDLIST"), so("Generate input for autocompletion"), false);
     argx_bool(x, &group->root->base.compgen_wordlist, 0);
     argx_bool_require_tf(x, true);
     //argx_func(x, 0, argx_callback_env_compgen, arg, true);
@@ -1845,22 +1857,22 @@ void argx_builtin_env_compgen(ArgXGroup *group) {
 
 void argx_builtin_opt_help(ArgXGroup *group) {
     ASSERT_ARG(group);
-    struct ArgX *x = argx_init(group, 'h', str("help"), str("print this help"));
+    struct ArgX *x = argx_init(group, 'h', so("help"), so("print this help"));
     argx_help(x, group->root);
 }
 
-void argx_builtin_opt_fmtx(ArgX *x, StrFmtX *fmt, StrFmtX *ref) {
+void argx_builtin_opt_fmtx(ArgX *x, So_Fx *fmt, So_Fx *ref) {
     struct ArgXGroup *g = 0;
     g=argx_opt(x, 0, 0);
-      x=argx_init(g, 0, str("fg"), str("foreground"));
+      x=argx_init(g, 0, so("fg"), so("foreground"));
         argx_col(x, &fmt->fg, ref ? &ref->fg : 0);
-      x=argx_init(g, 0, str("bg"), str("background"));
+      x=argx_init(g, 0, so("bg"), so("background"));
         argx_col(x, &fmt->bg, ref ? &ref->bg : 0);
-      x=argx_init(g, 0, str("bold"), str("bold"));
+      x=argx_init(g, 0, so("bold"), so("bold"));
         argx_bool(x, &fmt->bold, ref ? &ref->bold : 0);
-      x=argx_init(g, 0, str("it"), str("italic"));
+      x=argx_init(g, 0, so("it"), so("italic"));
         argx_bool(x, &fmt->italic, ref ? &ref->italic : 0);
-      x=argx_init(g, 0, str("ul"), str("underline"));
+      x=argx_init(g, 0, so("ul"), so("underline"));
         argx_bool(x, &fmt->underline, ref ? &ref->underline : 0);
 }
 
@@ -1870,67 +1882,67 @@ ArgXGroup *argx_builtin_opt_rice(ArgXGroup *group) {
     struct Arg *arg = group->root;
     struct ArgX *x = 0;
     struct ArgXGroup *g = 0, *o = 0;
-    x=argx_init(group, 0, str("rice"), str("change the look & feel"));
+    x=argx_init(group, 0, so("rice"), so("change the look & feel"));
       g=argx_opt(x, false, false);
 
-    x=argx_init(g, 0, str("arg"), str("argument parser formatting"));
+    x=argx_init(g, 0, so("arg"), so("argument parser formatting"));
       o=argx_opt(x, false, false);
 
-    x=argx_init(o, 0, str("program"), str("program name formatting"));
+    x=argx_init(o, 0, so("program"), so("program name formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.program, 0);
 
-    x=argx_init(o, 0, str("group"), str("group formatting"));
+    x=argx_init(o, 0, so("group"), so("group formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.group, 0);
-    x=argx_init(o, 0, str("group-delim"), str("group delimiter formatting"));
+    x=argx_init(o, 0, so("group-delim"), so("group delimiter formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.group_delim, 0);
 
-    x=argx_init(o, 0, str("pos"), str("positional formatting"));
+    x=argx_init(o, 0, so("pos"), so("positional formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.pos, 0);
-    x=argx_init(o, 0, str("short"), str("short option formatting"));
+    x=argx_init(o, 0, so("short"), so("short option formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.c, 0);
-    x=argx_init(o, 0, str("long"), str("long option formatting"));
+    x=argx_init(o, 0, so("long"), so("long option formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.opt, 0);
-    x=argx_init(o, 0, str("env"), str("environmental formatting"));
+    x=argx_init(o, 0, so("env"), so("environmental formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.env, 0);
-    x=argx_init(o, 0, str("desc"), str("description formatting"));
+    x=argx_init(o, 0, so("desc"), so("description formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.desc, 0);
 
-    x=argx_init(o, 0, str("one"), str("one-of formatting"));
+    x=argx_init(o, 0, so("one"), so("one-of formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.one_of, 0);
-    x=argx_init(o, 0, str("one-set"), str("one-of set formatting"));
+    x=argx_init(o, 0, so("one-set"), so("one-of set formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.one_of_set, 0);
-    x=argx_init(o, 0, str("one-delim"), str("one-of delimiter formatting"));
+    x=argx_init(o, 0, so("one-delim"), so("one-of delimiter formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.one_of_delim, 0);
 
-    x=argx_init(o, 0, str("flag"), str("flag formatting"));
+    x=argx_init(o, 0, so("flag"), so("flag formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.flag, 0);
-    x=argx_init(o, 0, str("flag-set"), str("flag set formatting"));
+    x=argx_init(o, 0, so("flag-set"), so("flag set formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.flag_set, 0);
-    x=argx_init(o, 0, str("flag-delim"), str("flag delimiter formatting"));
+    x=argx_init(o, 0, so("flag-delim"), so("flag delimiter formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.flag_delim, 0);
 
-    x=argx_init(o, 0, str("type"), str("type formatting"));
+    x=argx_init(o, 0, so("type"), so("type formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.type, 0);
-    x=argx_init(o, 0, str("type-delim"), str("type delimiter formatting"));
+    x=argx_init(o, 0, so("type-delim"), so("type delimiter formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.type_delim, 0);
 
-    x=argx_init(o, 0, str("val"), str("value formatting"));
+    x=argx_init(o, 0, so("val"), so("value formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.val, 0);
-    x=argx_init(o, 0, str("val-delim"), str("value delimiter formatting"));
+    x=argx_init(o, 0, so("val-delim"), so("value delimiter formatting"));
       argx_builtin_opt_fmtx(x, &arg->fmt.val_delim, 0);
 
     return g;
 }
 
-void argx_builtin_opt_source(struct ArgXGroup *group, Str source) {
+void argx_builtin_opt_source(struct ArgXGroup *group, So source) {
     ASSERT_ARG(group);
     struct Arg *arg = group->root;
     array_push(arg->parse.config_files_base, source);
-    struct ArgX *x = targx_get(&group->table->lut, str("source"));
+    struct ArgX *x = targx_get(&group->table->lut, so("source"));
     if(!x) {
-        x=argx_init(group, 0, str("source"), str("source other config files"));
+        x=argx_init(group, 0, so("source"), so("source other config files"));
           argx_vstr(x, &arg->parse.config_files_base, 0);
-        x=argx_init(group, 0, str("try-opt"), str("try parsing an option, especially useful for within sources, to suppress errors"));
+        x=argx_init(group, 0, so("try-opt"), so("try parsing an option, especially useful for within sources, to suppress errors"));
           argx_try_parse(x);
     }
 }
