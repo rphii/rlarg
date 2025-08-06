@@ -95,7 +95,7 @@ int main(const int argc, const char **argv) {
 
     arg_init(arg, so_l(argv[0]), so("this is a test program to verify the functionality of an argument parser. also, this is a very very long and boring description, just so I can check whether or not it wraps and ends correctly! isn't that fascinating..."), so("github: " F("https://github.com/rphii", FG_BL_B UL)));
     arg_init_rest(arg, so("files"), &files);
-    arg_init_width(arg, 100, 45);
+    arg_init_width(arg, 40, 45);
     arg_init_fmt(arg);
     //arg_init_width(arg, 0, 45);
 
