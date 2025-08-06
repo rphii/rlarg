@@ -193,6 +193,7 @@ typedef struct ArgPrint {
         int opt;    // spacing until long option
     } bounds;
     So_Align_Cache p_al2;
+    So_Align whitespace;
     bool compgen_nfirst;
 } ArgPrint;
 
@@ -370,23 +371,37 @@ void arg_init_fmt(struct Arg *arg) {
     arg->fmt.one_of_delim.fg = COLOR_GRAY;
     arg->fmt.type_delim.fg = COLOR_GRAY;
     arg->fmt.type.fg = COLOR_GREEN;
-    so_al_config(&arg->fmt.group.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.group_delim.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.type.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.type_delim.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.one_of.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.one_of_set.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.flag.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.flag_set.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.flag_delim.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.val.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.val_delim.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.c.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.opt.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.pos.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.env.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.desc.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.program.align, 0, 0, arg->print.bounds.max, 0, &arg->print.p_al2);
+    const size_t bc = arg->print.bounds.c;
+    const size_t bo = arg->print.bounds.opt;
+    const size_t bd = arg->print.bounds.desc;
+    const size_t bm = arg->print.bounds.max;
+    so_al_config(&arg->fmt.group.align,         0,    bc,   bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.group_delim.align,   0,    bc,   bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.type.align,          bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.type_delim.align,    bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.one_of.align,        bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.one_of_set.align,    bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.one_of_delim.align,  bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.flag.align,          bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.flag_set.align,      bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.flag_delim.align,    bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.val.align,           bo+8, bo+8, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.val_delim.align,     bo+8, bo+8, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.c.align,             bc,   bc,   bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.opt.align,           bo,   bo+2, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.env.align,           bc,   bc+2, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.desc.align,          bd,   bo+6, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.pos.align,           bc,   bc+2, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.program.align,       0,    0,    bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->print.whitespace,        0,    0,    bm, 0, &arg->print.p_al2);
+    if(bm - bd >= 32) {
+        arg->fmt.val_delim.align.i0 = bd;
+        arg->fmt.val_delim.align.iNL = bd;
+        arg->fmt.val.align.i0 = bd + 2;
+        arg->fmt.val.align.iNL = bd + 2;
+        arg->fmt.desc.align.i0 = bd;
+        arg->fmt.desc.align.iNL = bd;
+    }
 }
 
 #define ERR_argx_group_push(...) "failed adding argument x"
@@ -617,6 +632,7 @@ void argx_hide_value(struct ArgX *x, bool hide_value) {
 /* PRINTING FUNCTIONS {{{ */
 
 void argx_fmt_type(So *out, Arg *arg, ArgX *argx) { /*{{{*/
+    size_t i0 = arg->print.p_al2.progress + 1;
     switch(argx->id) {
         case ARG_COLOR:
         case ARG_STRING:
@@ -627,49 +643,49 @@ void argx_fmt_type(So *out, Arg *arg, ArgX *argx) { /*{{{*/
         case ARG_VECTOR:
         case ARG_TRY_OPT:
         case ARG_FLOAT: {
-            so_fmt_fx(out, arg->fmt.type_delim, "<");
-            so_fmt_fx(out, arg->fmt.type, "%.*s", SO_F(argx->type.len ? argx->type : so_l(arglist_str(argx->id))));
-            so_fmt_fx(out, arg->fmt.type_delim, ">");
+            so_fmt_fx(out, arg->fmt.type_delim, i0, "<");
+            so_fmt_fx(out, arg->fmt.type, i0, "%.*s", SO_F(argx->type.len ? argx->type : so_l(arglist_str(argx->id))));
+            so_fmt_fx(out, arg->fmt.type_delim, i0, ">");
         } break;
         case ARG_OPTION: {
             ArgXGroup *g = argx->o;
             if(array_len(g->list)) {
-                so_fmt_fx(out, arg->fmt.one_of_delim, "<");
+                so_fmt_fx(out, arg->fmt.one_of_delim, i0, "<");
                 for(size_t i = 0; i < array_len(g->list); ++i) {
-                    if(i) so_fmt_fx(out, arg->fmt.one_of_delim, "|");
+                    if(i) so_fmt_fx(out, arg->fmt.one_of_delim, i0, "|");
                     ArgX *x = array_at(g->list, i);
                     if(g && g->parent && g->parent->val.i && *g->parent->val.i == x->e) {
-                        so_fmt_fx(out, arg->fmt.one_of_set, "%.*s", SO_F(x->info.opt));
+                        so_fmt_fx(out, arg->fmt.one_of_set, i0, "%.*s", SO_F(x->info.opt));
                     } else {
-                        so_fmt_fx(out, arg->fmt.one_of, "%.*s", SO_F(x->info.opt));
+                        so_fmt_fx(out, arg->fmt.one_of, i0, "%.*s", SO_F(x->info.opt));
                     }
                 }
-                so_fmt_fx(out, arg->fmt.one_of_delim, ">");
+                so_fmt_fx(out, arg->fmt.one_of_delim, i0, ">");
             }
         } break;
         case ARG_FLAGS: {
             ArgXGroup *g = argx->o;
             if(array_len(g->list)) {
-                so_fmt_fx(out, arg->fmt.flag_delim, "<");
+                so_fmt_fx(out, arg->fmt.flag_delim, i0, "<"); /* TODO the space before < also gets format applied! this is wring. */
                 for(size_t i = 0; i < array_len(g->list); ++i) {
-                    if(i) so_fmt_fx(out, arg->fmt.flag_delim, "|");
+                    if(i) so_fmt_fx(out, arg->fmt.flag_delim, i0, "|");
                     ArgX *x = array_at(g->list, i);
                     ASSERT_ARG(x->group);
                     ASSERT_ARG(x->group->parent);
                     ASSERT(x->id == ARG_FLAG, "the option [%.*s] in [--%.*s] should be set as a %s", SO_F(x->info.opt), SO_F(x->group->parent->info.opt), arglist_str(ARG_FLAG));
                     if(*x->val.b) {
-                        so_fmt_fx(out, arg->fmt.flag_set, "%.*s", SO_F(x->info.opt));
+                        so_fmt_fx(out, arg->fmt.flag_set, i0, "%.*s", SO_F(x->info.opt));
                     } else {
-                        so_fmt_fx(out, arg->fmt.flag, "%.*s", SO_F(x->info.opt));
+                        so_fmt_fx(out, arg->fmt.flag, i0, "%.*s", SO_F(x->info.opt));
                     }
                 }
-                so_fmt_fx(out, arg->fmt.flag_delim, ">");
+                so_fmt_fx(out, arg->fmt.flag_delim, i0, ">");
             }
         } break;
         case ARG_HELP: {
-            so_fmt_fx(out, arg->fmt.type_delim, "<");
-            so_fmt_fx(out, arg->fmt.type, "arg");
-            so_fmt_fx(out, arg->fmt.type_delim, ">");
+            so_fmt_fx(out, arg->fmt.type_delim, i0, " <");
+            so_fmt_fx(out, arg->fmt.type, i0, "arg");
+            so_fmt_fx(out, arg->fmt.type_delim, i0, ">");
         } break;
         case ARG_NONE:
         case ARG__COUNT: break;
@@ -693,6 +709,7 @@ bool argx_fmt_val(So *out, Arg *arg, ArgX *x, ArgXVal val, So prefix) {
     ASSERT_ARG(x);
     bool did_fmt = false;
     if(x->attr.hide_value) return false;
+    size_t i0 = arg->print.p_al2.progress + 1;
     switch(x->id) {
         case ARG_NONE: break;
         case ARG_OPTION: {} break;
@@ -701,59 +718,59 @@ bool argx_fmt_val(So *out, Arg *arg, ArgX *x, ArgXVal val, So prefix) {
         case ARG_HELP: {} break;
         case ARG_BOOL: {
             if(!val.b) break;
-            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
-            so_fmt_fx(out, arg->fmt.val, "%s", *val.b ? "true" : "false");
+            so_fmt_fx(out, arg->fmt.val_delim, i0, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, i0, "%s", *val.b ? "true" : "false");
             did_fmt = true;
         } break;
         case ARG_COLOR: {
             if(!val.c) break;
-            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val_delim, i0, "%.*s", SO_F(prefix));
             so_fmt_color(out, *val.c, SO_COLOR_RGB);
             did_fmt = true;
         } break;
         case ARG_FLOAT: {
             if(!val.f) break;
-            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
-            so_fmt_fx(out, arg->fmt.val, "%f", *val.f);
+            so_fmt_fx(out, arg->fmt.val_delim, i0, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, i0, "%f", *val.f);
             did_fmt = true;
         } break;
         case ARG_INT: {
             if(!val.i) break;
-            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
-            so_fmt_fx(out, arg->fmt.val, "%i", *val.i);
+            so_fmt_fx(out, arg->fmt.val_delim, i0, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, i0, "%i", *val.i);
             did_fmt = true;
         } break;
         case ARG_FLAG: {
             if(!val.b) break;
-            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
-            so_fmt_fx(out, arg->fmt.val, "%s", *val.b ? "true" : "false");
+            so_fmt_fx(out, arg->fmt.val_delim, i0, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, i0, "%s", *val.b ? "true" : "false");
             did_fmt = true;
         } break;
         case ARG_SSZ: {
             if(!val.z) break;
-            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
-            so_fmt_fx(out, arg->fmt.val, "%zu", *val.z);
+            so_fmt_fx(out, arg->fmt.val_delim, i0, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, i0, "%zu", *val.z);
             did_fmt = true;
         } break;
         case ARG_STRING: {
             if(!val.s) break;
             if(!val.s->len) break;
-            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
-            so_fmt_fx(out, arg->fmt.val, "%.*s", SO_F(*val.s));
+            so_fmt_fx(out, arg->fmt.val_delim, i0, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val, i0, "%.*s", SO_F(*val.s));
             did_fmt = true;
         } break;
         case ARG_VECTOR: {
             if(!val.v) break;
-            so_fmt_fx(out, arg->fmt.val_delim, "%.*s", SO_F(prefix));
-            so_fmt_fx(out, arg->fmt.val_delim, "[");
+            so_fmt_fx(out, arg->fmt.val_delim, i0, "%.*s", SO_F(prefix));
+            so_fmt_fx(out, arg->fmt.val_delim, i0, "[");
             size_t len = array_len(*val.v);
             for(size_t i = 0; i < len; ++i) {
-                if(i) so_fmt_fx(out, arg->fmt.val_delim, ",");
-                if(len > 1) so_push(out, '\n');
+                if(i) so_fmt_fx(out, arg->fmt.val_delim, 0, ",");
+                if(len > 1) so_al_nl(out, arg->print.whitespace, 1);
                 So s = array_at(*val.v, i);
-                so_fmt_fx(out, arg->fmt.val, "%.*s", SO_F(s));
+                so_fmt_fx(out, arg->fmt.val, 0, "%.*s", SO_F(s));
             }
-            so_fmt_fx(out, arg->fmt.val_delim, "]");
+            so_fmt_fx(out, arg->fmt.val_delim, 0, "]");
             did_fmt = true;
         } break;
         case ARG__COUNT:
@@ -770,20 +787,21 @@ void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
     ASSERT_ARG(x);
     So tmp = {0};
     bool no_type = false;
+    size_t i0 = arg->print.p_al2.progress + 1;
     if(x->group == &arg->pos) {
         /* format POSITIONAL values: full option */
         so_clear(&tmp);
-        so_fmt_fx(out, arg->fmt.pos, "%.*s", SO_F(x->info.opt));
+        so_fmt_fx(out, arg->fmt.pos, 0, "%.*s", SO_F(x->info.opt));
         //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.opt, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
     } else if(x->group->table == &arg->tables.opt && !x->attr.is_env) {
         /* format OPTIONAL value: short option + full option */
         if(x->info.c) {
             so_clear(&tmp);
-            so_fmt_fx(out, arg->fmt.c, "%c%c", arg->base.prefix, x->info.c);
+            so_fmt_fx(out, arg->fmt.c, 0, "%c%c", arg->base.prefix, x->info.c);
             //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.c, arg->print.bounds.c + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
         }
         so_clear(&tmp);
-        so_fmt_fx(out, arg->fmt.opt, "%c%c%.*s", arg->base.prefix, arg->base.prefix, SO_F(x->info.opt));
+        so_fmt_fx(out, arg->fmt.opt, 0, "%c%c%.*s", arg->base.prefix, arg->base.prefix, SO_F(x->info.opt));
         //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.opt, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
     } else {
         ////desc = false;
@@ -792,26 +810,25 @@ void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
         //So_Fx fmt = x->attr.is_env ? arg->fmt.env : arg->fmt.pos;
         So_Fx fmt = x->attr.is_env ? arg->fmt.env : arg->fmt.one_of;
         size_t i0 = x->attr.is_env ? arg->print.bounds.c : arg->print.bounds.opt + 2;
-        so_fmt_fx(out, fmt, "%.*s", SO_F(x->info.opt));
+        so_fmt_fx(out, fmt, i0, "%.*s", SO_F(x->info.opt));
         //////so_fmt_al(out, &arg->print.p_al2, i0, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     if(x->info.desc.len) {
+        i0 = arg->print.p_al2.progress + 1;
         so_clear(&tmp);
         argx_fmt_type(out, arg, x);
         //////so_fmt_al(out, &arg->print.p_al2, arg->print.p_al2.i0_prev, arg->print.bounds.opt + 2, arg->print.bounds.max, " %.*s", SO_F(tmp));
         so_clear(&tmp);
-        so_fmt_fx(out, arg->fmt.desc, "%.*s", SO_F(x->info.desc));
+        so_fmt_fx(out, arg->fmt.desc, 0, "%.*s", SO_F(x->info.desc));
         //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.desc, arg->print.bounds.opt + 4, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     no_type = (detailed);
     if(!no_type) {
         so_clear(&tmp);
-        if(argx_fmt_val(out, arg, x, x->val, so("="))) {
-            //////so_fmt_al(out, &arg->print.p_al2, arg->print.p_al2.progress, arg->print.bounds.opt + 4, arg->print.bounds.max, " ");
-        }
+        argx_fmt_val(out, arg, x, x->val, so("="));
         //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.desc, arg->print.bounds.opt + 4, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
-    //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+    so_al_nl(out, arg->print.whitespace, 1);
     if(detailed) {
         if(x->id == ARG_OPTION && x->o) {
             for(size_t i = 0; i < array_len(x->o->list); ++i) {
@@ -827,15 +844,19 @@ void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
             //}
         }
         so_clear(&tmp);
-        if(argx_fmt_val(out, arg, x, x->val, so("current value: "))) {
+        if(argx_fmt_val(&tmp, arg, x, x->val, so("current value: "))) {
+            so_fmt_al(out, arg->print.whitespace, 0, "\n%.*s", tmp);
             //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
             //////so_fmt_al(out, &arg->print.p_al2, 0, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
         }
         so_clear(&tmp);
-        if(argx_fmt_val(out, arg, x, x->ref, so("default value: "))) {
+        if(argx_fmt_val(&tmp, arg, x, x->ref, so("default value: "))) {
+            //so_al_nl(out, arg->print.whitespace, 1);
+            so_fmt_al(out, arg->print.whitespace, 0, "\n%.*s", tmp);
             //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
             //////so_fmt_al(out, &arg->print.p_al2, 0, arg->print.bounds.opt + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
         }
+        so_al_nl(out, arg->print.whitespace, 1);
         //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
         /* done */
     }
@@ -854,30 +875,32 @@ void argx_fmt_group(So *out, Arg *arg, ArgXGroup *group) {
     /* group title */
     if(group->desc.len) {
         so_clear(&tmp);
-        so_fmt_fx(out, arg->fmt.group, "%.*s:", SO_F(group->desc));
+        so_fmt_fx(out, arg->fmt.group, 0, "%.*s:", SO_F(group->desc));
         //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     if(arg->parse.help.get && arg->parse.help.group) {
         if(arg->parse.help.group != group) {
             so_clear(&tmp);
-            so_fmt_fx(out, arg->fmt.group_delim, "<collapsed>", SO_F(group->desc));
+            so_fmt_fx(out, arg->fmt.group_delim, 0, "<collapsed>", SO_F(group->desc));
             //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, " %.*s\n", SO_F(tmp));
             so_free(&tmp);
             return;
         }
     } else if(group->explicit_help) {
+        size_t i0 = arg->print.p_al2.progress + 1;
         so_clear(&tmp);
-        so_fmt_fx(out, arg->fmt.group_delim, "--help '%.*s'", SO_F(group->desc), SO_F(group->desc));
+        so_fmt_fx(out, arg->fmt.group_delim, i0, "--help '%.*s'", SO_F(group->desc), SO_F(group->desc));
+        so_al_nl(out, arg->print.whitespace, 1);
         //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, " %.*s\n", SO_F(tmp));
         so_free(&tmp);
         return;
     }
     /* usage / group title */
     if(group != &arg->pos) {
-        //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+        so_al_nl(out, arg->print.whitespace, 1);
     } else {
         so_clear(&tmp);
-        so_fmt_fx(out, arg->fmt.program, "%.*s ", SO_F(arg->base.program));
+        so_fmt_fx(out, arg->fmt.program, 0, "%.*s ", SO_F(arg->base.program));
         //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     /* each thing */
@@ -903,7 +926,7 @@ void argx_fmt_specific(So *out, Arg *arg, ArgParse *parse, ArgX *x) { /*{{{*/
         if(x->group->parent) {
             argx_fmt_specific(out, arg, parse, x->group->parent);
         } else {
-            so_fmt_fx(out, arg->fmt.group, "%.*s:", SO_F(x->group->desc));
+            so_fmt_fx(out, arg->fmt.group, 0, "%.*s:", SO_F(x->group->desc));
             //////so_fmt_al(out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s\n", SO_F(tmp));
         }
     }
@@ -1012,22 +1035,22 @@ int arg_help(struct Arg *arg) { /*{{{*/
         argx_fmt_specific(&out, arg, &arg->parse, arg->parse.help.x);
     } else {
         /* default help */
-        so_fmt_fx(&out, arg->fmt.program, "%.*s:", SO_F(arg->base.program));
-        so_fmt_fx(&out, (So_Fx){0}, " %.*s\n", SO_F(arg->base.desc));
+        so_fmt_fx(&out, arg->fmt.program, 0, "%.*s:", SO_F(arg->base.program));
+        so_fmt_fx(&out, (So_Fx){0}, 0, " %.*s", SO_F(arg->base.desc));
         //////so_fmt_al(&out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s", SO_F(tmp));
 
-        so_fmt_fx(&out, arg->fmt.group, "%.*s:", SO_F(arg->pos.desc));
+        so_fmt_fx(&out, arg->fmt.group, 0, "%.*s:", SO_F(arg->pos.desc));
         //////so_fmt_al(&out, &arg->print.p_al2, 0, arg->print.bounds.c, arg->print.bounds.max, "%.*s\n", SO_F(tmp));
-        so_fmt_fx(&out, arg->fmt.program, "%.*s", SO_F(arg->base.program));
+        so_fmt_fx(&out, arg->fmt.program, 0, "%.*s", SO_F(arg->base.program));
         //////so_fmt_al(&out, &arg->print.p_al2, arg->print.bounds.c, arg->print.bounds.c + 2, arg->print.bounds.max, "%.*s", SO_F(tmp));
 
         for(size_t i = 0; i < array_len(arg->pos.list); ++i) {
             ArgX *argx = array_at(arg->pos.list, i);
-            so_fmt_fx(&out, arg->fmt.pos, "%.*s", SO_F(argx->info.opt));
+            so_fmt_fx(&out, arg->fmt.pos, 0, "%.*s", SO_F(argx->info.opt));
             //////so_fmt_al(&out, &arg->print.p_al2, 0, arg->print.bounds.c, arg->print.bounds.max, " %.*s", SO_F(tmp));
         }
         /*  */
-        //////so_fmt_al(&out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "\n");
+        so_al_nl(&out, arg->print.whitespace, 1);
         for(size_t i = 0; i < array_len(arg->pos.list); ++i) {
             ArgX *argx = array_at(arg->pos.list, i);
             argx_fmt(&out, arg, argx, false);
@@ -1041,7 +1064,8 @@ int arg_help(struct Arg *arg) { /*{{{*/
             }
             if(so_len(arg->base.epilog)) {
                 //arg_handle_print(arg, ARG_PRINT_NONE, "%.*s", SO_F(arg->base.epilog));
-                //printf("\n");
+                /////so_al_nl(&out, arg->print.whitespace, 1);
+                /////so_fmt_al(&out, arg->print.p_al2, "%.*s", SO_F(argx->info.opt));
                 //////so_fmt_al(&out, &arg->print.p_al2, 0, 0, arg->print.bounds.max, "%.*s\n", SO_F(arg->base.epilog));
             }
         }
@@ -1549,9 +1573,9 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
     parse->rest.vec = arg->base.rest_vec;
     parse->rest.desc = arg->base.rest_desc;
     parse->rest.pos = &arg->pos;
-    So temp_clean_env = {0};
     int err = 0;
     /* prepare parsing */
+    So env = SO;
     ArgStream tmpstream = {0};
     unsigned char pfx = arg->base.prefix;
     /* gather environment variables */
@@ -1559,12 +1583,10 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
     while((kv = targx_iter_all(&arg->tables.opt.lut, kv))) {
         ArgX *x = (*kv)->val;
         if(!x->attr.is_env) continue;
-        so_copy(&temp_clean_env, x->info.opt);
-        char *cenv = getenv(temp_clean_env.str);
+        if(so_env_get(&env, x->info.opt)) continue;
         vso_clear(&tmpstream.vals);
-        if(!cenv) continue;
         argstream_free(&tmpstream);
-        array_push(tmpstream.vals, so_l(cenv));
+        array_push(tmpstream.vals, env);
         TRYC(argx_parse(parse, &tmpstream, x, quit_early));
         //if(parse->help.get) goto error;
     }
@@ -1592,7 +1614,6 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
 clean:
     argstream_free(&arg->instream);
     vso_free(&tmpstream.vals);
-    so_free(&temp_clean_env);
     /** NOTE: DO THIS OUTSIDE:
        if(*quit_early) {
            arg_free(&arg);
