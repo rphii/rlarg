@@ -1638,12 +1638,12 @@ ErrDecl arg_config_from_str(struct Arg *arg, So text) {
         argx = 0;
         pe = true;
         if(!line.len) continue;
+        argstream_free(&stream);
         stream.is_config = true;
         for(memset(&opt, 0, sizeof(opt)); so_splice(line, &opt, '='); ) {
             vso_push(&stream.vals, so_trim(opt));
         }
         TRYC(argstream_parse(arg, &stream, &quit_early));
-        argstream_free(&stream);
 parse_continue: ; /* semicolon to remove warning */
     }
     return err;
