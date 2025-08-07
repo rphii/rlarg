@@ -250,7 +250,7 @@ ErrDecl arg_config_from_str(struct Arg *arg, So text);
 void argstream_free(ArgStream *stream) {
     if(!stream) return;
     vargx_free(&stream->queue);
-    vso_free(&stream->vals);
+    //vso_free(&stream->vals);
     memset(stream, 0, sizeof(*stream));
 }
 
@@ -1702,6 +1702,7 @@ void argx_free(ArgX *argx) {
 
 
 void arg_free(struct Arg **parg) {
+    //printff("SKIPFREE");return;
     //printff("FREE ARGS");
     ASSERT_ARG(parg);
     Arg *arg = *parg;
@@ -1714,10 +1715,13 @@ void arg_free(struct Arg **parg) {
     argx_table_free(&arg->tables.opt);
     argx_table_free(&arg->tables.pos);
 
+#if 0
     vso_free(&arg->parse.config);
     vso_free(&arg->parse.config_files_base);
     vso_free(&arg->parse.config_files_expand);
+#endif
     so_al_cache_free(&arg->print.p_al2);
+
     if(arg->base.rest_vec) vso_free(arg->base.rest_vec);
     free(*parg);
     *parg = 0;

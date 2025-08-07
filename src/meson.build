@@ -8,12 +8,12 @@ headers = [
 
 rlc_dep = dependency('rlc',
   fallback : ['rlc', 'rlc_dep'],
-  default_options: ['default_library=static']
+  #default_options: ['default_library=static']
 )
 
 rlso_dep = dependency('rlso',
   fallback : ['rlso', 'rlso_dep'],
-  default_options: ['default_library=static']
+  #default_options: ['default_library=static']
 )
 
 install_headers(headers, subdir: 'rlarg')
