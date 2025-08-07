@@ -830,11 +830,11 @@ void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
         }
         so_clear(&tmp);
         if(argx_fmt_val(&tmp, arg, x, x->val, so("current value: "))) {
-            so_fmt_al(out, arg->print.whitespace, 0, "\n%.*s", tmp);
+            so_fmt_al(out, arg->print.whitespace, 0, "\n%.*s", SO_F(tmp));
         }
         so_clear(&tmp);
         if(argx_fmt_val(&tmp, arg, x, x->ref, so("default value: "))) {
-            so_fmt_al(out, arg->print.whitespace, 0, "\n%.*s", tmp);
+            so_fmt_al(out, arg->print.whitespace, 0, "\n%.*s", SO_F(tmp));
         }
         so_al_nl(out, arg->print.whitespace, 1);
         /* done */
