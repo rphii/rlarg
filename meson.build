@@ -12,3 +12,5 @@ pkg.generate(
   description: 'Argument parser for C.',
   )
 
+dep_rlarg = declare_dependency(link_with: rlarg)
+
