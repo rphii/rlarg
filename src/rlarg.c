@@ -287,6 +287,40 @@ ArgXGroup *arg_pos(Arg *arg) {
     return &arg->pos;
 }
 
+void arg_init_al(struct Arg *arg) {
+    const size_t bc = arg->print.bounds.c;
+    const size_t bo = arg->print.bounds.opt;
+    const size_t bd = arg->print.bounds.desc;
+    const size_t bm = arg->print.bounds.max;
+    so_al_config(&arg->fmt.group.align,         0,    bc,   bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.group_delim.align,   0,    bc,   bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.type.align,          bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.type_delim.align,    bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.one_of.align,        bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.one_of_set.align,    bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.one_of_delim.align,  bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.flag.align,          bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.flag_set.align,      bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.flag_delim.align,    bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.val.align,           bo+8, bo+8, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.val_delim.align,     bo+8, bo+8, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.c.align,             bc,   bc,   bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.opt.align,           bo,   bo+2, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.env.align,           bc,   bc+2, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.desc.align,          bd,   bo+6, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.pos.align,           bc,   bc+2, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->fmt.program.align,       0,    0,    bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->print.whitespace,        0,    0,    bm, 0, &arg->print.p_al2);
+    if(bm - bd >= 32) {
+        arg->fmt.val_delim.align.i0 = bd;
+        arg->fmt.val_delim.align.iNL = bd;
+        arg->fmt.val.align.i0 = bd + 2;
+        arg->fmt.val.align.iNL = bd + 2;
+        arg->fmt.desc.align.i0 = bd;
+        arg->fmt.desc.align.iNL = bd;
+    }
+}
+
 void arg_init(struct Arg *arg, So program, So description, So epilog) {
     ASSERT_ARG(arg);
     arg->base.program = program;
@@ -302,6 +336,7 @@ void arg_init(struct Arg *arg, So program, So description, So epilog) {
     arg->print.bounds.c = 2;
     arg->print.bounds.opt = 6;
     arg_init_width(arg, 80, 45);
+    arg_init_al(arg);
 }
 
 void arg_init_width(struct Arg *arg, int width, int percent) {
@@ -369,37 +404,6 @@ void arg_init_fmt(struct Arg *arg) {
     arg->fmt.one_of_delim.fg = COLOR_GRAY;
     arg->fmt.type_delim.fg = COLOR_GRAY;
     arg->fmt.type.fg = COLOR_GREEN;
-    const size_t bc = arg->print.bounds.c;
-    const size_t bo = arg->print.bounds.opt;
-    const size_t bd = arg->print.bounds.desc;
-    const size_t bm = arg->print.bounds.max;
-    so_al_config(&arg->fmt.group.align,         0,    bc,   bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.group_delim.align,   0,    bc,   bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.type.align,          bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.type_delim.align,    bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.one_of.align,        bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.one_of_set.align,    bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.one_of_delim.align,  bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.flag.align,          bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.flag_set.align,      bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.flag_delim.align,    bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.val.align,           bo+8, bo+8, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.val_delim.align,     bo+8, bo+8, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.c.align,             bc,   bc,   bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.opt.align,           bo,   bo+2, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.env.align,           bc,   bc+2, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.desc.align,          bd,   bo+6, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.pos.align,           bc,   bc+2, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->fmt.program.align,       0,    0,    bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->print.whitespace,        0,    0,    bm, 0, &arg->print.p_al2);
-    if(bm - bd >= 32) {
-        arg->fmt.val_delim.align.i0 = bd;
-        arg->fmt.val_delim.align.iNL = bd;
-        arg->fmt.val.align.i0 = bd + 2;
-        arg->fmt.val.align.iNL = bd + 2;
-        arg->fmt.desc.align.i0 = bd;
-        arg->fmt.desc.align.iNL = bd;
-    }
 }
 
 #define ERR_argx_group_push(...) "failed adding argument x"
