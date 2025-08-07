@@ -1039,7 +1039,7 @@ int arg_help(struct Arg *arg) { /*{{{*/
 
 void arg_config(struct Arg *arg, So conf) {
     ASSERT_ARG(arg);
-    array_push(arg->parse.config, conf);
+    vso_push(&arg->parse.config, conf);
 }
 
 int arg_config_from_file(struct Arg *arg, So filename) {
@@ -1053,10 +1053,10 @@ int arg_config_from_file(struct Arg *arg, So filename) {
             return 0;
         }
     }
-    array_push(arg->parse.config_files_expand, expanded);
+    vso_push(&arg->parse.config_files_expand, expanded);
     So text = {0};
     if(so_file_read(expanded, &text)) goto error;
-    array_push(arg->parse.config, text);
+    vso_push(&arg->parse.config, text);
     if(!text.len) {
         so_free(&text);
         return 0;
@@ -1252,7 +1252,7 @@ ErrDecl argx_parse(ArgParse *parse, ArgStream *stream, ArgX *argx, bool *quit_ea
         case ARG_VECTOR: {
             TRYC_P(pe, arg_parse_getv(parse, stream, &argV, &need_help));
             if(need_help) break;
-            array_push(*argxval_to_set(argx, stream)->v, argV);
+            vso_push(argxval_to_set(argx, stream)->v, argV);
             if(!stream->is_config) ++argx->count;
             if(argx_parse_is_origin_from_pos(parse, argx)) {
                 parse->rest.vec = argxval_to_set(argx, stream)->v;
@@ -1462,7 +1462,7 @@ int argstream_parse(struct Arg *arg, ArgStream *stream, bool *quit_early) {
             ++arg->n_pos_parsed;
         } else if(parse->rest.vec) {
             /* no argument, push rest */
-            array_push(*parse->rest.vec, argV);
+            vso_push(parse->rest.vec, argV);
         }
         /* in case of trying to get help, also search pos and then env and then group */
         if(parse->help.get_explicit && stream->i < array_len(stream->vals)) {
@@ -1529,7 +1529,7 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
     ASSERT_ARG(argv);
     ArgParse *parse = &arg->parse;
     for(size_t i = 1; i < argc; ++i) {
-        array_push(arg->instream.vals, so_l(argv[i]));
+        vso_push(&arg->instream.vals, so_l(argv[i]));
     }
     parse->rest.vec = arg->base.rest_vec;
     parse->rest.desc = arg->base.rest_desc;
@@ -1547,7 +1547,7 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
         if(so_env_get(&env, x->info.opt)) continue;
         vso_clear(&tmpstream.vals);
         argstream_free(&tmpstream);
-        array_push(tmpstream.vals, env);
+        vso_push(&tmpstream.vals, env);
         TRYC(argx_parse(parse, &tmpstream, x, quit_early));
         //if(parse->help.get) goto error;
     }
@@ -1640,7 +1640,7 @@ ErrDecl arg_config_from_str(struct Arg *arg, So text) {
         if(!line.len) continue;
         stream.is_config = true;
         for(memset(&opt, 0, sizeof(opt)); so_splice(line, &opt, '='); ) {
-            array_push(stream.vals, so_trim(opt));
+            vso_push(&stream.vals, so_trim(opt));
         }
         TRYC(argstream_parse(arg, &stream, &quit_early));
         argstream_free(&stream);
@@ -1816,7 +1816,7 @@ ArgXGroup *argx_builtin_opt_rice(ArgXGroup *group) {
 void argx_builtin_opt_source(struct ArgXGroup *group, So source) {
     ASSERT_ARG(group);
     struct Arg *arg = group->root;
-    array_push(arg->parse.config_files_base, source);
+    vso_push(&arg->parse.config_files_base, source);
     struct ArgX *x = targx_get(&group->table->lut, so("source"));
     if(!x) {
         x=argx_init(group, 0, so("source"), so("source other config files"));
