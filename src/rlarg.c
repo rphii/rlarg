@@ -996,12 +996,15 @@ int arg_help(struct Arg *arg) { /*{{{*/
         /* default help */
         so_fmt_fx(&out, arg->fmt.program, 0, "%.*s:", SO_F(arg->base.program));
         so_fmt_fx(&out, (So_Fx){0}, 0, " %.*s", SO_F(arg->base.desc));
+        so_al_nl(&out, arg->print.whitespace, 1);
         so_fmt_fx(&out, arg->fmt.group, 0, "%.*s:", SO_F(arg->pos.desc));
-        so_fmt_fx(&out, arg->fmt.program, 0, "%.*s", SO_F(arg->base.program));
+        size_t i0 = arg->print.p_al2.progress + 1;
+        so_fmt_fx(&out, arg->fmt.program, i0, "%.*s", SO_F(arg->base.program));
 
         for(size_t i = 0; i < array_len(arg->pos.list); ++i) {
+            i0 = arg->print.p_al2.progress + 1;
             ArgX *argx = array_at(arg->pos.list, i);
-            so_fmt_fx(&out, arg->fmt.pos, 0, "%.*s", SO_F(argx->info.opt));
+            so_fmt_fx(&out, arg->fmt.pos, i0, "%.*s", SO_F(argx->info.opt));
         }
         /*  */
         so_al_nl(&out, arg->print.whitespace, 1);
