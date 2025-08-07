@@ -1715,7 +1715,7 @@ void arg_free(struct Arg **parg) {
     argx_table_free(&arg->tables.opt);
     argx_table_free(&arg->tables.pos);
 
-#if 0
+#if 1
     vso_free(&arg->parse.config);
     vso_free(&arg->parse.config_files_base);
     vso_free(&arg->parse.config_files_expand);
