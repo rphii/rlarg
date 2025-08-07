@@ -814,18 +814,12 @@ void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
     }
     if(x->info.desc.len) {
         i0 = arg->print.p_al2.progress + 1;
-        so_clear(&tmp);
         argx_fmt_type(out, arg, x);
-        //////so_fmt_al(out, &arg->print.p_al2, arg->print.p_al2.i0_prev, arg->print.bounds.opt + 2, arg->print.bounds.max, " %.*s", SO_F(tmp));
-        so_clear(&tmp);
         so_fmt_fx(out, arg->fmt.desc, 0, "%.*s", SO_F(x->info.desc));
-        //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.desc, arg->print.bounds.opt + 4, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     no_type = (detailed);
     if(!no_type) {
-        so_clear(&tmp);
         argx_fmt_val(out, arg, x, x->val, so("="));
-        //////so_fmt_al(out, &arg->print.p_al2, arg->print.bounds.desc, arg->print.bounds.opt + 4, arg->print.bounds.max, "%.*s", SO_F(tmp));
     }
     so_al_nl(out, arg->print.whitespace, 1);
     if(detailed) {
@@ -1676,118 +1670,14 @@ ErrDecl arg_config_from_str(struct Arg *arg, So text) {
         argx = 0;
         pe = true;
         if(!line.len) continue;
-        //printff("LINE:%.*s", SO_F(line));
-#if 1
-        argstream_free(&stream);
         stream.is_config = true;
         for(memset(&opt, 0, sizeof(opt)); so_splice(line, &opt, '='); ) {
             array_push(stream.vals, so_trim(opt));
         }
         TRYC(argstream_parse(arg, &stream, &quit_early));
-#else
-        for(memset(&opt, 0, sizeof(opt)); so_splice(line, &opt, '='); ) {
-            //printff(" OPT:%.*s, pe=%u",SO_F(opt), pe);
-            if(!opt.str) continue;
-            opt = so_trim(opt);
-            if(!argx) {
-                TRYC_P(pe, arg_parse_getopt_long(&arg->tables.opt, &argx, opt));
-                if(argx->id == ARG_HELP) {
-                    THROW_P(pe, "cannot configure help");
-                } else if(argx->id == ARG_TRY_OPT) {
-                    pe = false;
-                    argx = 0;
-                } else if(argx->attr.is_env) {
-                    THROW_P(pe, "cannot configure env");
-                } else if(argx->id == ARG_NONE) {
-                    THROW_P(pe, "cannot configure non-value option");
-                }
-            } else {
-#if 0
-                    argx_parse(&parse, 
-#else
-                //printff("  setting value for [%.*s] : %.*s : id %u", SO_F(argx->info.opt), SO_F(opt), argx->id);
-                switch(argx->id) {
-                    case ARG_OPTION: {
-                        ASSERT_ARG(argx->o);
-                        ArgXTable *table = argx->o->table;
-                        ArgX *x = 0;
-                        TRYC_P(pe, arg_parse_getopt_long(table, &x, opt));
-                        argx = x;
-                    } break;
-                    case ARG_BOOL: {
-                        bool *b = argx->ref.b ? argx->ref.b : argx->val.b;
-                        TRYC_P(pe, so_as_bool(opt, b));
-                    } break;
-                    case ARG_SSZ: {
-                        ssize_t *z = argx->ref.z ? argx->ref.z : argx->val.z;
-                        TRYC_P(pe, so_as_ssize(opt, z, 0));
-                    } break;
-                    case ARG_INT: {
-                        int *i = argx->ref.i ? argx->ref.i : argx->val.i;
-                        ssize_t z = 0;
-                        TRYC_P(pe, so_as_ssize(opt, &z, 0));
-                        *i = (int)z;
-                    } break;
-                    case ARG_FLOAT: {
-                        double *f = argx->ref.f ? argx->ref.f : argx->val.f;
-                        TRYC_P(pe, so_as_double(opt, f));
-                    } break;
-                    case ARG_COLOR: {
-                        Color *c = argx->ref.c ? argx->ref.c : argx->val.c;
-                        TRYC_P(pe, so_as_color(opt, c));
-                    } break;
-                    case ARG_STRING: {
-                        So *s = argx->ref.s ? argx->ref.s : argx->val.s;
-                        *s = opt;
-                    } break;
-                    case ARG_FLAG: {
-                        bool *b = argx->ref.b ? argx->ref.b : argx->val.b;
-                        *b = true;
-                    } break;
-                    case ARG_NONE: {
-                        THROW_P(pe, "option cannot have a value");
-                    } break;
-                    case ARG_FLAGS: {
-                        ASSERT_ARG(argx->o);
-                        for(size_t i = 0; i < array_len(argx->o->list); ++i) {
-                            ArgX *x = array_at(argx->o->list, i);
-                            bool *b = x->ref.b ? x->ref.b : x->val.b;
-                            *b = false;
-                        }
-                        for(So flag = {0}; so_splice(opt, &flag, arg->base.flag_sep); ) {
-                            if(!flag.str) continue;
-                            ArgX *x = 0;
-                            TRYC_P(pe, arg_parse_getopt_long(argx->o->table, &x, flag));
-                            bool *b = x->ref.b ? x->ref.b : x->val.b;
-                            *b = true;
-                        }
-                    } break;
-                    case ARG_VECTOR: {
-                        VSo *v = argx->ref.v ? argx->ref.v : argx->val.v;
-                        array_push(*v, opt);
-                    } break;
-                    case ARG_TRY_OPT:
-                    case ARG_HELP:
-                    case ARG__COUNT: ABORT(ERR_UNREACHABLE);
-                }
-#endif
-                //printff(" GROUP %p", argx->group);
-                //printff(" PARENT %p", argx->group ? argx->group->parent : 0);
-                //printff(" ID %s", argx->group ? argx->group->parent ? arglist_str(argx->group->parent->id) : "" : 0);
-            }
-            /* check enum / option; TODO DRY */
-            if(argx && argx->group && argx->group && argx->group->parent && argx->group->parent->id == ARG_OPTION) {
-                if(argx->group->parent->ref.i) {
-                    *argx->group->parent->ref.i = argx->e;
-                } else if(argx->group->parent->val.i) {
-                    *argx->group->parent->val.i = argx->e;
-                }
-            }
-        }
-#endif
+        argstream_free(&stream);
 parse_continue: ; /* semicolon to remove warning */
     }
-    //arg_parse_setref(arg);
     return err;
 error:
     if(pe) {
@@ -1859,6 +1749,7 @@ void arg_free(struct Arg **parg) {
     vso_free(&arg->parse.config);
     vso_free(&arg->parse.config_files_base);
     vso_free(&arg->parse.config_files_expand);
+    so_al_cache_free(&arg->print.p_al2);
     if(arg->base.rest_vec) vso_free(arg->base.rest_vec);
     free(*parg);
     *parg = 0;
