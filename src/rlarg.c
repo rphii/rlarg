@@ -1,9 +1,8 @@
-#include "arg.h"
+#include "rlarg.h"
 #undef SSIZE_MAX
 #include <sys/ioctl.h>
 #include <unistd.h>
-#include <rl/so.h>
-#include <rl/array.h>
+#include <rlso.h>
 
 /* ENUMS, STRUCTS, VECTORS {{{ */
 
@@ -116,7 +115,7 @@ typedef struct ArgX { /*{{{*/
 void argx_free(struct ArgX *argx);
 void argx_group_free_array(struct ArgXGroup **group);
 
-#include <rl/lut.h>
+#include <rlc/lut.h>
 LUT_INCLUDE(TArgX, targx, So, BY_VAL, struct ArgX, BY_REF);
 LUT_IMPLEMENT(TArgX, targx, So, BY_VAL, struct ArgX, BY_REF, so_hash, so_cmp, 0, argx_free);
 //typedef struct ArgX *TArgX;
@@ -127,7 +126,7 @@ int argx_cmp_index(ArgX *a, ArgX *b) {
     return a->attr.callback.priority - b->attr.callback.priority;
 }
 
-#include <rl/vec.h>
+#include <rlc/vec.h>
 
 VEC_INCLUDE(VArgX, vargx, ArgX *, BY_VAL, BASE);
 VEC_INCLUDE(VArgX, vargx, ArgX *, BY_VAL, ERR);

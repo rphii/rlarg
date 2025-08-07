@@ -2,4 +2,6 @@
 *.vim
 *.out
 *valgrind*
+subprojects/*
+!subprojects/*.wrap
 

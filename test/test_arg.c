@@ -1,6 +1,6 @@
-#include <rl/so.h>
-#include <rl/array.h>
-#include "../src/arg.h"
+#include <rlso.h>
+#include <rlc/array.h>
+#include "../src/rlarg.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/types.h>
