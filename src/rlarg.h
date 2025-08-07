@@ -1,7 +1,7 @@
 #ifndef ARG_H
 
-#include <rl/so.h>
-#include <rl/color.h>
+#include <rlso.h>
+#include <rlc.h>
 
 #define ARG_INIT_DEFAULT_WIDTH      80
 #define ARG_INIT_DEFAULT_PREFIX     '-'

@@ -1,29 +1,37 @@
 
 sources = [
-  'arg.c',
+  'rlarg.c',
   ]
 
 headers = [
-  'arg.h',
   ]
 
-dep_rlc = dependency('rlc', required: false)
-if not dep_rlc.found()
-  prj_rlc = subproject('rlc')
-  dep_rlc = prj_rlc.get_variable('dep_rlc')
-endif
+rlc_dep = dependency('rlc',
+  fallback : ['rlc', 'rlc_dep'],
+  default_options: ['default_library=static']
+)
 
-dep_rlso = dependency('rlso', required: false)
-if not dep_rlso.found()
-  prj_rlso = subproject('rlso')
-  dep_rlso = prj_rlso.get_variable('dep_rlso')
-endif
+rlso_dep = dependency('rlso',
+  fallback : ['rlso', 'rlso_dep'],
+  default_options: ['default_library=static']
+)
 
-install_headers(headers, subdir: 'rl')
-rlarg = library('rlarg',
+install_headers(headers, subdir: 'rlarg')
+install_headers('rlarg.h')
+librlarg = library('rlarg',
   sources,
   link_args: '-lm',
-  dependencies: [dep_rlc, dep_rlso],
+  dependencies: [rlc_dep, rlso_dep],
   install: true,
   )
+
+pkg = import('pkgconfig')
+pkg.generate(
+  libraries: librlarg,
+  version: '9999',
+  name: 'rlarg',
+  description: 'Argument parser for C.',
+  )
+
+rlarg_dep = declare_dependency(link_with: librlarg)
 
