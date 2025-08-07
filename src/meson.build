@@ -33,5 +33,8 @@ pkg.generate(
   description: 'Argument parser for C.',
   )
 
-rlarg_dep = declare_dependency(link_with: librlarg)
+rlarg_dep = declare_dependency(
+  link_with: librlarg,
+  include_directories: '.',
+  )
 
