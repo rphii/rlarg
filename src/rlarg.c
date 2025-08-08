@@ -311,7 +311,7 @@ void arg_init_al(struct Arg *arg) {
     so_al_config(&arg->fmt.pos.align,           bc,   bc+2, bm, 0, &arg->print.p_al2);
     so_al_config(&arg->fmt.program.align,       0,    0,    bm, 0, &arg->print.p_al2);
     so_al_config(&arg->print.whitespace,        0,    0,    bm, 0, &arg->print.p_al2);
-    if(bm - bd >= 32) {
+    if(bm - bd >= 80 - bo) {
         arg->fmt.val_delim.align.i0 = bd;
         arg->fmt.val_delim.align.iNL = bd;
         arg->fmt.val.align.i0 = bd + 2;
