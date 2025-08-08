@@ -1546,9 +1546,9 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
         if(!x->attr.is_env) continue;
         if(so_env_get(&env, x->info.opt)) continue;
         vso_clear(&tmpstream.vals);
-        argstream_free(&tmpstream);
         vso_push(&tmpstream.vals, env);
         TRYC(argx_parse(parse, &tmpstream, x, quit_early));
+        argstream_free(&tmpstream);
         //if(parse->help.get) goto error;
     }
     /* start parsing */
