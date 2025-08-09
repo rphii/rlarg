@@ -648,6 +648,7 @@ void argx_fmt_type(So *out, Arg *arg, ArgX *argx) { /*{{{*/
             so_fmt_fx(out, arg->fmt.type_delim, i0, "<");
             so_fmt_fx(out, arg->fmt.type, i0, "%.*s", SO_F(argx->type.len ? argx->type : so_l(arglist_str(argx->id))));
             so_fmt_fx(out, arg->fmt.type_delim, i0, ">");
+            so_fmt_al(out, arg->print.whitespace, i0, " ");
         } break;
         case ARG_OPTION: {
             ArgXGroup *g = argx->o;
@@ -663,6 +664,7 @@ void argx_fmt_type(So *out, Arg *arg, ArgX *argx) { /*{{{*/
                     }
                 }
                 so_fmt_fx(out, arg->fmt.one_of_delim, i0, ">");
+                so_fmt_al(out, arg->print.whitespace, i0, " ");
             }
         } break;
         case ARG_FLAGS: {
@@ -682,12 +684,14 @@ void argx_fmt_type(So *out, Arg *arg, ArgX *argx) { /*{{{*/
                     }
                 }
                 so_fmt_fx(out, arg->fmt.flag_delim, i0, ">");
+                so_fmt_al(out, arg->print.whitespace, i0, " ");
             }
         } break;
         case ARG_HELP: {
             so_fmt_fx(out, arg->fmt.type_delim, i0, " <");
             so_fmt_fx(out, arg->fmt.type, i0, "arg");
             so_fmt_fx(out, arg->fmt.type_delim, i0, ">");
+            so_fmt_al(out, arg->print.whitespace, i0, " ");
         } break;
         case ARG_NONE:
         case ARG__COUNT: break;
@@ -712,6 +716,7 @@ bool argx_fmt_val(So *out, Arg *arg, ArgX *x, ArgXVal val, So prefix) {
     bool did_fmt = false;
     if(x->attr.hide_value) return false;
     size_t i0 = arg->print.p_al2.progress + 1;
+    if(i0 == 1) i0 = 2;
     switch(x->id) {
         case ARG_NONE: break;
         case ARG_OPTION: {} break;
@@ -787,9 +792,7 @@ void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
     ASSERT_ARG(out);
     ASSERT_ARG(arg);
     ASSERT_ARG(x);
-    So tmp = {0};
     bool no_type = false;
-    size_t i0 = arg->print.p_al2.progress + 1;
     if(x->group == &arg->pos) {
         /* format POSITIONAL values: full option */
         so_fmt_fx(out, arg->fmt.pos, 0, "%.*s", SO_F(x->info.opt));
@@ -805,7 +808,6 @@ void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
         so_fmt_fx(out, fmt, i0, "%.*s", SO_F(x->info.opt));
     }
     if(x->info.desc.len) {
-        i0 = arg->print.p_al2.progress + 1;
         argx_fmt_type(out, arg, x);
         so_fmt_fx(out, arg->fmt.desc, 0, "%.*s", SO_F(x->info.desc));
     }
@@ -815,6 +817,7 @@ void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
     }
     so_al_nl(out, arg->print.whitespace, 1);
     if(detailed) {
+        so_al_nl(out, arg->print.whitespace, 1);
         if(x->id == ARG_OPTION && x->o) {
             for(size_t i = 0; i < array_len(x->o->list); ++i) {
                 ArgX *argx = array_at(x->o->list, i);
@@ -828,18 +831,16 @@ void argx_fmt(So *out, Arg *arg, ArgX *x, bool detailed) {
             //    argx_fmt(out, arg, argx, false);
             //}
         }
-        so_clear(&tmp);
-        if(argx_fmt_val(&tmp, arg, x, x->val, so("current value: "))) {
-            so_fmt_al(out, arg->print.whitespace, 0, "\n%.*s", SO_F(tmp));
+        so_al_cache_rewind(&arg->print.p_al2);
+        if(argx_fmt_val(out, arg, x, x->val, so("current value: "))) {
+            so_al_nl(out, arg->print.whitespace, 1);
         }
-        so_clear(&tmp);
-        if(argx_fmt_val(&tmp, arg, x, x->ref, so("default value: "))) {
-            so_fmt_al(out, arg->print.whitespace, 0, "\n%.*s", SO_F(tmp));
+        so_al_cache_rewind(&arg->print.p_al2);
+        if(argx_fmt_val(out, arg, x, x->ref, so("default value: "))) {
+            so_al_nl(out, arg->print.whitespace, 1);
         }
-        so_al_nl(out, arg->print.whitespace, 1);
         /* done */
     }
-    so_free(&tmp);
 }
 
 void argx_fmt_group(So *out, Arg *arg, ArgXGroup *group) {
@@ -856,7 +857,9 @@ void argx_fmt_group(So *out, Arg *arg, ArgXGroup *group) {
     }
     if(arg->parse.help.get && arg->parse.help.group) {
         if(arg->parse.help.group != group) {
-            so_fmt_fx(out, arg->fmt.group_delim, 0, "<collapsed>", SO_F(group->desc));
+            size_t i0 = arg->print.p_al2.progress + 1;
+            so_fmt_fx(out, arg->fmt.group_delim, i0, "<collapsed>", SO_F(group->desc));
+            so_al_nl(out, arg->print.whitespace, 1);
             return;
         }
     } else if(group->explicit_help) {
@@ -892,6 +895,7 @@ void argx_fmt_specific(So *out, Arg *arg, ArgParse *parse, ArgX *x) { /*{{{*/
             argx_fmt_specific(out, arg, parse, x->group->parent);
         } else {
             so_fmt_fx(out, arg->fmt.group, 0, "%.*s:", SO_F(x->group->desc));
+            so_al_nl(out, arg->print.whitespace, 1);
         }
     }
     argx_fmt(out, arg, x, (x == parse->help.x));
