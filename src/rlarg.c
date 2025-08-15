@@ -653,7 +653,7 @@ void argx_fmt_type(So *out, Arg *arg, ArgX *argx) { /*{{{*/
         case ARG_OPTION: {
             ArgXGroup *g = argx->o;
             if(array_len(g->list)) {
-                so_fmt_fx(out, arg->fmt.one_of_delim, i0, "<");
+                so_fmt_fx(out, arg->fmt.one_of_delim, i0, "{");
                 for(size_t i = 0; i < array_len(g->list); ++i) {
                     if(i) so_fmt_fx(out, arg->fmt.one_of_delim, i0, "|");
                     ArgX *x = array_at(g->list, i);
@@ -663,14 +663,14 @@ void argx_fmt_type(So *out, Arg *arg, ArgX *argx) { /*{{{*/
                         so_fmt_fx(out, arg->fmt.one_of, i0, "%.*s", SO_F(x->info.opt));
                     }
                 }
-                so_fmt_fx(out, arg->fmt.one_of_delim, i0, ">");
+                so_fmt_fx(out, arg->fmt.one_of_delim, i0, "}");
                 so_fmt_al(out, arg->print.whitespace, i0, " ");
             }
         } break;
         case ARG_FLAGS: {
             ArgXGroup *g = argx->o;
             if(array_len(g->list)) {
-                so_fmt_fx(out, arg->fmt.flag_delim, i0, "<"); /* TODO the space before < also gets format applied! this is wring. */
+                so_fmt_fx(out, arg->fmt.flag_delim, i0, "["); /* TODO the space before < also gets format applied! this is wring. */
                 for(size_t i = 0; i < array_len(g->list); ++i) {
                     if(i) so_fmt_fx(out, arg->fmt.flag_delim, i0, "|");
                     ArgX *x = array_at(g->list, i);
@@ -683,7 +683,7 @@ void argx_fmt_type(So *out, Arg *arg, ArgX *argx) { /*{{{*/
                         so_fmt_fx(out, arg->fmt.flag, i0, "%.*s", SO_F(x->info.opt));
                     }
                 }
-                so_fmt_fx(out, arg->fmt.flag_delim, i0, ">");
+                so_fmt_fx(out, arg->fmt.flag_delim, i0, "]");
                 so_fmt_al(out, arg->print.whitespace, i0, " ");
             }
         } break;
