@@ -600,7 +600,7 @@ void argx_dbl_mm(ArgX *x, double min, double max) {
     x->attr.max.f = max;
 }
 
-void argx_func(struct ArgX *x, ssize_t priority, ArgFunction func, void *data, bool allow_compgen, bool quit_early) {
+void argx_func(struct ArgX *x, ssize_t priority, void *func, void *data, bool allow_compgen, bool quit_early) {
     ASSERT_ARG(x);
     ASSERT_ARG(func);
     x->attr.callback.priority = priority;
