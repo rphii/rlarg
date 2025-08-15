@@ -49,7 +49,7 @@ struct ArgXGroup *argx_opt(struct ArgX *x, int *val, int *ref);
 void argx_opt_enum(struct ArgX *x, int val);
 void argx_flag_set(struct ArgX *x, bool *val, bool *ref);
 void argx_type(struct ArgX *x, So type);
-void argx_func(struct ArgX *x, ssize_t priority, void *func, void *data, bool allow_compgen, bool quit_early);
+void argx_func(struct ArgX *x, ssize_t priority, ArgFunction func, void *data, bool allow_compgen, bool quit_early);
 void argx_hide_value(struct ArgX *x, bool hide_value);
 
 struct ArgX *argx_get(struct ArgXGroup *group, So opt);
@@ -61,6 +61,7 @@ void arg_config(struct Arg *arg, So conf);
 
 void argx_builtin_env_compgen(struct ArgXGroup *group);
 void argx_builtin_opt_help(struct ArgXGroup *group);
+void argx_builtin_opt_version(struct ArgXGroup *group, So version);
 struct ArgXGroup *argx_builtin_opt_rice(struct ArgXGroup *group);
 void argx_builtin_opt_source(struct ArgXGroup *group, So source);
 void argx_builtin_opt_fmtx(struct ArgX *x, So_Fx *fmt, So_Fx *ref);
