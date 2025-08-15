@@ -21,7 +21,7 @@ librlarg = library('rlarg',
 pkg = import('pkgconfig')
 pkg.generate(
   libraries: librlarg,
-  version: '9999',
+  version: meson.project_version(),
   name: 'rlarg',
   description: 'Argument parser for C.',
   )

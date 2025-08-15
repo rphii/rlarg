@@ -50,6 +50,7 @@ typedef struct ArgBase {
     So program;           // program name
     So desc;              // description of program
     So epilog;            // text below argument help
+    So version;             // program version
     unsigned char prefix;   // default: -
     unsigned char flag_sep; // default: ,
     bool show_help;         // display help if no arguments provided
@@ -601,7 +602,7 @@ void argx_dbl_mm(ArgX *x, double min, double max) {
     x->attr.max.f = max;
 }
 
-void argx_func(struct ArgX *x, ssize_t priority, void *func, void *data, bool allow_compgen, bool quit_early) {
+void argx_func(struct ArgX *x, ssize_t priority, ArgFunction func, void *data, bool allow_compgen, bool quit_early) {
     ASSERT_ARG(x);
     ASSERT_ARG(func);
     x->attr.callback.priority = priority;
@@ -1746,6 +1747,22 @@ void argx_builtin_opt_help(ArgXGroup *group) {
     ASSERT_ARG(group);
     struct ArgX *x = argx_init(group, 'h', so("help"), so("print this help"));
     argx_help(x, group->root);
+}
+
+int argx_print_function(void *void_arg) {
+    Arg *arg = void_arg;
+    printf("program: %.*s, version: %.*s\n", SO_F(arg->base.program), SO_F(arg->base.version));
+#if defined(RLARG_VERSION)
+    printf("argument parser version: %s\n", RLARG_VERSION);
+#endif
+    return 0;
+}
+
+void argx_builtin_opt_version(struct ArgXGroup *group, So version) {
+    ASSERT_ARG(group);
+    struct ArgX *x = argx_init(group, 0, so("version"), so("print the version"));
+    group->root->base.version = version;
+    argx_func(x, -1LL, argx_print_function, group->root, false, true);
 }
 
 void argx_builtin_opt_fmtx(ArgX *x, So_Fx *fmt, So_Fx *ref) {
