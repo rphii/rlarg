@@ -225,7 +225,7 @@ typedef struct Arg {
         ArgXTable pos;
         ArgXTable opt;
     } tables;
-    ArgX *opt_short[256];
+    ArgX *opt_short[93];
     ArgXGroup pos;
     VArgXGroup groups;
     ArgFmt fmt;
@@ -342,11 +342,9 @@ void arg_init(struct Arg *arg, So program, So description, So epilog) {
 
 void arg_init_width(struct Arg *arg, int width, int percent) {
     ASSERT_ARG(arg);
-    if(width == 0) {
-        struct winsize w;
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-        width = w.ws_col;
-    }
+    struct winsize termsize;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &termsize);
+    if(width == 0 || termsize.ws_col < width) width = termsize.ws_col;
     int desc = width * 45;
     if(desc % 200) desc += 200 - desc % 200;
     desc /= 100;
@@ -435,11 +433,11 @@ struct ArgX *argx_init(struct ArgXGroup *group, const unsigned char c, So optX, 
     };
     ArgX *argx = 0;
     TRYC(argx_group_push(group, &x, &argx));
-    if(c) {
+    if(c >= '!' && c <= '~') {
         if(!group->root) ABORT("cannot specify short option '%c' for '%.*s'", c, SO_F(opt));
-        ArgX *xx = group->root->opt_short[c];
+        ArgX *xx = group->root->opt_short[c - '!'];
         if(xx) ABORT("already specified short option '%c' for '%.*s'; cannot set for '%.*s' as well.", c, SO_F(xx->info.opt), SO_F(opt));
-        group->root->opt_short[c] = argx;
+        group->root->opt_short[c - '!'] = argx;
     }
     return argx;
 error:
@@ -1108,7 +1106,7 @@ ErrDecl arg_parse_getopt_long(ArgXTable *table, ArgX **x, So opt) {
 ErrDecl arg_parse_getopt_short(Arg *arg, ArgX **x, const unsigned char c) {
     ASSERT_ARG(arg);
     ASSERT_ARG(x);
-    *x = arg->opt_short[c];
+    if(c >= '!' && c <= '~') *x = arg->opt_short[c - '!'];
     if(!*x) THROW("value " F("%c", FG_BL_B) " is not a valid short option", c);
     return 0;
 error:
