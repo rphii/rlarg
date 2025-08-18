@@ -27,6 +27,7 @@ void arg_init_show_help(struct Arg *arg, bool show_help);
 void arg_init_prefix(struct Arg *arg, unsigned char prefix);
 void arg_init_rest(struct Arg *arg, So description, VSo *rest);
 void arg_init_fmt(struct Arg *arg);
+void arg_init_pending_pipe_wont_quit_early(struct Arg *arg, bool flag);
 
 void arg_free(struct Arg **arg);
 
