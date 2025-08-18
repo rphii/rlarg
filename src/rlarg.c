@@ -56,6 +56,7 @@ typedef struct ArgBase {
     bool show_help;         // display help if no arguments provided
     bool compgen_wordlist; // generate compgen wordlist
     bool source_check;     // display config errors or not
+    bool pending_pipe_wont_quit_early; // if no arguments were passed, but there is piped input, don't quit early
     VSo *rest_vec;
     So rest_desc;
 } ArgBase;
@@ -180,6 +181,7 @@ typedef struct ArgParse {
         So desc;
         ArgXGroup *pos;
     } rest;
+    bool pending_pipe;
     VSo config;
     VSo config_files_expand;
     VSo config_files_base;
@@ -403,6 +405,11 @@ void arg_init_fmt(struct Arg *arg) {
     arg->fmt.one_of_delim.fg = COLOR_GRAY;
     arg->fmt.type_delim.fg = COLOR_GRAY;
     arg->fmt.type.fg = COLOR_GREEN;
+}
+
+void arg_init_pending_pipe_wont_quit_early(struct Arg *arg, bool flag) {
+    ASSERT_ARG(arg);
+    arg->base.pending_pipe_wont_quit_early = flag;
 }
 
 #define ERR_argx_group_push(...) "failed adding argument x"
@@ -1531,6 +1538,9 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
     ASSERT_ARG(quit_early);
     ASSERT_ARG(argv);
     ArgParse *parse = &arg->parse;
+    if(arg->base.pending_pipe_wont_quit_early) {
+        arg->parse.pending_pipe = !isatty(STDIN_FILENO);
+    }
     for(size_t i = 1; i < argc; ++i) {
         vso_push(&arg->instream.vals, so_l(argv[i]));
     }
@@ -1569,7 +1579,8 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
         *quit_early = true;
         goto clean;
     }
-    if(array_len(arg->instream.vals) < 1 && arg->base.show_help && !arg->parse.help.get_explicit) {
+    if(array_len(arg->instream.vals) < 1 && arg->base.show_help &&
+            !arg->parse.help.get_explicit && !arg->parse.pending_pipe) {
         arg_help(arg);
         *quit_early = true;
     } else if(!arg->parse.help.get && arg->n_pos_parsed < array_len(arg->pos.list)) {
@@ -1741,7 +1752,7 @@ void argx_builtin_env_compgen(ArgXGroup *group) {
     //argx_func(x, 0, argx_callback_env_compgen, arg, true);
 }
 
-void argx_builtin_opt_help(ArgXGroup *group) {
+void argx_builtin_opt_help(struct ArgXGroup *group) {
     ASSERT_ARG(group);
     struct ArgX *x = argx_init(group, 'h', so("help"), so("print this help"));
     argx_help(x, group->root);
