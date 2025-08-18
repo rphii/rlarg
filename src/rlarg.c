@@ -228,7 +228,7 @@ typedef struct Arg {
         ArgXTable pos;
         ArgXTable opt;
     } tables;
-    ArgX *opt_short[93];
+    ArgX *opt_short[94];
     ArgXGroup pos;
     VArgXGroup groups;
     ArgFmt fmt;
