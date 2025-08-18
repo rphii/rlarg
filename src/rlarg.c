@@ -181,6 +181,7 @@ typedef struct ArgParse {
         So desc;
         ArgXGroup *pos;
     } rest;
+    bool *pending_pipe_out;
     bool pending_pipe;
     VSo config;
     VSo config_files_expand;
@@ -407,9 +408,11 @@ void arg_init_fmt(struct Arg *arg) {
     arg->fmt.type.fg = COLOR_GREEN;
 }
 
-void arg_init_pending_pipe_wont_quit_early(struct Arg *arg, bool flag) {
+void arg_init_pending_pipe_wont_quit_early(struct Arg *arg, bool flag, bool *pending) {
     ASSERT_ARG(arg);
+    ASSERT_ARG(pending);
     arg->base.pending_pipe_wont_quit_early = flag;
+    arg->parse.pending_pipe_out = pending;
 }
 
 #define ERR_argx_group_push(...) "failed adding argument x"
@@ -1540,6 +1543,7 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
     ArgParse *parse = &arg->parse;
     if(arg->base.pending_pipe_wont_quit_early) {
         arg->parse.pending_pipe = !isatty(STDIN_FILENO);
+        *arg->parse.pending_pipe_out = arg->parse.pending_pipe;
     }
     for(size_t i = 1; i < argc; ++i) {
         vso_push(&arg->instream.vals, so_l(argv[i]));
@@ -1580,7 +1584,7 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
         goto clean;
     }
     if(array_len(arg->instream.vals) < 1 && arg->base.show_help &&
-            !arg->parse.help.get_explicit && !arg->parse.pending_pipe) {
+        !arg->parse.help.get_explicit && !arg->parse.pending_pipe) {
         arg_help(arg);
         *quit_early = true;
     } else if(!arg->parse.help.get && arg->n_pos_parsed < array_len(arg->pos.list)) {
