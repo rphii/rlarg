@@ -5,6 +5,7 @@ arg.c NEW
     argx_explicit/optional ... the above is required to set an optional value!
     if 'option <value>' do not ignore 'option -flag' input! (flag)
     index/guide -> yellow vs blue vs cyan
+    export to config
 
 arg.c
     print min/max with --help
