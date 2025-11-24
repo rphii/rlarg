@@ -1587,7 +1587,7 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
         !arg->parse.help.get_explicit && !arg->parse.pending_pipe) {
         arg_help(arg);
         *quit_early = true;
-    } else if(!arg->parse.help.get && arg->n_pos_parsed < array_len(arg->pos.list)) {
+    } else if(!arg->parse.help.get && arg->n_pos_parsed < array_len(arg->pos.list) && !*quit_early) {
         THROW("missing %zu positional arguments", array_len(arg->pos.list) - arg->n_pos_parsed);
     }
 clean:
