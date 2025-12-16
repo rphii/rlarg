@@ -21,6 +21,7 @@ typedef enum {
     ARG_FLAGS,
     ARG_HELP,
     ARG_TRY_OPT,
+    ARG_PARSE_EXT,
     /* above */
     ARG__COUNT
 } ArgList;
@@ -40,6 +41,7 @@ const char *arglist_str(ArgList id) {
         case ARG_FLAGS: return "flags";
         case ARG_VECTOR: return "string-vec";
         case ARG_TRY_OPT: return "args";
+        case ARG_PARSE_EXT: return "parse";
         //case ARG_EXOTIC: return "<exotic>";
         case ARG__COUNT: return "(internal:count)";
     }
@@ -76,9 +78,13 @@ typedef union ArgXVal {
 typedef struct ArgXCallback {
     ArgFunction func;
     void *data;
+    ArgXParse parse;
+    void *data_parse;
     bool quit_early;
     bool allow_compgen;
-    ssize_t priority;
+    ssize_t priority;   // -inf..-1 = call pre-parsing all
+                        // 0 = execute last, in order of appearing
+                        // 1..inf = execute after parsing
 } ArgXCallback;
 
 typedef union ArgXNumber {
@@ -636,6 +642,16 @@ void argx_hide_value(struct ArgX *x, bool hide_value) {
     x->attr.hide_value = hide_value;
 }
 
+void argx_parse_ext(struct ArgX *x, ArgXParse func, void *data, So *ref) {
+    ASSERT_ARG(x);
+    ASSERT_ARG(x->id == ARG_NONE); // should free the malloc below..
+    x->id = ARG_PARSE_EXT;
+    x->attr.callback.parse = func;
+    x->attr.callback.data_parse = data;
+    x->ref.s = ref;
+    x->val.s = malloc(sizeof(So));
+}
+
 /* }}}*/
 
 /* ~~~ implementing the argument parser to actually work ~~~ */
@@ -768,6 +784,7 @@ bool argx_fmt_val(So *out, Arg *arg, ArgX *x, ArgXVal val, So prefix) {
             so_fmt_fx(out, arg->fmt.val, i0, "%zu", *val.z);
             did_fmt = true;
         } break;
+        case ARG_PARSE_EXT:
         case ARG_STRING: {
             if(!val.s) break;
             if(!val.s->len) break;
@@ -1083,24 +1100,6 @@ error:
 
 /* }}} */
 
-#if 0
-bool arg_group_info_opt(struct ArgXTable *g, void *x, RStr *found) {
-    if(!g) return false;
-    if(!x) return false;
-    ASSERT_ARG(found);
-    for(TArgXKV **kv = targx_iter_all(&g->lut, 0);
-            kv;
-            kv = targx_iter_all(&g->lut, kv)) {
-        if((*kv)->val->
-    }
-}
-
-RStr arg_info_opt(struct Arg *arg, void *x) {
-    if(!x) return RSTR("");
-    for(arg->parse
-}
-#endif
-
 /* PARSING FUNCTIONS {{{ */
 
 #define ERR_arg_parse_getopt_long(table, x, opt, ...) "nothing found for '" F("%.*s", FG_BL_B) "'", SO_F(opt)
@@ -1262,6 +1261,13 @@ ErrDecl argx_parse(ArgParse *parse, ArgStream *stream, ArgX *argx, bool *quit_ea
             *argxval_to_set(argx, stream)->s = argV;
             if(!stream->is_config) ++argx->count;
         } break;
+        case ARG_PARSE_EXT: {
+            TRYC_P(pe, arg_parse_getv(parse, stream, &argV, &need_help));
+            if(need_help) break;
+            *argxval_to_set(argx, stream)->s = argV;
+            if(argx->attr.callback.parse(argV, argx->attr.callback.data_parse)) goto error;
+            if(!stream->is_config) ++argx->count;
+        } break;
         case ARG_VECTOR: {
             TRYC_P(pe, arg_parse_getv(parse, stream, &argV, &need_help));
             if(need_help) break;
@@ -1393,6 +1399,9 @@ void arg_parse_setref_argx(struct ArgX *argx) {
         case ARG_OPTION: {
             if(argx->ref.i) *argx->val.i = *argx->ref.i;
             if(argx->o) arg_parse_setref_table(argx->o->table);
+        } break;
+        case ARG_PARSE_EXT: {
+            if(argx->ref.s) *argx->val.s = *argx->ref.s;
         } break;
         case ARG_FLAGS: {
             if(argx->o) arg_parse_setref_table(argx->o->table);
@@ -1707,6 +1716,9 @@ void argx_free(ArgX *argx) {
     if(!argx) return;
     //if(argx->id == ARG_OPTION) printff("free [%.*s]", SO_F(argx->info.opt));
     ASSERT_ARG(argx);
+    if(argx->id == ARG_PARSE_EXT) {
+        free(argx->val.s);
+    }
     if((argx->id == ARG_OPTION || argx->id == ARG_FLAGS)) {
         argx_group_free(argx->o);
         free(argx->o);
@@ -1753,7 +1765,6 @@ void argx_builtin_env_compgen(ArgXGroup *group) {
     struct ArgX *x = argx_env(group, so("COMPGEN_WORDLIST"), so("Generate input for autocompletion"), false);
     argx_bool(x, &group->root->base.compgen_wordlist, 0);
     argx_bool_require_tf(x, true);
-    //argx_func(x, 0, argx_callback_env_compgen, arg, true);
 }
 
 void argx_builtin_opt_help(struct ArgXGroup *group) {

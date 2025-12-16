@@ -19,6 +19,7 @@ struct TArgX;
 struct ArgXGroup;
 
 typedef int (*ArgFunction)(void *);
+typedef int (*ArgXParse)(So parse, void *user);
 
 struct Arg *arg_new(void);
 void arg_init(struct Arg *arg, So program, So description, So epilog);
@@ -52,6 +53,7 @@ void argx_flag_set(struct ArgX *x, bool *val, bool *ref);
 void argx_type(struct ArgX *x, So type);
 void argx_func(struct ArgX *x, ssize_t priority, void *func, void *data, bool allow_compgen, bool quit_early);
 void argx_hide_value(struct ArgX *x, bool hide_value);
+void argx_parse_ext(struct ArgX *x, ArgXParse func, void *data, So *ref);
 
 struct ArgX *argx_get(struct ArgXGroup *group, So opt);
 //struct ArgX *argx_new(struct TArgX *group, const unsigned char c, const So opt, const So desc);
