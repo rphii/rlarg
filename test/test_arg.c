@@ -3,6 +3,7 @@
 #include "../src/rlarg.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include <rljson.h>
 #include <sys/types.h>
 
 typedef enum {
@@ -23,6 +24,7 @@ typedef enum {
 } ConfigModeList;
 
 typedef struct Config {
+    Json_Auto_Value json;
     ssize_t whole;
     bool boolean;
     double number;
@@ -70,6 +72,20 @@ int hello_world(int *n) {
 
 #include <errno.h>
 #include <unistd.h>
+
+int arg_json_auto_parse(So text, void *data) {
+    Config *cf = data;
+    int result = json_auto_parse(text, &cf->json);
+    if(!result) {
+        printf("valid json:\n");
+        Json_Auto_Fmt fmt = {.pretty = true, .spaces = 2};
+        json_auto_print(cf->json, &fmt);
+    } else {
+        printf("invalid json!\n");
+    }
+    json_auto_free(&cf->json);
+    return result;
+}
 
 int main(const int argc, const char **argv) {
 
@@ -165,6 +181,8 @@ int main(const int argc, const char **argv) {
         x=argx_init(g, 0, so("strings"), so("set strings"));
           argx_vstr(x, &rest2, 0);
           argx_opt_enum(x, CONFIG_MODE_STRINGS);
+        x=argx_init(g, 0, so("json"), so("parse json"));
+          argx_parse_ext(x, arg_json_auto_parse, &config, &so("{\"count\": 123}"));
 
     x=argx_init(opt, 'I', so("input"), so("input files"));
       argx_vstr(x, &config.strings, &preset.strings);
@@ -180,7 +198,7 @@ int main(const int argc, const char **argv) {
 
     /*}}}*/
 
-#if 1
+#if 0
     /* load config {{{ */
     So filename = so("test_arg.conf");
     TRYC(so_file_read(filename, &configuration));
