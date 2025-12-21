@@ -181,12 +181,12 @@ int main(const int argc, const char **argv) {
         x=argx_init(g, 0, so("strings"), so("set strings"));
           argx_vstr(x, &rest2, 0);
           argx_opt_enum(x, CONFIG_MODE_STRINGS);
-        x=argx_init(g, 0, so("json"), so("parse json"));
-          argx_parse_ext(x, arg_json_auto_parse, &config, &so("{\"count\": 123}"));
 
     x=argx_init(opt, 'I', so("input"), so("input files"));
       argx_vstr(x, &config.strings, &preset.strings);
       argx_type(x, so("input-files"));
+    x=argx_init(opt, 0, so("json"), so("parse json"));
+      argx_parse_ext(x, arg_json_auto_parse, &config, &so("{\"count\": 123}"));
 
     struct ArgXGroup *env = argx_group(arg, so("Environment Variables"), false);
     argx_builtin_env_compgen(env);
@@ -198,7 +198,7 @@ int main(const int argc, const char **argv) {
 
     /*}}}*/
 
-#if 0
+#if 1
     /* load config {{{ */
     So filename = so("test_arg.conf");
     TRYC(so_file_read(filename, &configuration));
