@@ -428,7 +428,7 @@ ErrDecl argx_group_push(ArgXGroup *group, ArgX *in, ArgX **out) {
     ASSERT_ARG(group);
     ASSERT_ARG(in);
     //ASSERT_ARG(group->table);
-    TArgXKV *xkv = targx_once(&group->table->lut, in->info.opt, in);
+    TArgX_KV *xkv = targx_once(&group->table->lut, in->info.opt, in);
     if(!xkv) THROW("option '%.*s' already exists!", SO_F(in->info.opt));
     array_push(group->list, xkv->val);
     //return xkv->val;
@@ -589,7 +589,7 @@ struct ArgX *argx_env(struct ArgXGroup *group, So opt, So desc, bool hide_value)
 struct ArgX *argx_get(struct ArgXGroup *group, So opt) {
     ASSERT_ARG(group);
     ASSERT_ARG(group->table);
-    TArgXKV *kv = targx_get_kv(&group->table->lut, opt);
+    TArgX_KV *kv = targx_get_kv(&group->table->lut, opt);
     return kv ? kv->val : 0;
 }
 
@@ -971,7 +971,7 @@ void arg_compgen(struct Arg *arg) {
     if(arg->parse.help.group) return;
     arg->done_compgen = true;
     /* optional help */
-    TArgXKV **kv = 0;
+    TArgX_KV **kv = 0;
     ArgXTable *opt_table = &arg->tables.opt;
     if(arg->parse.help.get) {
         ArgX *x = arg->parse.help.x;
@@ -1431,7 +1431,7 @@ void arg_parse_setref_argx(struct ArgX *argx) {
 
 void arg_parse_setref_table(struct ArgXTable *table) {
     ASSERT_ARG(table);
-    TArgXKV **kv = 0;
+    TArgX_KV **kv = 0;
     while((kv = targx_iter_all(&table->lut, kv))) {
         ArgX *x = (*kv)->val;
         arg_parse_setref_argx(x);
@@ -1582,7 +1582,7 @@ ErrDecl arg_parse(struct Arg *arg, const unsigned int argc, const char **argv, b
     ArgStream tmpstream = {0};
     unsigned char pfx = arg->base.prefix;
     /* gather environment variables */
-    TArgXKV **kv = 0;
+    TArgX_KV **kv = 0;
     while((kv = targx_iter_all(&arg->tables.opt.lut, kv))) {
         ArgX *x = (*kv)->val;
         if(!x->attr.is_env) continue;
