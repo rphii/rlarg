@@ -10,8 +10,10 @@ void arg_help(struct Arg *arg);
 /* rlarg/arg-parse.c */
 int arg_parse(struct Arg *arg, const int argc, const char **argv);
 
-/* rlarg/argx.c */
+/* rlarg/argx-group.c */
 struct Argx_Group *argx_group(struct Arg *arg, So name);
+
+/* rlarg/argx.c */
 struct Argx *argx(struct Argx_Group *group, char c, So name, So desc);
 
 /* rlarg/argx-type.c */

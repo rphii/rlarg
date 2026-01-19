@@ -112,12 +112,35 @@ void argx_so(Argx_So *xso, Argx *argx) {
     xso->argx = argx;
 }
 
-void argx_fmt(So *out, Argx *argx) {
+#define ARG_SPACING_HINT_WRAP               40
+#define ARG_SPACING_HINT_ALTERNATE          10
+
+#define ARG_SPACING_DESCRIPTION_DEFAULT     40
+#define ARG_SPACING_DESCRIPTION_ALTERNATE   12
+
+
+void argx_fmt_help(So *out, Argx *argx) {
     ASSERT_ARG(out);
     ASSERT_ARG(argx);
 
     Argx_So xso = {0};
     argx_so(&xso, argx);
+
+    /* gather lengths and spacing (( +1 because of spaces between things )) */
+    size_t len_end_opt = 8 + so_len(argx->opt); /* 8 because of this: '  -x  --' */
+    bool compact_hint = xso.have_hint && len_end_opt < ARG_SPACING_HINT_WRAP;
+    size_t spacing_hint = compact_hint
+        ? 1
+        : ARG_SPACING_HINT_ALTERNATE;
+
+    size_t len_end_hint = (compact_hint ? len_end_opt + 1 : spacing_hint) + (xso.have_hint ? so_len_nfx(xso.hint) : 0);
+    bool compact_desc = len_end_hint < ARG_SPACING_DESCRIPTION_DEFAULT;
+    int spacing_desc = compact_desc
+        ? ARG_SPACING_DESCRIPTION_DEFAULT - len_end_hint
+        : ARG_SPACING_DESCRIPTION_ALTERNATE;
+
+    size_t len_end_desc = spacing_desc + so_len_nfx(argx->desc) + 1; 
+    //int spacing_
 
     /* format the name */
     char c = argx->c ? argx->c : ' ';
@@ -125,9 +148,13 @@ void argx_fmt(So *out, Argx *argx) {
     so_fmt(out, "  --%s", argx->opt);
 
     if(xso.have_hint) {
-        so_fmt(out, " %.*s", SO_F(xso.hint));
+        if(!compact_hint) so_push(out, '\n');
+        so_fmt(out, "%*s%.*s", spacing_hint, "", SO_F(xso.hint));
     }
-    so_fmt(out, " %.*s", SO_F(argx->desc));
+
+    if(!compact_desc) so_push(out, '\n');
+    
+    so_fmt(out, "%*s%.*s", spacing_desc, "", SO_F(argx->desc));
 
     if(xso.ref_visible) {
         so_fmt(out, " =%.*s", SO_F(xso.ref));
