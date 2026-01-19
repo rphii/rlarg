@@ -13,6 +13,7 @@ typedef enum {
     ARGX_BOOL,
     ARGX_STRING,
     ARGX_ENUM,
+    ARGX_URI,
 } Argx_List;
 
 typedef enum {

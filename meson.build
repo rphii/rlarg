@@ -4,6 +4,7 @@ sources = [
   'rlarg/arg-core.c',
   'rlarg/argx-group.c',
   'rlarg/argx-type.c',
+  'rlarg/argx-hint.c',
   'rlarg/argx.c',
   ]
 
