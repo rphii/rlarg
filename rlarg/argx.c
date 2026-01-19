@@ -106,6 +106,7 @@ void argx_so(Argx_So *xso, Argx *argx) {
             so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
         } break;
         case ARGX_ENUM:
+        case ARGX_URI:
         case ARGX_STRING: {
             if(argx->val) so_extend(&xso->val, argx->val->so);
             if(argx->ref) so_extend(&xso->ref, argx->ref->so);

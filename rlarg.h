@@ -20,9 +20,13 @@ struct Argx *argx(struct Argx_Group *group, char c, So name, So desc);
 /* rlarg/argx-type.c */
 
 void argx_type_so(struct Argx *argx, So *val, So *ref);
+void argx_type_file(struct Argx *argx, So *val, So *ref);
 void argx_type_bool(struct Argx *argx, bool *val, bool *ref);
 void argx_type_int(struct Argx *argx, int *val, int *ref);
 void argx_type_size(struct Argx *argx, ssize_t *val, ssize_t *ref);
+struct Argx_Group *argx_type_group(struct Argx *argx, So name); /* options, flags */
+
+void argx_as_array(struct Argx *argx); /* arrays */
 
 void argx_hint_kind(struct Argx *argx, Argx_Hint_List id);
 void argx_hint_text(struct Argx *argx, So text);

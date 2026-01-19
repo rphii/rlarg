@@ -11,17 +11,24 @@ int main(void) {
     printff("group 'default' pointers: %p, %p", g1, g2);
     ASSERT(g1 == g2, "should point to the same");
 
-    void *p1 = argx(g1, 0, so("hi"), so("description"));
-    printff("p %p", p1);
+    struct Argx *x;
 
-    void *p2 = argx(g1, 'x', so("hii"), so("other description"));
-    printff("p %p", p1);
+    x = argx(g1, 0, so("hi"), so("description"));
+        printff("p %p", x);
 
     bool p = false;
     bool d = true;
-    argx_type_bool(p1, &p, 0);
-    argx_type_bool(p2, &p, &d);
-    arg_config(arg);
+    x = argx(g1, 'x', so("boolr"), so("a required boolean value"));
+        printff("p %p", x);
+        argx_type_bool(x, &p, &d);
+
+    x = argx(g1, 'X', so("boolo"), so("a optional boolean value"));
+        printff("p %p", x);
+        argx_type_bool(x, &p, &d);
+        argx_hint_kind(x, ARGX_HINT_OPTIONAL);
+
+    arg_help(arg);
+    //arg_config(arg);
 
     return 0;
 }
