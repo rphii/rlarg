@@ -3,6 +3,19 @@
 void argx_group_free(Argx_Group *group) {
     t_argx_free(group->table);
     v_argx_free(group->list);
+    if(group->id != ARGX_GROUP_ROOT) {
+        free(group->table);
+    }
+}
+
+Argx_Group argx_group_init(struct Arg *arg, T_Argx *table, So name, Argx_Group_List id) {
+    Argx_Group result = {
+        .name = name,
+        .table = table,
+        .arg = arg,
+        .id = id,
+    };
+    return result;
 }
 
 struct Argx_Group *argx_group(struct Arg *arg, So name) {
@@ -14,11 +27,7 @@ struct Argx_Group *argx_group(struct Arg *arg, So name) {
         }
     }
     /* create new group */
-    Argx_Group result = {
-        .name = name,
-        .table = &arg->table,
-        .arg = arg,
-    };
+    Argx_Group result = argx_group_init(arg, &arg->table, name, ARGX_GROUP_ROOT);
     array_push(arg->groups, result);
     return array_itL(arg->groups);
 }

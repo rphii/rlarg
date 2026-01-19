@@ -2,12 +2,23 @@
 
 #include "argx.h"
 
+typedef enum {
+    ARGX_GROUP_ROOT,
+    ARGX_GROUP_SUBGROUP, /* can probably merge with above ... just have to adjust freeing-logic appropriately. */
+    ARGX_GROUP_ENUM,
+    ARGX_GROUP_OPTIONS,
+    ARGX_GROUP_FLAGS,
+} Argx_Group_List;
+
 typedef struct Argx_Group {
     struct Arg *arg;
     V_Argx *list;
     T_Argx *table;
     So name;
+    Argx_Group_List id;
 } Argx_Group, *Argx_Groups;
+
+Argx_Group argx_group_init(struct Arg *arg, T_Argx *table, So name, Argx_Group_List id);
 
 void argx_group_free(Argx_Group *group);
 
