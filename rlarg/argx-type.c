@@ -176,4 +176,7 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
     return group;
 }
 
+struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {
+    return 0;
+}
 
