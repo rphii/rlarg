@@ -27,9 +27,18 @@ int main(void) {
         argx_type_bool(x, &p, &d);
         argx_hint_kind(x, ARGX_HINT_OPTIONAL);
 
+    VSo vec_p = 0;
+    VSo vec_v = 0;
+    vso_push(&vec_v, so("one"));
+    vso_push(&vec_v, so("two"));
+    x = argx(g1, 'v', so("vso"), so("list of strings"));
+        argx_type_array_so(x, &vec_p, &vec_v);
+
     arg_help(arg);
     //arg_config(arg);
 
+    arg_free(&arg);
+    vso_free(&vec_v);
     return 0;
 }
 

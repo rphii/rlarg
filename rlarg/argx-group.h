@@ -9,6 +9,8 @@ typedef struct Argx_Group {
     So name;
 } Argx_Group, *Argx_Groups;
 
+void argx_group_free(Argx_Group *group);
+
 void argx_group_fmt_help(So *out, Argx_Group *group);
 void argx_group_fmt_config(So *out, Argx_Group *group);
 
