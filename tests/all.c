@@ -19,8 +19,9 @@ int main(void) {
 
     bool p = false;
     bool d = true;
+    argx_type_bool(p1, &p, 0);
     argx_type_bool(p2, &p, &d);
-    arg_help(arg);
+    arg_config(arg);
 
     return 0;
 }

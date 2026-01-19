@@ -6,6 +6,7 @@
 /* rlarg/arg-core.c */
 struct Arg *arg_new(void);
 void arg_help(struct Arg *arg);
+void arg_config(struct Arg *arg);
 
 /* rlarg/arg-parse.c */
 int arg_parse(struct Arg *arg, const int argc, const char **argv);
