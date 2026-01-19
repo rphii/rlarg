@@ -2,7 +2,8 @@
 
 #include "../rlarg.h"
 
-#include "arg-x.h"
+#include "argx.h"
+#include "argx-group.h"
 #include "arg-stream.h"
 
 #include <rlso.h>

@@ -1,9 +1,10 @@
 project('rlarg', 'c', meson_version: '>=1.1', version: '0.0.1')
 
 sources = [
-  'rlarg/arg-x.c',
   'rlarg/arg-core.c',
+  'rlarg/argx-group.c',
   'rlarg/argx-type.c',
+  'rlarg/argx.c',
   ]
 
 #headers = [
