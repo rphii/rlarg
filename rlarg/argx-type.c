@@ -63,4 +63,69 @@ void argx_type_size(struct Argx *argx, ssize_t *val, ssize_t *ref) {
     };
 }
 
+void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
+    ASSERT_ARG(argx);
+    ASSERT_ARG(val);
+    argx->val = (Argx_Value_Union *)val;
+    argx->ref = (Argx_Value_Union *)ref;
+    argx->id = ARGX_STRING;
+    argx->hint = (Argx_Hint){
+        .id = ARGX_HINT_REQUIRED,
+        .so = so("string-array"),
+    };
+    argx->is_array = true;
+}
+
+void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref) {
+    ASSERT_ARG(argx);
+    ASSERT_ARG(val);
+    argx->val = (Argx_Value_Union *)val;
+    argx->ref = (Argx_Value_Union *)ref;
+    argx->id = ARGX_URI;
+    argx->hint = (Argx_Hint){
+        .id = ARGX_HINT_REQUIRED,
+        .so = so("uri-array"),
+    };
+    argx->is_array = true;
+}
+
+void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref) {
+    ASSERT_ARG(argx);
+    ASSERT_ARG(val);
+    argx->val = (Argx_Value_Union *)val;
+    argx->ref = (Argx_Value_Union *)ref;
+    argx->id = ARGX_BOOL;
+    argx->hint = (Argx_Hint){
+        .id = ARGX_HINT_REQUIRED,
+        .so = so("bool-array"),
+    };
+    argx->is_array = true;
+}
+
+void argx_type_array_int(struct Argx *argx, int **val, int **ref) {
+    ASSERT_ARG(argx);
+    ASSERT_ARG(val);
+    argx->val = (Argx_Value_Union *)val;
+    argx->ref = (Argx_Value_Union *)ref;
+    argx->id = ARGX_INT;
+    argx->hint = (Argx_Hint){
+        .id = ARGX_HINT_REQUIRED,
+        .so = so("int-array"),
+    };
+    argx->is_array = true;
+}
+
+void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
+    ASSERT_ARG(argx);
+    ASSERT_ARG(val);
+    argx->val = (Argx_Value_Union *)val;
+    argx->ref = (Argx_Value_Union *)ref;
+    argx->id = ARGX_SIZE;
+    argx->hint = (Argx_Hint){
+        .id = ARGX_HINT_REQUIRED,
+        .so = so("size-array"),
+    };
+    argx->is_array = true;
+}
+
 

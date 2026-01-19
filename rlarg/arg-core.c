@@ -1,6 +1,14 @@
 #include <rlc.h>
 #include "arg.h"
 
+void arg_free(struct Arg **arg) {
+    if(!arg) return;
+    for(Argx_Group *group = (*arg)->groups; group < array_itE((*arg)->groups); ++group) {
+        argx_group_free(group);
+    }
+    *arg = 0;
+}
+
 struct Arg *arg_new(void) {
     Arg *result;
     NEW(Arg, result);

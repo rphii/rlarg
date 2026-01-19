@@ -23,9 +23,13 @@ typedef enum {
 
 typedef union Argx_Value_Union {
     int i, e;
+    int *vi;
     ssize_t z;
+    ssize_t *vz;
     bool b;
+    bool *vb;
     So so;
+    VSo vso;
 } Argx_Value_Union;
 
 typedef struct Argx {
@@ -37,6 +41,7 @@ typedef struct Argx {
     Argx_Value_Union *val; /* parsed value */
     Argx_Value_Union *ref; /* reference / default value */
     struct Argx_Group *group;
+    bool is_array;
 } Argx, *V_Argx;
 
 LUT_INCLUDE(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL);

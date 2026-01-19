@@ -1,5 +1,10 @@
 #include "arg.h"
 
+void argx_group_free(Argx_Group *group) {
+    t_argx_free(group->table);
+    v_argx_free(group->list);
+}
+
 struct Argx_Group *argx_group(struct Arg *arg, So name) {
     ASSERT_ARG(arg);
     /* check if the group already exists */
