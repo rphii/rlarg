@@ -12,8 +12,8 @@ typedef enum {
     ARGX_SIZE,
     ARGX_BOOL,
     ARGX_STRING,
-    ARGX_ENUM,
     ARGX_URI,
+    ARGX_GROUP,
 } Argx_List;
 
 typedef enum {
@@ -30,6 +30,7 @@ typedef union Argx_Value_Union {
     bool *vb;
     So so;
     VSo vso;
+    struct Argx_Group *group;
 } Argx_Value_Union;
 
 typedef struct Argx {

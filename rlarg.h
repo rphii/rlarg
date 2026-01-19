@@ -32,7 +32,12 @@ void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref);
 void argx_type_array_int(struct Argx *argx, int **val, int **ref);
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref);
 
-struct Argx_Group *argx_type_group(struct Argx *argx, So name); /* options, flags */
+struct Argx_Group *argx_group_sub(struct Argx *argx);
+struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref);
+struct Argx_Group *argx_group_options(struct Argx *argx);
+struct Argx_Group *argx_group_flags(struct Argx *argx);
+
+struct Argx *argx_enum_new(struct Argx_Group *group, int val, So name, So desc);
 
 void argx_hint_kind(struct Argx *argx, Argx_Hint_List id);
 void argx_hint_text(struct Argx *argx, So text);

@@ -32,7 +32,10 @@ void argx_free(Argx *argx) {
                 array_free(argx->val->vb);
                 array_free(argx->ref->vb);
             } break;
-            case ARGX_ENUM: ABORT("how would this be handled?");
+            case ARGX_GROUP: {
+                argx_group_free(argx->val->group);
+                free(argx->val->group);
+            } break;
         }
     }
 }
@@ -171,7 +174,7 @@ void argx_so_type_array_bool(So *out, Argx_Value_Union *val) {
 /* vector types }}} */
 
 void argx_so(Argx_So *xso, Argx *argx) {
-    printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
+    //printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
     ASSERT_ARG(xso);
     ASSERT_ARG(argx);
     argx_so_clear(xso);
@@ -220,12 +223,14 @@ void argx_so(Argx_So *xso, Argx *argx) {
                 argx_so_type_array_size(&xso->ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_ENUM:
             case ARGX_URI:
             case ARGX_STRING: {
                 argx_so_like_array_string(&xso->val, argx->val);
                 argx_so_like_array_string(&xso->ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+            } break;
+            case ARGX_GROUP: {
+                ABORT(ERR_UNREACHABLE("vector of groups is not supported, and thus you should never see this message"));
             } break;
         }
     } else {
@@ -249,12 +254,16 @@ void argx_so(Argx_So *xso, Argx *argx) {
                 argx_so_type_size(&xso->ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_ENUM:
             case ARGX_URI:
             case ARGX_STRING: {
                 argx_so_like_string(&xso->val, argx->val);
                 argx_so_like_string(&xso->ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+            } break;
+            case ARGX_GROUP: {
+                so_extend(&xso->val, argx->group->name);
+                //so_extend(&xso->ref, argx->group->name);
+                //ABORT("unhandled");
             } break;
         }
     }
