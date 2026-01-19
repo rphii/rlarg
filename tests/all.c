@@ -37,9 +37,9 @@ int main(void) {
     int e_out;
     x=argx(g1, 'e', so("enumerator"), so("list of strings"));
       g2=argx_group_enum(x, &e_out, 0);
-        e1=argx_enum_new(g2, 0, so("sfw"), so("safe for work"));
-        e2=argx_enum_new(g2, 1, so("nsfw"), so("not safe for work"));
-        e2=argx_enum_new(g2, 2, so("sketchy"), so("risky for work"));
+        e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
+        e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
+        e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
 
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));

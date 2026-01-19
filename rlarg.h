@@ -37,7 +37,7 @@ struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref);
 struct Argx_Group *argx_group_options(struct Argx *argx);
 struct Argx_Group *argx_group_flags(struct Argx *argx);
 
-struct Argx *argx_enum_new(struct Argx_Group *group, int val, So name, So desc);
+struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc);
 
 void argx_hint_kind(struct Argx *argx, Argx_Hint_List id);
 void argx_hint_text(struct Argx *argx, So text);
