@@ -1,7 +1,40 @@
-project('rlarg', 'c', meson_version: '>=1.1', version: '9999')
+project('rlarg', 'c', meson_version: '>=1.1', version: '0.0.1')
 
-add_project_arguments('-DRLARG_VERSION="'+meson.project_version()+'"', language : 'c')
+sources = [
+  'rlarg/arg-x.c',
+  'rlarg/arg-core.c',
+  'rlarg/argx-type.c',
+  ]
 
-subdir('src')
-subdir('bash')
+#headers = [
+#  'rlarg.h',
+#  ]
+
+rlc_dep = dependency('rlc', fallback : ['rlc', 'rlc_dep'], default_options: ['default_library=static'])
+rlso_dep = dependency('rlso', fallback : ['rlso', 'rlso_dep'], default_options: ['default_library=static'])
+
+#install_headers(headers, subdir: 'rlarg')
+install_headers('rlarg.h')
+
+librlarg = library('rlarg',
+  sources,
+  dependencies: [rlc_dep, rlso_dep],
+  install: true,
+  )
+
+pkg = import('pkgconfig')
+pkg.generate(
+  libraries: librlarg,
+  version: '9999',
+  name: 'rlarg',
+  description: 'rl* argument parser',
+  )
+
+
+rlarg = declare_dependency(
+  link_with: librlarg,
+  include_directories: '.',
+  )
+
+subdir('tests')
 

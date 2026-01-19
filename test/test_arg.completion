@@ -1,3 +1,0 @@
-#!/bin/bash
-complete -F _complete_rphiic ./test_arg
-
