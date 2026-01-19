@@ -1,5 +1,5 @@
 #include "arg.h"
-#include "arg-x.h"
+#include "argx.h"
 
 void argx_type_so(struct Argx *argx, So *val, So *ref) {
     ASSERT_ARG(argx);

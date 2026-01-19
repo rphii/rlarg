@@ -1,28 +1,11 @@
-#include "arg-x.h"
 #include "arg.h"
+#include "argx.h"
+#include "argx-group.h"
 
 LUT_IMPLEMENT(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL, so_hash, so_cmp, so_free, 0);
 
 void v_argx_free(V_Argx *vargs) {
     array_free(vargs);
-}
-
-struct Argx_Group *argx_group(struct Arg *arg, So name) {
-    ASSERT_ARG(arg);
-    /* check if the group already exists */
-    for(Argx_Group *g = arg->groups; g < array_itE(arg->groups); ++g) {
-        if(!so_cmp(g->name, name)) {
-            return g;
-        }
-    }
-    /* create new group */
-    Argx_Group result = {
-        .name = name,
-        .table = &arg->table,
-        .arg = arg,
-    };
-    array_push(arg->groups, result);
-    return array_itL(arg->groups);
 }
 
 struct Argx *argx(struct Argx_Group *group, char c, So name, So desc) {
@@ -154,14 +137,5 @@ void argx_fmt(So *out, Argx *argx) {
 
     argx_so_free(&xso);
 
-}
-
-void argx_group_fmt(So *out, Argx_Group *group) {
-    ASSERT_ARG(out);
-    ASSERT_ARG(group);
-    so_fmt(out, "%.*s:\n", SO_F(group->name));
-    for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
-        argx_fmt(out, *argx);
-    }
 }
 
