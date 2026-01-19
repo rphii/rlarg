@@ -47,6 +47,7 @@ typedef struct Argx_So {
     So val;
     So ref;
     So hint;
+    So hierarchy;
     bool ref_visible;
     bool have_hint;
 } Argx_So;
@@ -56,6 +57,7 @@ void argx_so_clear(Argx_So *xso);
 void argx_so(Argx_So *xso, Argx *argx);
 
 void argx_fmt_help(So *out, Argx *argx);
+void argx_fmt_config(So *out, Argx *argx);
 
 #define RLARG_ARG_X_H
 #endif /* RLARG_ARG_X_H */

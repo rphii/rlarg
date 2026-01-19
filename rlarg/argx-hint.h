@@ -1,4 +1,4 @@
-#ifndef RLARG_ARGX_TYPE_H
+#ifndef RLARG_ARGX_HINT_H
 
 #include "rlso.h"
 
@@ -14,6 +14,6 @@ typedef struct Argx_Hint {
     Argx_Hint_List id;
 } Argx_Hint;
 
-#define RLARG_ARGX_TYPE_H
-#endif /* RLARG_ARGX_TYPE_H */
+#define RLARG_ARGX_HINT_H
+#endif /* RLARG_ARGX_HINT_H */
 

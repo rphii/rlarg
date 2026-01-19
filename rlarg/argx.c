@@ -45,6 +45,7 @@ void argx_so_free(Argx_So *xso) {
     so_free(&xso->ref);
     so_free(&xso->val);
     so_free(&xso->hint);
+    so_free(&xso->hierarchy);
 }
 
 void argx_so_clear(Argx_So *xso) {
@@ -53,6 +54,7 @@ void argx_so_clear(Argx_So *xso) {
     so_clear(&xso->ref);
     so_clear(&xso->val);
     so_clear(&xso->hint);
+    so_clear(&xso->hierarchy);
 }
 
 void argx_so(Argx_So *xso, Argx *argx) {
@@ -82,6 +84,7 @@ void argx_so(Argx_So *xso, Argx *argx) {
     /* format the value */
     xso->ref_visible = (bool)(argx->ref);
     xso->have_hint = true;
+    so_fmt(&xso->hierarchy, "%.*s.", SO_F(argx->group->name));
     switch(argx->id) {
         case ARGX_NONE: {
             xso->ref_visible = false;
@@ -145,7 +148,7 @@ void argx_fmt_help(So *out, Argx *argx) {
     /* format the name */
     char c = argx->c ? argx->c : ' ';
     so_fmt(out, "  %c%c", argx->c ? '-' : ' ', c);
-    so_fmt(out, "  --%s", argx->opt);
+    so_fmt(out, "  --%.*s", SO_F(argx->opt));
 
     if(xso.have_hint) {
         if(!compact_hint) so_push(out, '\n');
@@ -164,5 +167,25 @@ void argx_fmt_help(So *out, Argx *argx) {
 
     argx_so_free(&xso);
 
+}
+
+void argx_fmt_config(So *out, Argx *argx) {
+    ASSERT_ARG(out);
+    ASSERT_ARG(argx);
+
+    Argx_So xso = {0};
+    argx_so(&xso, argx);
+
+    if(xso.ref_visible) {
+        so_fmt(out, "%.*s%.*s = %.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.ref));
+    } else {
+        if(xso.have_hint) {
+            so_fmt(out, "# %.*s%.*s = %.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.hint));
+        } else {
+            so_fmt(out, "# %.*s%.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt));
+        }
+    }
+
+    argx_so_free(&xso);
 }
 
