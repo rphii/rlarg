@@ -1,6 +1,8 @@
 #include "arg.h"
 #include "argx.h"
 
+/* TODO add check so that we will never add an invalid opt (e.g. has to be no format, can not have spaces, etc") */
+
 void argx_type_so(struct Argx *argx, So *val, So *ref) {
     ASSERT_ARG(argx);
     ASSERT_ARG(val);

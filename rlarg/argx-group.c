@@ -18,12 +18,12 @@ struct Argx_Group *argx_group(struct Arg *arg, So name) {
     return array_itL(arg->groups);
 }
 
-void argx_group_fmt(So *out, Argx_Group *group) {
+void argx_group_fmt_help(So *out, Argx_Group *group) {
     ASSERT_ARG(out);
     ASSERT_ARG(group);
     so_fmt(out, "%.*s:\n", SO_F(group->name));
     for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
-        argx_fmt(out, *argx);
+        argx_fmt_help(out, *argx);
     }
 }
 
