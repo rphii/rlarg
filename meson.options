@@ -1,7 +1,2 @@
-
-option('completion_dir',
-  type: 'string',
-  value: '/usr/share/bash-completion/completions/',
-  description: 'Completion directory')
-
+option('tests', type: 'feature', value: 'auto', description: 'Enable testing')
 
