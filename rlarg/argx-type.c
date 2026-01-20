@@ -162,6 +162,10 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
 }
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {
+    struct Argx *x = argx(group, 0, name, desc);
+    printff("created '%.*s' on table %p",SO_F(name),group->table);
+    x->is_enum = true;
+    x->val_enum = val;
     return 0;
 }
 

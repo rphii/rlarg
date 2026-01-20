@@ -22,7 +22,7 @@ typedef enum {
 } Argx_Priority_List;
 
 typedef union Argx_Value_Union {
-    int i, e;
+    int i;
     int *vi;
     ssize_t z;
     ssize_t *vz;
@@ -44,6 +44,8 @@ typedef struct Argx {
     struct Argx_Group *group_p; /* always set to parent group */
     struct Argx_Group *group_s; /* only set if id == ARGX_GROUP */
     bool is_array;
+    bool is_enum;
+    int val_enum;
 } Argx, *V_Argx;
 
 LUT_INCLUDE(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL);

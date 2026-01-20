@@ -41,6 +41,24 @@ int main(void) {
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
 
+    x=argx(g1, 0, so("enumerator2"), so("list of strings"));
+      g2=argx_group_enum(x, &e_out, 0);
+        e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
+        e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
+        e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
+
+    x=argx(g1, 0, so("enumerator33"), so("list of strings"));
+      g2=argx_group_enum(x, &e_out, 0);
+        e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
+        e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
+        e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
+
+    x=argx(g1, 0, so("enumerator444"), so("list of strings"));
+      g2=argx_group_enum(x, &e_out, 0);
+        e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
+        e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
+        e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
+
     x=argx(g1, '1', so("1111"), so("nothing"));
     x=argx(g1, '2', so("somerandom"), so("nothing"));
 // => for flags:
