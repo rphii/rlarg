@@ -130,6 +130,8 @@ void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
 
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref) {
     ASSERT_ARG(argx);
+    argx->val = (Argx_Value_Union *)val;
+    argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_GROUP;
     T_Argx *table;
     NEW(T_Argx, table);

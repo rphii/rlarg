@@ -34,9 +34,9 @@ int main(void) {
     x = argx(g1, 'v', so("vso"), so("list of strings"));
         argx_type_array_so(x, &vec_p, &vec_v);
 
-    int e_out;
+    int e_out, e_default = 1;
     x=argx(g1, 'e', so("enumerator"), so("list of strings"));
-      g2=argx_group_enum(x, &e_out, 0);
+      g2=argx_group_enum(x, &e_out, &e_default);
         e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));

@@ -263,13 +263,20 @@ void argx_so(Argx_So *xso, Argx *argx) {
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_GROUP: {
+                xso->have_hint = false;
                 so_push(&xso->hint, hint[0]);
                 //printff("SUBGROUP %p,id %u,table %p,list %p",argx->group_s,argx->group_s->id,argx->group_s->table,argx->group_s->list);
                 if(argx->group_s) {
+                    xso->have_hint = true;
                     Argx **itE = array_itE(argx->group_s->list);
                     for(Argx **it = argx->group_s->list; it < itE; ++it) {
                         so_fmt(&xso->hint, "%.*s", SO_F((*it)->opt));
                         if(it + 1 < itE) so_push(&xso->hint, '|');
+                        /* check if iterator matches default value */
+                        if(argx->ref && argx->ref->i == (*it)->val_enum) {
+                            so_extend(&xso->ref, (*it)->opt);
+                            xso->ref_visible = true;
+                        }
                     }
                 }
                 so_push(&xso->hint, hint[1]);
