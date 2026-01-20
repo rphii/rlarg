@@ -14,6 +14,7 @@ void argx_free_v(Argx argx) {
 void argx_free(Argx *argx) {
     if(argx->is_array) {
         switch(argx->id) {
+            case ARGX_GROUP: ABORT(ERR_UNREACHABLE("array of groups unsupported (how did you reach this code?)"));
             case ARGX_NONE: {}
             case ARGX_URI:
             case ARGX_STRING: {
@@ -32,10 +33,10 @@ void argx_free(Argx *argx) {
                 array_free(argx->val->vb);
                 array_free(argx->ref->vb);
             } break;
-            case ARGX_GROUP: {
-                argx_group_free(argx->val->group);
-                free(argx->val->group);
-            } break;
+        }
+    } else {
+        if(argx->id == ARGX_GROUP) {
+            argx_group_free(argx->group_s);
         }
     }
 }
@@ -50,10 +51,10 @@ struct Argx *argx(struct Argx_Group *group, char c, So name, So desc) {
     T_Argx_KV *kv = t_argx_once(group->table, name, (Argx){0});
     if(!kv) {
         Argx *e = t_argx_get(group->table, name);
-        ASSERT_ARG(e->group);
-        ABORT("trying to register an argument that already exists: '%.*s' in group: '%.*s'", SO_F(name), SO_F(e->group->name));
+        ASSERT_ARG(e->group_p);
+        ABORT("trying to register an argument that already exists: '%.*s' in group: '%.*s'", SO_F(name), SO_F(e->group_p->name));
     }
-    kv->val.group = group;
+    kv->val.group_p = group;
     if(c) {
         if(c < '~' && c >= '!') {
             ASSERT_ARG(group->arg);
@@ -201,7 +202,7 @@ void argx_so(Argx_So *xso, Argx *argx) {
     /* format the value */
     xso->ref_visible = (bool)(argx->ref);
     xso->have_hint = true;
-    so_fmt(&xso->hierarchy, "%.*s.", SO_F(argx->group->name));
+    so_fmt(&xso->hierarchy, "%.*s.", SO_F(argx->group_p->name));
     if(argx->is_array) {
         switch(argx->id) {
             case ARGX_NONE: {
@@ -261,7 +262,7 @@ void argx_so(Argx_So *xso, Argx *argx) {
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_GROUP: {
-                so_extend(&xso->val, argx->group->name);
+                so_extend(&xso->val, argx->group_p->name);
                 //so_extend(&xso->ref, argx->group->name);
                 //ABORT("unhandled");
             } break;
@@ -284,14 +285,14 @@ void argx_fmt_help(So *out, Argx *argx) {
     Argx_So xso = {0};
     argx_so(&xso, argx);
 
-    /* gather lengths and spacing (( +1 because of spaces between things )) */
+    /* aligning... gather lengths and spacing (( +1 because of spaces between things )) */
     size_t len_end_opt = 8 + so_len(argx->opt); /* 8 because of this: '  -x  --' */
-    bool compact_hint = xso.have_hint && len_end_opt < ARG_SPACING_HINT_WRAP;
+    bool compact_hint = !xso.have_hint || (xso.have_hint && len_end_opt < ARG_SPACING_HINT_WRAP);
     size_t spacing_hint = compact_hint
         ? 1
         : ARG_SPACING_HINT_ALTERNATE;
 
-    size_t len_end_hint = (compact_hint ? len_end_opt + 1 : spacing_hint) + (xso.have_hint ? so_len_nfx(xso.hint) : 0);
+    size_t len_end_hint = (compact_hint ? len_end_opt + xso.have_hint : spacing_hint) + (xso.have_hint ? so_len_nfx(xso.hint) : 0);
     bool compact_desc = len_end_hint < ARG_SPACING_DESCRIPTION_DEFAULT;
     int spacing_desc = compact_desc
         ? ARG_SPACING_DESCRIPTION_DEFAULT - len_end_hint

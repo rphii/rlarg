@@ -6,6 +6,7 @@ void arg_free(struct Arg **arg) {
     for(Argx_Group *group = (*arg)->groups; group < array_itE((*arg)->groups); ++group) {
         argx_group_free(group);
     }
+    free(*arg);
     *arg = 0;
 }
 

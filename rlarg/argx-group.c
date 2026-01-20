@@ -5,6 +5,7 @@ void argx_group_free(Argx_Group *group) {
     v_argx_free(group->list);
     if(group->id != ARGX_GROUP_ROOT) {
         free(group->table);
+        free(group);
     }
 }
 

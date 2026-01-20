@@ -41,6 +41,8 @@ int main(void) {
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
 
+    x=argx(g1, '1', so("1111"), so("nothing"));
+    x=argx(g1, '2', so("somerandom"), so("nothing"));
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));
 //        x =argx_enum_unique(g2, so("default"), so("default option"));

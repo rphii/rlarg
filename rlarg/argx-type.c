@@ -128,27 +128,14 @@ void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
     argx->is_array = true;
 }
 
-struct Argx_Group *argx_group_sub(struct Argx *argx) {
-    ASSERT_ARG(argx);
-    argx->id = ARGX_GROUP;
-    T_Argx *table;
-    NEW(T_Argx, table);
-    NEW(Argx_Value_Union, argx->val);
-    NEW(Argx_Group, argx->val->group);
-    Argx_Group *group = argx->val->group;
-    *group = argx_group_init(argx->group->arg, table, argx->opt, ARGX_GROUP_SUBGROUP);
-    return group;
-}
-
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref) {
     ASSERT_ARG(argx);
     argx->id = ARGX_GROUP;
     T_Argx *table;
     NEW(T_Argx, table);
-    NEW(Argx_Value_Union, argx->val);
-    NEW(Argx_Group, argx->val->group);
-    Argx_Group *group = argx->val->group;
-    *group = argx_group_init(argx->group->arg, table, argx->opt, ARGX_GROUP_ENUM);
+    NEW(Argx_Group, argx->group_s);
+    Argx_Group *group = argx->group_s;
+    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_ENUM);
     return group;
 }
 
@@ -157,10 +144,9 @@ struct Argx_Group *argx_group_options(struct Argx *argx) {
     argx->id = ARGX_GROUP;
     T_Argx *table;
     NEW(T_Argx, table);
-    NEW(Argx_Value_Union, argx->val);
-    NEW(Argx_Group, argx->val->group);
-    Argx_Group *group = argx->val->group;
-    *group = argx_group_init(argx->group->arg, table, argx->opt, ARGX_GROUP_OPTIONS);
+    NEW(Argx_Group, argx->group_s);
+    Argx_Group *group = argx->group_s;
+    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_OPTIONS);
     return group;
 }
 
@@ -169,10 +155,9 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
     argx->id = ARGX_GROUP;
     T_Argx *table;
     NEW(T_Argx, table);
-    NEW(Argx_Value_Union, argx->val);
-    NEW(Argx_Group, argx->val->group);
-    Argx_Group *group = argx->val->group;
-    *group = argx_group_init(argx->group->arg, table, argx->opt, ARGX_GROUP_FLAGS);
+    NEW(Argx_Group, argx->group_s);
+    Argx_Group *group = argx->group_s;
+    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_FLAGS);
     return group;
 }
 
