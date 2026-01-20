@@ -4,7 +4,6 @@
 
 typedef enum {
     ARGX_GROUP_ROOT,
-    ARGX_GROUP_SUBGROUP, /* can probably merge with above ... just have to adjust freeing-logic appropriately. */
     ARGX_GROUP_ENUM,
     ARGX_GROUP_OPTIONS,
     ARGX_GROUP_FLAGS,

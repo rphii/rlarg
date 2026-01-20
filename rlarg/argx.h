@@ -41,7 +41,8 @@ typedef struct Argx {
     Argx_List id;
     Argx_Value_Union *val; /* parsed value */
     Argx_Value_Union *ref; /* reference / default value */
-    struct Argx_Group *group;
+    struct Argx_Group *group_p; /* always set to parent group */
+    struct Argx_Group *group_s; /* only set if id == ARGX_GROUP */
     bool is_array;
 } Argx, *V_Argx;
 
