@@ -58,7 +58,7 @@ typedef struct Argx_So {
     So set_ref;
     So hint;
     So hierarchy;
-    //bool val_visible;
+    bool val_visible;
     bool have_hint;
 } Argx_So;
 

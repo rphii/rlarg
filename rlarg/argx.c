@@ -99,7 +99,7 @@ void argx_so_clear(Argx_So *xso) {
 
 void argx_so_like_string(So *out, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val) so_fmt(out, "%.*s", SO_F(val->so));
+    if(val) so_fmt(out, "'%.*s'", SO_F(val->so));
 }
 
 void argx_so_type_int(So *out, Argx_Value_Union *val) {
@@ -127,7 +127,9 @@ void argx_so_like_array_string(So *out, Argx_Value_Union *val) {
         so_push(out, '[');
         So *vE = array_itE(val->vso);
         for(So *v = val->vso; v < vE; ++v) {
+            so_push(out, '\'');
             so_extend(out, *v);
+            so_push(out, '\'');
             if(v + 1 < vE) so_extend(out, so(", "));
         }
         so_push(out, ']');
@@ -202,6 +204,7 @@ void argx_so(Argx_So *xso, Argx *argx) {
     }
     /* format the value */
     //xso->ref_visible = (bool)(argx->ref);
+    xso->val_visible = (bool)(argx->val);
     xso->have_hint = true;
     so_fmt(&xso->hierarchy, "%.*s.", SO_F(argx->group_p->name));
     if(argx->is_array) {
@@ -339,9 +342,9 @@ void argx_fmt_help(So *out, Argx *argx) {
     
     so_fmt(out, "%*s%.*s", spacing_desc, "", SO_F(argx->desc));
 
-    //if(xso.ref_visible) {
-        //so_fmt(out, " =%.*s", SO_F(xso.ref));
-    //}
+    if(xso.val_visible) {
+        so_fmt(out, " =%.*s", SO_F(xso.set_val));
+    }
 
     so_fmt(out, "\n");
 
@@ -356,15 +359,15 @@ void argx_fmt_config(So *out, Argx *argx) {
     Argx_So xso = {0};
     argx_so(&xso, argx);
 
-    //if(xso.ref_visible) {
-        //so_fmt(out, "%.*s%.*s = %.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.ref));
-    //} else {
+    if(xso.val_visible) {
+        so_fmt(out, "%.*s%.*s = %.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
+    } else {
         if(xso.have_hint) {
             so_fmt(out, "# %.*s%.*s = %.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.hint));
         } else {
             so_fmt(out, "# %.*s%.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt));
         }
-    //}
+    }
 
     argx_so_free(&xso);
 }
