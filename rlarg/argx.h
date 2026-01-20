@@ -54,11 +54,11 @@ void v_argx_free(V_Argx *vargs);
 
 typedef struct Argx_So {
     Argx *argx;
-    So val;
-    So ref;
+    So set_val;
+    So set_ref;
     So hint;
     So hierarchy;
-    bool ref_visible;
+    //bool val_visible;
     bool have_hint;
 } Argx_So;
 
