@@ -33,14 +33,20 @@ typedef union Argx_Value_Union {
     struct Argx_Group *group;
 } Argx_Value_Union;
 
+typedef struct Argx_Source {
+    So uri;     /* source of getting set -> if null, then URI. else it is a URI */
+    int line;   /* if available, a line number. if <=0 then invalid line number (e.g. stdin) */
+} Argx_Source;
+
 typedef struct Argx {
     char c;
     So opt;
     So desc;
     Argx_Hint hint;
     Argx_List id;
-    Argx_Value_Union *val; /* parsed value */
-    Argx_Value_Union *ref; /* reference / default value */
+    Argx_Value_Union *val;  /* parsed value */
+    Argx_Value_Union *ref;  /* reference / default value */
+    Argx_Source *src;       /* from where the value gets set -- should be an array if is_array, else, a single value */
     struct Argx_Group *group_p; /* always set to parent group */
     struct Argx_Group *group_s; /* only set if id == ARGX_GROUP */
     bool is_array;
