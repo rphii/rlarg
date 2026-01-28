@@ -64,9 +64,12 @@ typedef struct Argx_So {
     bool have_hint;
 } Argx_So;
 
+typedef struct Argx_Fmt {
+} Argx_Fmt;
+
 void argx_so_free(Argx_So *xso);
 void argx_so_clear(Argx_So *xso);
-void argx_so(Argx_So *xso, Argx *argx);
+void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx);
 
 void argx_fmt_help(So *out, Argx *argx);
 void argx_fmt_config(So *out, Argx *argx);

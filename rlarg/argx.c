@@ -177,7 +177,7 @@ void argx_so_type_array_bool(So *out, Argx_Value_Union *val) {
 
 /* vector types }}} */
 
-void argx_so_enum(Argx_So *xso, Argx *argx) {
+void argx_so_enum(Argx_So *xso, Argx_Fmt *fmt,  Argx *argx) {
     Argx **itE = array_itE(argx->group_s->list);
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
@@ -190,7 +190,7 @@ void argx_so_enum(Argx_So *xso, Argx *argx) {
             so_extend(&xso->set_ref, (*it)->opt);
         }
         /* format hint */
-        if(current_is_selected) {
+        if(current_is_selected && fmt) {
             so_fmt(&xso->hint, F("%.*s", UL), SO_F((*it)->opt));
         } else {
             so_fmt(&xso->hint, "%.*s", SO_F((*it)->opt));
@@ -199,7 +199,7 @@ void argx_so_enum(Argx_So *xso, Argx *argx) {
     }
 }
 
-void argx_so_flags(Argx_So *xso, Argx *argx) {
+void argx_so_flags(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     Argx **itE = array_itE(argx->group_s->list);
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
@@ -215,7 +215,7 @@ void argx_so_flags(Argx_So *xso, Argx *argx) {
             so_extend(&xso->set_ref, (*it)->opt);
         }
         /* format hint */
-        if(current_is_selected) {
+        if(current_is_selected && fmt) {
             so_fmt(&xso->hint, F("%.*s", UL), SO_F((*it)->opt));
         } else {
             so_fmt(&xso->hint, "%.*s", SO_F((*it)->opt));
@@ -224,7 +224,7 @@ void argx_so_flags(Argx_So *xso, Argx *argx) {
     }
 }
 
-void argx_so_options(Argx_So *xso, Argx *argx) {
+void argx_so_options(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     Argx **itE = array_itE(argx->group_s->list);
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
@@ -243,7 +243,13 @@ void argx_so_options(Argx_So *xso, Argx *argx) {
     }
 }
 
-void argx_so(Argx_So *xso, Argx *argx) {
+void argx_so_hierarchy(So *hierarchy, Argx_Group *group) {
+    if(!group) return;
+    argx_so_hierarchy(hierarchy, group->parent);
+    so_fmt(hierarchy, "%.*s.", SO_F(group->name));
+}
+
+void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     //printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
     ASSERT_ARG(xso);
     ASSERT_ARG(argx);
@@ -273,7 +279,7 @@ void argx_so(Argx_So *xso, Argx *argx) {
     xso->val_visible = (bool)(argx->val);
     xso->val_config = xso->val_visible;
     xso->have_hint = true;
-    so_fmt(&xso->hierarchy, "%.*s.", SO_F(argx->group_p->name));
+    argx_so_hierarchy(&xso->hierarchy, argx->group_p);
     if(argx->is_array) {
         switch(argx->id) {
             case ARGX_NONE: {
@@ -340,15 +346,15 @@ void argx_so(Argx_So *xso, Argx *argx) {
                     xso->have_hint = true;
                     switch(argx->group_s->id) {
                         case ARGX_GROUP_ENUM: {
-                            argx_so_enum(xso, argx);
+                            argx_so_enum(xso, fmt, argx);
                             xso->val_config = (bool)(xso->set_val.len);
                         } break;
                         case ARGX_GROUP_FLAGS: {
-                            argx_so_flags(xso, argx);
+                            argx_so_flags(xso, fmt, argx);
                             xso->val_config = (bool)(xso->set_val.len);
                         } break;
                         case ARGX_GROUP_OPTIONS: {
-                            argx_so_options(xso, argx);
+                            argx_so_options(xso, fmt, argx);
                             xso->val_group = true;
                         } break;
                         case ARGX_GROUP_ROOT: ABORT(ERR_UNREACHABLE("case has to be handled from the outside"));
@@ -373,7 +379,8 @@ void argx_fmt_help(So *out, Argx *argx) {
     ASSERT_ARG(argx);
 
     Argx_So xso = {0};
-    argx_so(&xso, argx);
+    Argx_Fmt fmt = {0};
+    argx_so(&xso, &fmt, argx);
 
     /* aligning... gather lengths and spacing (( +1 because of spaces between things )) */
     size_t len_end_opt = 8 + so_len(argx->opt); /* 8 because of this: '  -x  --' */
@@ -420,15 +427,27 @@ void argx_fmt_config(So *out, Argx *argx) {
     ASSERT_ARG(argx);
 
     Argx_So xso = {0};
-    argx_so(&xso, argx);
+    argx_so(&xso, 0, argx);
 
-    if(xso.val_config) {
-        so_fmt(out, "%.*s%.*s = %.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
+    if(xso.val_group) {
+        ASSERT(argx->id == ARGX_GROUP && argx->group_s, "expected to have a group");
+        Argx **itE = array_itE(argx->group_s->list);
+        for(Argx **it = argx->group_s->list; it < itE; ++it) {
+            argx_fmt_config(out, *it);
+        }
     } else {
-        if(xso.have_hint) {
-            so_fmt(out, "# %.*s%.*s = %.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.hint));
+        if(xso.val_config) {
+            so_fmt(out, "%.*s%.*s = %.*s", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
+            if(xso.have_hint) {
+                so_fmt(out, " # %.*s", SO_F(xso.hint));
+            }
+            so_push(out, '\n');
         } else {
-            so_fmt(out, "# %.*s%.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt));
+            if(xso.have_hint) {
+                so_fmt(out, "# %.*s%.*s = %.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.hint));
+            } else {
+                so_fmt(out, "# %.*s%.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt));
+            }
         }
     }
 
