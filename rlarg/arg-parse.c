@@ -11,6 +11,54 @@ int arg_parse_stream(struct Arg *arg, const int argc, const char **argv) {
 
 // TODO: we can't just OVERWRITE the argx->val ! with argx->ref ! because .. well they point to REAL locations.
 
+void arg_parse_setref_argx(Argx *argx) {
+    if(argx->ref) {
+        if(argx->is_array) {
+            switch(argx->id) {
+                case ARGX_BOOL: {
+                    array_extend(argx->val->vb, argx->ref->vb);
+                } break;
+                case ARGX_URI:
+                case ARGX_STRING: {
+                    array_extend(argx->val->vso, argx->ref->vso);
+                } break;
+                case ARGX_INT: {
+                    array_extend(argx->val->vi, argx->ref->vi);
+                } break;
+                case ARGX_SIZE: {
+                    array_extend(argx->val->vz, argx->ref->vz);
+                } break;
+                case ARGX_NONE: break;
+                case ARGX_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
+            }
+        } else {
+            printff(" v %p = r %p id %u",argx->val,argx->ref,argx->id);
+            switch(argx->id) {
+                case ARGX_BOOL: {
+                    printff(" set bool");
+                    argx->val->b = argx->ref->b;
+                } break;
+                case ARGX_URI:
+                case ARGX_STRING: {
+                    printff(" set strlike");
+                    So ref = argx->ref->so;
+                    argx->val->so = ref;
+                } break;
+                case ARGX_INT: {
+                    printff(" set int");
+                    argx->val->i = argx->ref->i;
+                } break;
+                case ARGX_SIZE: {
+                    printff(" set size");
+                    argx->val->z = argx->ref->z;
+                } break;
+                case ARGX_NONE: break;
+                case ARGX_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
+            }
+        }
+    }
+}
+
 void arg_parse_setref_group(Argx_Group *group) {
     if(!group) return;
     for(Argx **it = group->list; it < array_itE(group->list); ++it) {
@@ -27,8 +75,7 @@ void arg_parse_setref_group(Argx_Group *group) {
                 case ARGX_GROUP_FLAGS: ABORT("not yet implemented"); break;
             }
         } else {
-            printff(" v %p = r %p",argx->val,argx->ref);
-            argx->val = argx->ref;
+            arg_parse_setref_argx(argx);
         }
     }
 }
@@ -38,6 +85,7 @@ void arg_parse_setref(struct Arg *arg) {
     for(Argx_Group *group = arg->groups; group < array_itE(arg->groups); ++group) {
         arg_parse_setref_group(group);
     }
+    printff(" setref done");
 }
 
 int arg_parse(struct Arg *arg, const int argc, const char **argv) {
