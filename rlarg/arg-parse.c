@@ -63,6 +63,8 @@ void arg_parse_setref_argx(Argx *argx) {
                 case ARGX_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         }
+    } else {
+        argx->val = 0;
     }
 }
 
