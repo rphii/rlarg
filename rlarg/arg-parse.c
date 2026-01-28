@@ -10,15 +10,32 @@ void arg_parse_errmsg_no_rest_allowed(Arg_Stream *stream) {
     printf("\n");
 }
 
+
+int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, bool *set_rest) {
+    ASSERT_ARG(arg);
+    ASSERT_ARG(stream);
+    ASSERT_ARG(argx);
+    ASSERT_ARG(set_rest);
+    *set_rest = false;
+    switch(argx->id) {
+        case ARGX_TYPE_REST: {
+            *set_rest = true;
+        } break;
+        case ARGX_TYPE_BOOL: {
+            //if(so_as_yes_or_no(
+        } break;
+    }
+    return 0;
+}
+
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
     printff("parse... argc %u", stream->argc);
-    for(stream->i = 0; stream->i < stream->argc; ++stream->i) {
-        So carg = so_l(stream->argv[stream->i]);
-        if(!so_cmp(carg, so("--"))) {
-            stream->skip_flag_check = true;
-            continue;
-        }
+    So carg = SO;
+    while(arg_stream_advance(stream, carg)) {
+        int next = arg_stream_get_next(stream, &carg);
+        if(next) return -1;
+        printff(" carg: [%.*s]", SO_F(carg));
         /* determine kind of situation... */
         bool set_rest = false;
         if(stream->skip_flag_check) {
@@ -26,16 +43,25 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
         }
         /* now act upon deciding what situation we're in... */
         if(set_rest) {
-            /* we want to set the rest? then set it! spit out an error if the user can not set the rest */
-            Argx *rest = stream->rest;
-            if(!rest || (rest && !rest->val)) {
-                arg_parse_errmsg_no_rest_allowed(stream);
-                return -1;
-            } else {
-                ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
-                vso_push(&rest->val->vso, carg);
+            /* we want to set the rest? check if there are remaining positional arguments to be set */
+            if(arg->i_pos < array_len(arg->pos.list)) {
+                Argx *pos = array_at(arg->pos.list, arg->i_pos);
+                arg_parse_argx(arg, stream, pos, &set_rest);
+                ++arg->i_pos;
+            }
+            if(set_rest) {
+                /* all positional arguments are parsed, now push the resulting value to the rest! spit out an error if the user can not set the rest */
+                Argx *rest = stream->rest;
+                if(!rest || (rest && !rest->val)) {
+                    arg_parse_errmsg_no_rest_allowed(stream);
+                    return -1;
+                } else {
+                    ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
+                    vso_push(&rest->val->vso, carg);
+                }
             }
         } else {
+            /* grab an option */
         }
     }
     return 0;

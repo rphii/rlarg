@@ -16,6 +16,8 @@ typedef struct Arg {
     Argx_Group pos;     /* positional arguments */
     Argx_Group env;     /* environment variables */
 
+    int i_pos;          /* index of positional argument parse status */
+
     T_Argx t_pos;
     T_Argx t_env;
 
