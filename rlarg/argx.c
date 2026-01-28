@@ -35,6 +35,7 @@ void argx_free(Argx *argx) {
                 array_free(argx->ref->vb);
             } break;
         }
+        vso_free(&argx->sources);
     } else {
         if(argx->id == ARGX_GROUP) {
             argx_group_free(argx->group_s);

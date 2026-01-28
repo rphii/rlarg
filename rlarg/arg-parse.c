@@ -9,22 +9,35 @@ int arg_parse_stream(struct Arg *arg, const int argc, const char **argv) {
     return 0;
 }
 
+#define ARGX_SOURCE_REFVAL  so("refval")
+#define ARGX_SOURCE_STDIN   so("stdin")
+
+void arg_parse_setref_sources_mono(Argx *argx, So src, size_t n) {
+    for(size_t i = 0; i < n; ++i) {
+        vso_push(&argx->sources, src);
+    }
+}
+
 void arg_parse_setref_argx(Argx *argx) {
     if(argx->ref) {
         if(argx->is_array) {
             switch(argx->id) {
                 case ARGX_BOOL: {
                     array_extend(argx->val->vb, argx->ref->vb);
+                    arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(argx->ref->vb));
                 } break;
                 case ARGX_URI:
                 case ARGX_STRING: {
                     array_extend(argx->val->vso, argx->ref->vso);
+                    arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(argx->ref->vso));
                 } break;
                 case ARGX_INT: {
                     array_extend(argx->val->vi, argx->ref->vi);
+                    arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(argx->ref->vi));
                 } break;
                 case ARGX_SIZE: {
                     array_extend(argx->val->vz, argx->ref->vz);
+                    arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(argx->ref->vz));
                 } break;
                 case ARGX_NONE: break;
                 case ARGX_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
@@ -32,6 +45,7 @@ void arg_parse_setref_argx(Argx *argx) {
         } else {
             //printff(" v %p = r %p id %u",argx->val,argx->ref,argx->id);
             switch(argx->id) {
+                arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (bool)(argx->ref));
                 case ARGX_BOOL: {
                     argx->val->b = argx->ref->b;
                 } break;
