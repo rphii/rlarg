@@ -1,5 +1,15 @@
 #include "arg.h"
 
+void arg_parse_errmsg_unhandled_positional_error(Arg_Stream *stream) {
+    printf(F("Error occured while parsing: ", FG_RD));
+    while(stream->i < stream->argc) {
+        So carg = so_l(stream->argv[stream->i]);
+        printf("%.*s ", SO_F(carg));
+        ++stream->i;
+    }
+    printf("\n");
+}
+
 void arg_parse_errmsg_no_rest_allowed(Arg_Stream *stream) {
     printf(F("Not allowed to set rest of values: ", FG_RD));
     while(stream->i < stream->argc) {
@@ -10,31 +20,137 @@ void arg_parse_errmsg_no_rest_allowed(Arg_Stream *stream) {
     printf("\n");
 }
 
+void arg_parse_errmsg_missing_value(Arg_Stream *stream, Argx *argx) {
+    Argx_So xso = {0};
+    argx_so(&xso, 0, argx);
+    if(xso.have_hint) {
+        printf(F("Missing value for argument: %.*s %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint));
+    } else {
+        printf(F("Missing value for argument: %.*s", FG_RD), SO_F(xso.argx->opt));
+    }
+    printf("\n");
+    argx_so_free(&xso);
+}
 
-int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, bool *set_rest) {
+void arg_parse_errmsg_invalid_conversion(Arg_Stream *stream, Argx *argx) {
+    Argx_So xso = {0};
+    argx_so(&xso, 0, argx);
+    if(xso.have_hint) {
+        printf(F("Invalid conversion for '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+    } else {
+        ABORT(ERR_UNREACHABLE("if you reach this code, please tell me how you got here"));
+    }
+    printf("\n");
+    argx_so_free(&xso);
+}
+
+void arg_parse_group_invalid_opt(Arg_Stream *stream, Argx *argx) {
+    Argx_So xso = {0};
+    argx_so(&xso, 0, argx);
+    if(xso.have_hint) {
+        printf(F("Option not found in '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+    } else {
+        ABORT(ERR_UNREACHABLE("if you reach this code, please tell me how you got here"));
+    }
+    printf("\n");
+    argx_so_free(&xso);
+}
+
+
+int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    ASSERT_ARG(arg);
+    ASSERT_ARG(stream);
+    ASSERT_ARG(argx);
+    int result = -1;
+    if(argx->is_array) {
+        switch(argx->id) {
+            case ARGX_TYPE_REST: {
+                stream->rest = argx;
+                result = 0;
+            } break;
+        }
+    } else {
+        switch(argx->id) {
+            case ARGX_TYPE_REST: {
+                ABORT(ERR_UNREACHABLE("argx of type REST is always an array"));
+            } break;
+            case ARGX_TYPE_BOOL: {
+                if(!so_as_yes_or_no(so, &argx->val->b)) {
+                    vso_push(&argx->sources, stream->source);
+                    result = 0;
+                } else {
+                    arg_parse_errmsg_invalid_conversion(stream, argx);
+                }
+            } break;
+            case ARGX_TYPE_INT: {
+                if(!so_as_int(so, &argx->val->i, 0)) {
+                    vso_push(&argx->sources, stream->source);
+                    result = 0;
+                } else {
+                    arg_parse_errmsg_invalid_conversion(stream, argx);
+                }
+            } break;
+            case ARGX_TYPE_SIZE: {
+                if(!so_as_ssize(so, &argx->val->z, 0)) {
+                    vso_push(&argx->sources, stream->source);
+                    result = 0;
+                } else {
+                    arg_parse_errmsg_invalid_conversion(stream, argx);
+                }
+            } break;
+            case ARGX_TYPE_URI:
+            case ARGX_TYPE_STRING: {
+                so_extend(&argx->val->so, so);
+                vso_push(&argx->sources, stream->source);
+                result = 0;
+            } break;
+            case ARGX_TYPE_GROUP: {
+                Argx *subx = 0;
+                if(argx->group_s) {
+                    subx = t_argx_get(argx->group_s->table, so);
+                }
+                if(subx) {
+                    So next = SO;
+                    if(!arg_stream_get_next(stream, &next)) {
+                        result = arg_parse_argx(arg, stream, subx, next);
+                    }
+                } else {
+                    arg_parse_group_invalid_opt(stream, argx);
+                }
+            } break;
+            case ARGX_TYPE_ENUM: {
+                ASSERT_ARG(argx->group_p);
+                Argx *parent = argx->group_p->parent;
+                ASSERT_ARG(parent);
+                ASSERT_ARG(parent->val);
+                parent->val->i = argx->val_enum;
+                result = 0;
+            } break;
+            case ARGX_TYPE_NONE: {
+                arg_stream_not_consumed(stream);
+                result = 0;
+            } break;
+        }
+    }
+    return result;
+}
+
+int arg_parse_positional(struct Arg *arg, Arg_Stream *stream, Argx *argx, bool *set_rest) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
     ASSERT_ARG(set_rest);
-    *set_rest = false;
-    switch(argx->id) {
-        case ARGX_TYPE_REST: {
-            *set_rest = true;
-        } break;
-        case ARGX_TYPE_BOOL: {
-            //if(so_as_yes_or_no(
-        } break;
-    }
-    return 0;
+    *set_rest = (argx->id == ARGX_TYPE_REST);
+    printff("SET REST? %u", *set_rest);
+    int result = arg_parse_argx(arg, stream, argx, stream->carg);
+    return result;
 }
 
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
     printff("parse... argc %u", stream->argc);
     So carg = SO;
-    while(arg_stream_advance(stream, carg)) {
-        int next = arg_stream_get_next(stream, &carg);
-        if(next) return -1;
+    while(arg_stream_get_next(stream, &carg)) {
         printff(" carg: [%.*s]", SO_F(carg));
         /* determine kind of situation... */
         bool set_rest = false;
@@ -44,12 +160,18 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
         /* now act upon deciding what situation we're in... */
         if(set_rest) {
             /* we want to set the rest? check if there are remaining positional arguments to be set */
+            printff("I_POS %u / %zu", arg->i_pos, array_len(arg->pos.list));
             if(arg->i_pos < array_len(arg->pos.list)) {
                 Argx *pos = array_at(arg->pos.list, arg->i_pos);
-                arg_parse_argx(arg, stream, pos, &set_rest);
+                printff("GOT POSITIONAL ARGX");
+                if(arg_parse_positional(arg, stream, pos, &set_rest)) {
+                    arg_parse_errmsg_unhandled_positional_error(stream);
+                    return -1;
+                }
                 ++arg->i_pos;
-            }
+            } 
             if(set_rest) {
+                printff("SET REST!");
                 /* all positional arguments are parsed, now push the resulting value to the rest! spit out an error if the user can not set the rest */
                 Argx *rest = stream->rest;
                 if(!rest || (rest && !rest->val)) {
@@ -101,6 +223,7 @@ void arg_parse_setref_argx(Argx *argx) {
                 case ARGX_TYPE_NONE: break;
                 case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
                 case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
+                case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         } else {
             //printff(" v %p = r %p id %u",argx->val,argx->ref,argx->id);
@@ -122,6 +245,7 @@ void arg_parse_setref_argx(Argx *argx) {
                 case ARGX_TYPE_NONE: break;
                 case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
                 case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
+                case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         }
     } else {

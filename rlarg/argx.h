@@ -10,6 +10,7 @@ typedef enum {
     ARGX_TYPE_NONE,
     ARGX_TYPE_REST,
     ARGX_TYPE_INT,
+    ARGX_TYPE_ENUM,
     ARGX_TYPE_SIZE,
     ARGX_TYPE_BOOL,
     ARGX_TYPE_STRING,
@@ -46,7 +47,6 @@ typedef struct Argx {
     struct Argx_Group *group_p; /* always set to parent group */
     struct Argx_Group *group_s; /* only set if id == ARGX_GROUP */
     bool is_array;
-    bool is_enum;
     bool is_env;
     int val_enum;
 } Argx, *V_Argx;

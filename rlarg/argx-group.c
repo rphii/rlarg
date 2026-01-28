@@ -9,7 +9,7 @@ void argx_group_free(Argx_Group *group) {
     }
 }
 
-Argx_Group argx_group_init(struct Arg *arg, T_Argx *table, So name, Argx_Group_List id, Argx_Group *parent) {
+Argx_Group argx_group_init(struct Arg *arg, T_Argx *table, So name, Argx_Group_List id, Argx *parent) {
     if(id != ARGX_GROUP_ROOT) ASSERT_ARG(parent);
     Argx_Group result = {
         .name = name,

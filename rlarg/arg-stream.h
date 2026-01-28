@@ -16,11 +16,15 @@ typedef struct Arg_Stream {
     int argc;
     int i, i_split;
     bool skip_flag_check;   /* set true once we encounter '--' */
+    bool not_consumed;
     struct Argx *rest;      /* pointer to an argx of type ARGX_TYPE_REST */
+    So carg;
+    So source;
 } Arg_Stream;
 
-int arg_stream_get_next(Arg_Stream *stream, So *val);
-bool arg_stream_advance(Arg_Stream *stream, So gotten_next);
+bool arg_stream_get_next(Arg_Stream *stream, So *val);
+bool arg_stream_advance(Arg_Stream *stream);
+void arg_stream_not_consumed(Arg_Stream *stream);
 
 #define RLARG_STREAM_H
 #endif /* RLARG_STREAM_H */
