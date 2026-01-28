@@ -16,7 +16,9 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv);
 struct Argx_Group *argx_group(struct Arg *arg, So name);
 
 /* rlarg/argx.c */
-struct Argx *argx(struct Argx_Group *group, char c, So name, So desc);
+struct Argx *argx_opt(struct Argx_Group *group, char c, So name, So desc);
+struct Argx *argx_pos(struct Arg *arg, So name, So desc);
+struct Argx *argx_env(struct Arg *arg, So name, So desc);
 
 /* rlarg/argx-type.c */
 

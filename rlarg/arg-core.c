@@ -4,6 +4,8 @@
 void arg_free(struct Arg **arg) {
     if(!arg) return;
     array_free_ext((*arg)->groups, argx_group_free);
+    argx_group_free(&(*arg)->pos);
+    argx_group_free(&(*arg)->env);
     free(*arg);
     *arg = 0;
 }
@@ -11,6 +13,8 @@ void arg_free(struct Arg **arg) {
 struct Arg *arg_new(void) {
     Arg *result;
     NEW(Arg, result);
+    result->pos = argx_group_init(result, &result->t_pos, so("positional"), ARGX_GROUP_ROOT, 0);
+    result->env = argx_group_init(result, &result->t_env, so("environment"), ARGX_GROUP_ROOT, 0);
     return result;
 }
 

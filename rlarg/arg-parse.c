@@ -1,11 +1,15 @@
 #include "arg.h"
 
-int arg_parse_stream(struct Arg *arg, const int argc, const char **argv) {
-    /* set the stream */
-    arg->stream.argc = argc;
-    arg->stream.argv = argv;
-    arg->stream.i = 0;
+int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
+    printff("parse... argc %u", stream->argc);
+    for(stream->i = 0; stream->i < stream->argc; ++stream->i) {
+        So carg = so_l(stream->argv[stream->i]);
+        if(!so_cmp(carg, so("--"))) {
+            stream->skip_flag_check = true;
+            continue;
+        }
+    }
     return 0;
 }
 
@@ -23,45 +27,45 @@ void arg_parse_setref_argx(Argx *argx) {
     if(argx->ref) {
         if(argx->is_array) {
             switch(argx->id) {
-                case ARGX_BOOL: {
+                case ARGX_TYPE_BOOL: {
                     array_extend(argx->val->vb, argx->ref->vb);
                     arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(argx->ref->vb));
                 } break;
-                case ARGX_URI:
-                case ARGX_STRING: {
+                case ARGX_TYPE_URI:
+                case ARGX_TYPE_STRING: {
                     array_extend(argx->val->vso, argx->ref->vso);
                     arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(argx->ref->vso));
                 } break;
-                case ARGX_INT: {
+                case ARGX_TYPE_INT: {
                     array_extend(argx->val->vi, argx->ref->vi);
                     arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(argx->ref->vi));
                 } break;
-                case ARGX_SIZE: {
+                case ARGX_TYPE_SIZE: {
                     array_extend(argx->val->vz, argx->ref->vz);
                     arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(argx->ref->vz));
                 } break;
-                case ARGX_NONE: break;
-                case ARGX_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
+                case ARGX_TYPE_NONE: break;
+                case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         } else {
             //printff(" v %p = r %p id %u",argx->val,argx->ref,argx->id);
             switch(argx->id) {
                 arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (bool)(argx->ref));
-                case ARGX_BOOL: {
+                case ARGX_TYPE_BOOL: {
                     argx->val->b = argx->ref->b;
                 } break;
-                case ARGX_URI:
-                case ARGX_STRING: {
+                case ARGX_TYPE_URI:
+                case ARGX_TYPE_STRING: {
                     argx->val->so = argx->ref->so;
                 } break;
-                case ARGX_INT: {
+                case ARGX_TYPE_INT: {
                     argx->val->i = argx->ref->i;
                 } break;
-                case ARGX_SIZE: {
+                case ARGX_TYPE_SIZE: {
                     argx->val->z = argx->ref->z;
                 } break;
-                case ARGX_NONE: break;
-                case ARGX_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
+                case ARGX_TYPE_NONE: break;
+                case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         }
     } else {
@@ -76,7 +80,7 @@ void arg_parse_setref_group(Argx_Group *group) {
         ASSERT_ARG(it);
         Argx *argx = *it;
         ASSERT_ARG(argx);
-        if(argx->id == ARGX_GROUP) {
+        if(argx->id == ARGX_TYPE_GROUP) {
             if(!argx->group_s) continue;
             switch(argx->group_s->id) {
                 case ARGX_GROUP_OPTIONS:
@@ -99,7 +103,12 @@ void arg_parse_setref(struct Arg *arg) {
 
 int arg_parse(struct Arg *arg, const int argc, const char **argv) {
 
-    arg_parse_stream(arg, argc, argv);
+    Arg_Stream stream_in = {
+        .argc = argc ? argc - 1 : 0,
+        .argv = argv ? argv + 1 : 0,
+    };
+
+    arg_parse_stream(arg, &stream_in);
 
     arg_parse_setref(arg);
 

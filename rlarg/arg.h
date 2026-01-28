@@ -13,10 +13,13 @@ typedef struct Arg {
     Argx *c[ARG_X_SHORT_COUNT]; /* short options */
 
     Argx_Groups groups; /* long options */
+    Argx_Group pos;     /* positional arguments */
+    Argx_Group env;     /* environment variables */
+
+    T_Argx t_pos;
+    T_Argx t_env;
 
     T_Argx table; /* root of long options -> delve into groups */
-
-    Arg_Stream stream; /* only stdin */
 
 } Arg;
 

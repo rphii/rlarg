@@ -7,8 +7,8 @@ int main(void) {
 
     struct Argx_Group *g1 = argx_group(arg, so("default"));
 
-    argx(g1, 'x', so("switch"), so("desc"));
-    argx(g1, 'x', so("switch2"), so("desc"));
+    argx_opt(g1, 'x', so("switch"), so("desc"));
+    argx_opt(g1, 'x', so("switch2"), so("desc"));
 
     return 0;
 }
