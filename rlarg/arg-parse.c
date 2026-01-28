@@ -33,21 +33,16 @@ void arg_parse_setref_argx(Argx *argx) {
             printff(" v %p = r %p id %u",argx->val,argx->ref,argx->id);
             switch(argx->id) {
                 case ARGX_BOOL: {
-                    printff(" set bool");
                     argx->val->b = argx->ref->b;
                 } break;
                 case ARGX_URI:
                 case ARGX_STRING: {
-                    printff(" set strlike");
-                    So ref = argx->ref->so;
-                    argx->val->so = ref;
+                    argx->val->so = argx->ref->so;
                 } break;
                 case ARGX_INT: {
-                    printff(" set int");
                     argx->val->i = argx->ref->i;
                 } break;
                 case ARGX_SIZE: {
-                    printff(" set size");
                     argx->val->z = argx->ref->z;
                 } break;
                 case ARGX_NONE: break;
