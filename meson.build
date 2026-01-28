@@ -2,6 +2,7 @@ project('rlarg', 'c', meson_version: '>=1.1', version: '0.0.1')
 
 sources = [
   'rlarg/arg-core.c',
+  'rlarg/arg-parse.c',
   'rlarg/argx-group.c',
   'rlarg/argx-type.c',
   'rlarg/argx-hint.c',
