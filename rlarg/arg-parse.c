@@ -1,5 +1,15 @@
 #include "arg.h"
 
+void arg_parse_errmsg_no_rest_allowed(Arg_Stream *stream) {
+    printf(F("Not allowed to set rest of values: ", FG_RD));
+    while(stream->i < stream->argc) {
+        So carg = so_l(stream->argv[stream->i]);
+        printf("%.*s ", SO_F(carg));
+        ++stream->i;
+    }
+    printf("\n");
+}
+
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
     printff("parse... argc %u", stream->argc);
@@ -14,7 +24,18 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
         if(stream->skip_flag_check) {
             set_rest = true;
         }
-        /* we want to set the rest? then set it! */
+        /* now act upon deciding what situation we're in... */
+        if(set_rest) {
+            /* we want to set the rest? then set it! spit out an error if the user can not set the rest */
+            if(!stream->rest) {
+                arg_parse_errmsg_no_rest_allowed(stream);
+                return -1;
+            } else {
+                Argx *rest = stream->rest;
+                ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
+            }
+        } else {
+        }
     }
     return 0;
 }
@@ -111,12 +132,15 @@ void arg_parse_setref(struct Arg *arg) {
 
 int arg_parse(struct Arg *arg, const int argc, const char **argv) {
 
+    int status = 0;
+
     Arg_Stream stream_in = {
         .argc = argc ? argc - 1 : 0,
         .argv = argv ? argv + 1 : 0,
     };
 
-    arg_parse_stream(arg, &stream_in);
+    status = arg_parse_stream(arg, &stream_in);
+    if(status) return status;
 
     arg_parse_setref(arg);
 

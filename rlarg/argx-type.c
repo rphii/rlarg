@@ -3,9 +3,9 @@
 
 /* TODO add check so that we will never add an invalid opt (e.g. has to be no format, can not have spaces, etc") */
 
+/* can provide val=0 to override ability from being allowed to set rest to not */
 void argx_type_rest(struct Argx *argx, VSo *val) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->id = ARGX_TYPE_REST;
     argx->hint = (Argx_Hint){

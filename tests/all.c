@@ -91,13 +91,16 @@ int main(const int argc, const char **argv) {
 //           argx_enum_bind(x, e1);
 //           argx_enum_bind(x, e2);
 
-    arg_parse(arg, argc, argv);
+    int status = 1;
+    if(arg_parse(arg, argc, argv)) goto clean;
+    status = 0;
     arg_help(arg);
     printff("::::::CONFIG:::::");
     arg_config(arg);
 
+clean:
     arg_free(&arg);
     vso_free(&vec_v);
-    return 0;
+    return status;
 }
 
