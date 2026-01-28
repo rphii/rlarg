@@ -21,9 +21,11 @@ struct Arg *arg_new(void) {
 void arg_help(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
+    argx_group_fmt_help(&out, &arg->pos);
     for(Argx_Group *group = arg->groups; group < array_itE(arg->groups); ++group) {
         argx_group_fmt_help(&out, group);
     }
+    argx_group_fmt_help(&out, &arg->env);
     so_print(out);
     so_free(&out);
 }
