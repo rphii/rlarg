@@ -9,6 +9,12 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
             stream->skip_flag_check = true;
             continue;
         }
+        /* determine kind of situation... */
+        bool set_rest = false;
+        if(stream->skip_flag_check) {
+            set_rest = true;
+        }
+        /* we want to set the rest? then set it! */
     }
     return 0;
 }
@@ -45,6 +51,7 @@ void arg_parse_setref_argx(Argx *argx) {
                     arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(argx->ref->vz));
                 } break;
                 case ARGX_TYPE_NONE: break;
+                case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
                 case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         } else {
@@ -65,6 +72,7 @@ void arg_parse_setref_argx(Argx *argx) {
                     argx->val->z = argx->ref->z;
                 } break;
                 case ARGX_TYPE_NONE: break;
+                case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
                 case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         }

@@ -17,22 +17,23 @@ void argx_free(Argx *argx) {
         switch(argx->id) {
             case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("array of groups unsupported (how did you reach this code?)"));
             case ARGX_TYPE_NONE: {}
+            case ARGX_TYPE_REST:
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                array_free(argx->val->vso);
-                array_free(argx->ref->vso);
+                if(argx->val) array_free(argx->val->vso);
+                if(argx->ref) array_free(argx->ref->vso);
             } break;
             case ARGX_TYPE_INT: {
-                array_free(argx->val->vi);
-                array_free(argx->ref->vi);
+                if(argx->val) array_free(argx->val->vi);
+                if(argx->ref) array_free(argx->ref->vi);
             } break;
             case ARGX_TYPE_SIZE: {
-                array_free(argx->val->vz);
-                array_free(argx->ref->vz);
+                if(argx->val) array_free(argx->val->vz);
+                if(argx->ref) array_free(argx->ref->vz);
             } break;
             case ARGX_TYPE_BOOL: {
-                array_free(argx->val->vb);
-                array_free(argx->ref->vb);
+                if(argx->val) array_free(argx->val->vb);
+                if(argx->ref) array_free(argx->ref->vb);
             } break;
         }
         vso_free(&argx->sources);
@@ -312,6 +313,7 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                 argx_so_type_array_size(&xso->set_ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
+            case ARGX_TYPE_REST:
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
                 argx_so_like_array_string(&xso->set_val, argx->val);
@@ -372,6 +374,9 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                     }
                 }
                 so_push(&xso->hint, hint[1]);
+            } break;
+            case ARGX_TYPE_REST: {
+                ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));
             } break;
         }
     }

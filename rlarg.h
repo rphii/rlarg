@@ -22,6 +22,7 @@ struct Argx *argx_env(struct Arg *arg, So name, So desc);
 
 /* rlarg/argx-type.c */
 
+void argx_type_rest(struct Argx *argx, VSo *val);
 void argx_type_so(struct Argx *argx, So *val, So *ref);
 void argx_type_uri(struct Argx *argx, So *val, So *ref);
 void argx_type_bool(struct Argx *argx, bool *val, bool *ref);
