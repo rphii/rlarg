@@ -15,29 +15,29 @@ void argx_free(Argx *argx) {
     //printff("free argx: %.*s",SO_F(argx->opt));
     if(argx->is_array) {
         switch(argx->id) {
-            case ARGX_GROUP: ABORT(ERR_UNREACHABLE("array of groups unsupported (how did you reach this code?)"));
-            case ARGX_NONE: {}
-            case ARGX_URI:
-            case ARGX_STRING: {
+            case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("array of groups unsupported (how did you reach this code?)"));
+            case ARGX_TYPE_NONE: {}
+            case ARGX_TYPE_URI:
+            case ARGX_TYPE_STRING: {
                 array_free(argx->val->vso);
                 array_free(argx->ref->vso);
             } break;
-            case ARGX_INT: {
+            case ARGX_TYPE_INT: {
                 array_free(argx->val->vi);
                 array_free(argx->ref->vi);
             } break;
-            case ARGX_SIZE: {
+            case ARGX_TYPE_SIZE: {
                 array_free(argx->val->vz);
                 array_free(argx->ref->vz);
             } break;
-            case ARGX_BOOL: {
+            case ARGX_TYPE_BOOL: {
                 array_free(argx->val->vb);
                 array_free(argx->ref->vb);
             } break;
         }
         vso_free(&argx->sources);
     } else {
-        if(argx->id == ARGX_GROUP) {
+        if(argx->id == ARGX_TYPE_GROUP) {
             argx_group_free(argx->group_s);
         }
     }
@@ -47,7 +47,7 @@ void v_argx_free(V_Argx *vargs) {
     array_free(vargs);
 }
 
-struct Argx *argx(struct Argx_Group *group, char c, So name, So desc) {
+struct Argx *argx_opt(struct Argx_Group *group, char c, So name, So desc) {
     ASSERT_ARG(group);
     ASSERT_ARG(group->table);
     T_Argx_KV *kv = t_argx_once(group->table, name, (Argx){0});
@@ -76,6 +76,16 @@ struct Argx *argx(struct Argx_Group *group, char c, So name, So desc) {
     kv->val.desc = desc;
     array_push(group->list, &kv->val);
     return &kv->val;
+}
+
+struct Argx *argx_pos(struct Arg *arg, So name, So desc) {
+    Argx *argx = argx_opt(&arg->pos, 0, name, desc);
+    return argx;
+}
+
+struct Argx *argx_env(struct Arg *arg, So name, So desc) {
+    Argx *argx = argx_opt(&arg->env, 0, name, desc);
+    return argx;
 }
 
 void argx_so_free(Argx_So *xso) {
@@ -283,63 +293,63 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     argx_so_hierarchy(&xso->hierarchy, argx->group_p);
     if(argx->is_array) {
         switch(argx->id) {
-            case ARGX_NONE: {
+            case ARGX_TYPE_NONE: {
                 //xso->ref_visible = false;
                 xso->have_hint = false;
             } break;
-            case ARGX_BOOL: {
+            case ARGX_TYPE_BOOL: {
                 argx_so_type_array_bool(&xso->set_val, argx->val);
                 argx_so_type_array_bool(&xso->set_ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_INT: {
+            case ARGX_TYPE_INT: {
                 argx_so_type_array_int(&xso->set_val, argx->val);
                 argx_so_type_array_int(&xso->set_ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_SIZE: {
+            case ARGX_TYPE_SIZE: {
                 argx_so_type_array_size(&xso->set_val, argx->val);
                 argx_so_type_array_size(&xso->set_ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_URI:
-            case ARGX_STRING: {
+            case ARGX_TYPE_URI:
+            case ARGX_TYPE_STRING: {
                 argx_so_like_array_string(&xso->set_val, argx->val);
                 argx_so_like_array_string(&xso->set_ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_GROUP: {
+            case ARGX_TYPE_GROUP: {
                 ABORT(ERR_UNREACHABLE("vector of groups is not supported, and thus you should never see this message"));
             } break;
         }
     } else {
         switch(argx->id) {
-            case ARGX_NONE: {
+            case ARGX_TYPE_NONE: {
                 //xso->ref_visible = false;
                 xso->have_hint = false;
             } break;
-            case ARGX_BOOL: {
+            case ARGX_TYPE_BOOL: {
                 argx_so_type_bool(&xso->set_val, argx->val);
                 argx_so_type_bool(&xso->set_ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_INT: {
+            case ARGX_TYPE_INT: {
                 argx_so_type_int(&xso->set_val, argx->val);
                 argx_so_type_int(&xso->set_ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_SIZE: {
+            case ARGX_TYPE_SIZE: {
                 argx_so_type_size(&xso->set_val, argx->val);
                 argx_so_type_size(&xso->set_ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_URI:
-            case ARGX_STRING: {
+            case ARGX_TYPE_URI:
+            case ARGX_TYPE_STRING: {
                 argx_so_like_string(&xso->set_val, argx->val);
                 argx_so_like_string(&xso->set_ref, argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
-            case ARGX_GROUP: {
+            case ARGX_TYPE_GROUP: {
                 xso->have_hint = false;
                 so_push(&xso->hint, hint[0]);
                 //printff("SUBGROUP %p,id %u,table %p,list %p,%.*s",argx->group_s,argx->group_s->id,argx->group_s->table,argx->group_s->list,SO_F(argx->opt));
@@ -431,7 +441,7 @@ void argx_fmt_config(So *out, Argx *argx) {
     argx_so(&xso, 0, argx);
 
     if(xso.val_group) {
-        ASSERT(argx->id == ARGX_GROUP && argx->group_s, "expected to have a group");
+        ASSERT(argx->id == ARGX_TYPE_GROUP && argx->group_s, "expected to have a group");
         Argx **itE = array_itE(argx->group_s->list);
         for(Argx **it = argx->group_s->list; it < itE; ++it) {
             argx_fmt_config(out, *it);
