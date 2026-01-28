@@ -15,7 +15,8 @@ void argx_free(Argx *argx) {
     //printff("free argx: %.*s",SO_F(argx->opt));
     if(argx->is_array) {
         switch(argx->id) {
-            case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("array of groups unsupported (how did you reach this code?)"));
+            case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("array of ENUM unsupported (how did you reach this code?)"));
+            case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("array of GROUP unsupported (how did you reach this code?)"));
             case ARGX_TYPE_NONE: {}
             case ARGX_TYPE_REST:
             case ARGX_TYPE_URI:
@@ -36,12 +37,12 @@ void argx_free(Argx *argx) {
                 if(argx->ref) array_free(argx->ref->vb);
             } break;
         }
-        vso_free(&argx->sources);
     } else {
         if(argx->id == ARGX_TYPE_GROUP) {
             argx_group_free(argx->group_s);
         }
     }
+    vso_free(&argx->sources);
 }
 
 void v_argx_free(V_Argx *vargs) {
@@ -257,7 +258,7 @@ void argx_so_options(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
 
 void argx_so_hierarchy(So *hierarchy, Argx_Group *group) {
     if(!group) return;
-    argx_so_hierarchy(hierarchy, group->parent);
+    if(group->parent) argx_so_hierarchy(hierarchy, group->parent->group_p);
     so_fmt(hierarchy, "%.*s.", SO_F(group->name));
 }
 
@@ -321,7 +322,10 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_TYPE_GROUP: {
-                ABORT(ERR_UNREACHABLE("vector of groups is not supported, and thus you should never see this message"));
+                ABORT(ERR_UNREACHABLE("vector of GROUP is not supported, and thus you should never see this message"));
+            } break;
+            case ARGX_TYPE_ENUM: {
+                ABORT(ERR_UNREACHABLE("vector of ENUM is not supported, and thus you should never see this message"));
             } break;
         }
     } else {
@@ -374,6 +378,9 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                     }
                 }
                 so_push(&xso->hint, hint[1]);
+            } break;
+            case ARGX_TYPE_ENUM: {
+                ABORT(ERR_UNREACHABLE("maybe-reachable in the future. currently however, this case is handled already"));
             } break;
             case ARGX_TYPE_REST: {
                 ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));
