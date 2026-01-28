@@ -68,9 +68,9 @@ int main(void) {
         e2=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));
 
     So subopt = SO, subopt2 = SO;
-    x=argx(g1, 0, so("subopt"), so("some flags"));
+    x=argx(g1, 0, so("subopt4"), so("some options"));
       g2=argx_group_options(x);
-        x=argx(g2, 0, so("subopt"), so("second subopt"));
+        x=argx(g2, 0, so("subopt3"), so("second subopt"));
           g3=argx_group_options(x);
             x=argx(g3, 0, so("subopt"), so("final subopt"));
               argx_type_so(x, &subopt, 0);

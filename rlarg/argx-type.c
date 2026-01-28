@@ -137,7 +137,7 @@ struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref) {
     NEW(T_Argx, table);
     NEW(Argx_Group, argx->group_s);
     Argx_Group *group = argx->group_s;
-    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_ENUM);
+    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_ENUM, argx->group_p);
     return group;
 }
 
@@ -149,7 +149,7 @@ struct Argx_Group *argx_group_options(struct Argx *argx) {
     NEW(Argx_Group, argx->group_s);
     Argx_Group *group = argx->group_s;
     argx->hint.id = ARGX_HINT_OPTION;
-    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_OPTIONS);
+    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_OPTIONS, argx->group_p);
     return group;
 }
 
@@ -161,7 +161,7 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
     NEW(Argx_Group, argx->group_s);
     Argx_Group *group = argx->group_s;
     argx->hint.id = ARGX_HINT_FLAGS;
-    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_FLAGS);
+    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_FLAGS, argx->group_p);
     return group;
 }
 

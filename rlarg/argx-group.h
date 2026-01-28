@@ -15,9 +15,10 @@ typedef struct Argx_Group {
     T_Argx *table;
     So name;
     Argx_Group_List id;
+    struct Argx_Group *parent;
 } Argx_Group, *Argx_Groups;
 
-Argx_Group argx_group_init(struct Arg *arg, T_Argx *table, So name, Argx_Group_List id);
+Argx_Group argx_group_init(struct Arg *arg, T_Argx *table, So name, Argx_Group_List id, Argx_Group *parent);
 
 void argx_group_free(Argx_Group *group);
 
