@@ -82,9 +82,11 @@ int main(const int argc, const char **argv) {
     x=argx_opt(g1, '1', so("1111"), so("nothing"));
     x=argx_opt(g1, '2', so("somerandom"), so("nothing"));
 
+    bool posb = false;
     x=argx_pos(arg, so("kind"), so("kind of thing to do"));
-      argx_type_rest(x, &rest);
+      argx_type_bool(x, &posb, 0);
     x=argx_pos(arg, so("id"), so("id of thing"));
+      argx_type_rest(x, &rest);
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));
 //        x =argx_enum_unique(g2, so("default"), so("default option"));
