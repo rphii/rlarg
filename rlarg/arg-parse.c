@@ -72,7 +72,7 @@ void arg_parse_setref_argx(Argx *argx) {
 void arg_parse_setref_group(Argx_Group *group) {
     if(!group) return;
     for(Argx **it = group->list; it < array_itE(group->list); ++it) {
-        printff("setref for: %.*s",SO_F((*it)->opt));
+        //printff("setref for: %.*s",SO_F((*it)->opt));
         ASSERT_ARG(it);
         Argx *argx = *it;
         ASSERT_ARG(argx);
@@ -95,7 +95,6 @@ void arg_parse_setref(struct Arg *arg) {
     for(Argx_Group *group = arg->groups; group < array_itE(arg->groups); ++group) {
         arg_parse_setref_group(group);
     }
-    printff(" setref done");
 }
 
 int arg_parse(struct Arg *arg, const int argc, const char **argv) {
