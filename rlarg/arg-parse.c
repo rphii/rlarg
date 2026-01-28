@@ -95,6 +95,52 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 stream->rest = argx;
                 result = 0;
             } break;
+            case ARGX_TYPE_URI:
+            case ARGX_TYPE_STRING: {
+                vso_push(&argx->val->vso, so);
+                vso_push(&argx->sources, stream->source);
+                result = 0;
+            } break;
+            case ARGX_TYPE_INT: {
+                int v;
+                if(!so_as_int(so, &v, 0)) {
+                    array_push(argx->val->vi, v);
+                    vso_push(&argx->sources, stream->source);
+                    result = 0;
+                } else {
+                    arg_parse_errmsg_invalid_conversion(stream, argx);
+                }
+            } break;
+            case ARGX_TYPE_SIZE: {
+                ssize_t v;
+                if(!so_as_ssize(so, &v, 0)) {
+                    array_push(argx->val->vz, v);
+                    vso_push(&argx->sources, stream->source);
+                    result = 0;
+                } else {
+                    arg_parse_errmsg_invalid_conversion(stream, argx);
+                }
+            } break;
+            case ARGX_TYPE_BOOL: {
+                bool v;
+                if(!so_as_yes_or_no(so, &v)) {
+                    array_push(argx->val->vb, v);
+                    vso_push(&argx->sources, stream->source);
+                    result = 0;
+                } else {
+                    arg_parse_errmsg_invalid_conversion(stream, argx);
+                }
+            } break;
+            case ARGX_TYPE_ENUM: {
+                ABORT(ERR_UNREACHABLE("vector of ENUM can not be parsed (unsupported)"));
+            } break;
+            case ARGX_TYPE_GROUP: {
+                ABORT(ERR_UNREACHABLE("vector of GROUP can not be parsed (unsupported)"));
+            } break;
+            case ARGX_TYPE_NONE: {
+                arg_stream_not_consumed(stream);
+                result = 0;
+            } break;
         }
     } else {
         switch(argx->id) {
@@ -127,7 +173,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             } break;
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                so_extend(&argx->val->so, so);
+                so_copy(&argx->val->so, so);
                 vso_push(&argx->sources, stream->source);
                 result = 0;
             } break;
