@@ -27,12 +27,13 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
         /* now act upon deciding what situation we're in... */
         if(set_rest) {
             /* we want to set the rest? then set it! spit out an error if the user can not set the rest */
-            if(!stream->rest) {
+            Argx *rest = stream->rest;
+            if(!rest || (rest && !rest->val)) {
                 arg_parse_errmsg_no_rest_allowed(stream);
                 return -1;
             } else {
-                Argx *rest = stream->rest;
                 ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
+                vso_push(&rest->val->vso, carg);
             }
         } else {
         }
