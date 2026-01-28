@@ -16,7 +16,7 @@ typedef struct Arg_Stream {
     int argc;
     int i;
     bool skip_flag_check;   /* set true once we encounter '--' */
-    VSo *rest;              /* pointer to within an argx that allows to collect "rest" */
+    struct Argx *rest;      /* pointer to an argx of type ARGX_TYPE_REST */
 } Arg_Stream;
 
 #define RLARG_STREAM_H
