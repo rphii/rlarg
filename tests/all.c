@@ -7,6 +7,7 @@ int main(void) {
 
     struct Argx_Group *g1 = argx_group(arg, so("default"));
     struct Argx_Group *g2 = argx_group(arg, so("default"));
+    struct Argx_Group *g3 = 0;
 
     printff("group 'default' pointers: %p, %p", g1, g2);
     ASSERT(g1 == g2, "should point to the same");
@@ -27,6 +28,7 @@ int main(void) {
         argx_type_bool(x, &p, &d);
         argx_hint_kind(x, ARGX_HINT_OPTIONAL);
 
+    bool f1, f2, f3;
     VSo vec_p = 0;
     VSo vec_v = 0;
     vso_push(&vec_v, so("one"));
@@ -58,6 +60,23 @@ int main(void) {
         e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
+
+    x=argx(g1, 0, so("flag"), so("some flags"));
+      g2=argx_group_flags(x);
+        e1=argx_flag(g2, &f1, &(bool){true}, so("sfw"), so("safe for work"));
+        e2=argx_flag(g2, &f2, &(bool){false}, so("nsfw"), so("not safe for work"));
+        e2=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));
+
+    So subopt = SO, subopt2 = SO;
+    x=argx(g1, 0, so("subopt"), so("some flags"));
+      g2=argx_group_options(x);
+        x=argx(g2, 0, so("subopt"), so("second subopt"));
+          g3=argx_group_options(x);
+            x=argx(g3, 0, so("subopt"), so("final subopt"));
+              argx_type_so(x, &subopt, 0);
+            x=argx(g3, 0, so("subopt2"), so("final subopt2"));
+              argx_type_so(x, &subopt2, 0);
+        x=argx(g2, 0, so("subopt2"), so(""));
 
     x=argx(g1, '1', so("1111"), so("nothing"));
     x=argx(g1, '2', so("somerandom"), so("nothing"));

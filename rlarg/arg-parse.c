@@ -30,7 +30,7 @@ void arg_parse_setref_argx(Argx *argx) {
                 case ARGX_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         } else {
-            printff(" v %p = r %p id %u",argx->val,argx->ref,argx->id);
+            //printff(" v %p = r %p id %u",argx->val,argx->ref,argx->id);
             switch(argx->id) {
                 case ARGX_BOOL: {
                     argx->val->b = argx->ref->b;
@@ -63,9 +63,9 @@ void arg_parse_setref_group(Argx_Group *group) {
             if(!argx->group_s) continue;
             switch(argx->group_s->id) {
                 case ARGX_GROUP_OPTIONS:
+                case ARGX_GROUP_FLAGS:
                 case ARGX_GROUP_ROOT: arg_parse_setref_group(argx->group_s); break;
                 case ARGX_GROUP_ENUM: argx->val = argx->ref; break;
-                case ARGX_GROUP_FLAGS: ABORT("not yet implemented"); break;
             }
         } else {
             arg_parse_setref_argx(argx);

@@ -148,6 +148,7 @@ struct Argx_Group *argx_group_options(struct Argx *argx) {
     NEW(T_Argx, table);
     NEW(Argx_Group, argx->group_s);
     Argx_Group *group = argx->group_s;
+    argx->hint.id = ARGX_HINT_OPTION;
     *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_OPTIONS);
     return group;
 }
@@ -159,6 +160,7 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
     NEW(T_Argx, table);
     NEW(Argx_Group, argx->group_s);
     Argx_Group *group = argx->group_s;
+    argx->hint.id = ARGX_HINT_FLAGS;
     *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_FLAGS);
     return group;
 }
@@ -168,6 +170,12 @@ struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc)
     //printff("created '%.*s' on table %p",SO_F(name),group->table);
     x->is_enum = true;
     x->val_enum = val;
-    return 0;
+    return x;
+}
+
+struct Argx *argx_flag(struct Argx_Group *group, bool *val, bool *ref, So name, So desc) {
+    struct Argx *x = argx(group, 0, name, desc);
+    argx_type_bool(x, val, ref);
+    return x;
 }
 
