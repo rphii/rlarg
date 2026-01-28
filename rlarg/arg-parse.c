@@ -9,8 +9,6 @@ int arg_parse_stream(struct Arg *arg, const int argc, const char **argv) {
     return 0;
 }
 
-// TODO: we can't just OVERWRITE the argx->val ! with argx->ref ! because .. well they point to REAL locations.
-
 void arg_parse_setref_argx(Argx *argx) {
     if(argx->ref) {
         if(argx->is_array) {
