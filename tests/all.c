@@ -29,6 +29,7 @@ int main(const int argc, const char **argv) {
         argx_hint_kind(x, ARGX_HINT_OPTIONAL);
 
     bool f1, f2, f3;
+    VSo rest = 0;
     VSo vec_p = 0;
     VSo vec_v = 0;
     vso_push(&vec_v, so("one"));
@@ -82,6 +83,7 @@ int main(const int argc, const char **argv) {
     x=argx_opt(g1, '2', so("somerandom"), so("nothing"));
 
     x=argx_pos(arg, so("kind"), so("kind of thing to do"));
+      argx_type_rest(x, &rest);
     x=argx_pos(arg, so("id"), so("id of thing"));
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));

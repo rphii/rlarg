@@ -3,6 +3,18 @@
 
 /* TODO add check so that we will never add an invalid opt (e.g. has to be no format, can not have spaces, etc") */
 
+void argx_type_rest(struct Argx *argx, VSo *val) {
+    ASSERT_ARG(argx);
+    ASSERT_ARG(val);
+    argx->val = (Argx_Value_Union *)val;
+    argx->id = ARGX_TYPE_REST;
+    argx->hint = (Argx_Hint){
+        .id = ARGX_HINT_REQUIRED,
+        .so = so("string"),
+    };
+    argx->is_array = true;
+}
+
 void argx_type_so(struct Argx *argx, So *val, So *ref) {
     ASSERT_ARG(argx);
     ASSERT_ARG(val);

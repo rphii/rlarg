@@ -8,6 +8,7 @@
 
 typedef enum {
     ARGX_TYPE_NONE,
+    ARGX_TYPE_REST,
     ARGX_TYPE_INT,
     ARGX_TYPE_SIZE,
     ARGX_TYPE_BOOL,
