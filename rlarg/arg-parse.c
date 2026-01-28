@@ -1,4 +1,4 @@
-#include "arg.h"
+#include "arg-parse.h"
 
 void arg_parse_errmsg_unhandled_positional_error(Arg_Stream *stream) {
     printf(F("Error occured while parsing: ", FG_RD));
@@ -56,6 +56,33 @@ void arg_parse_group_invalid_opt(Arg_Stream *stream, Argx *argx) {
     argx_so_free(&xso);
 }
 
+int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = -1;
+    Argx *subx = 0;
+    printff("parse group of: %.*s", SO_F(argx->opt));
+    ASSERT_ARG(argx->group_s);
+    subx = t_argx_get(argx->group_s->table, so);
+    if(subx) {
+        switch(argx->group_s->id) {
+            case ARGX_GROUP_ENUM: {
+                result = arg_parse_argx(arg, stream, subx, SO);
+            } break;
+            case ARGX_GROUP_FLAGS: {
+                result = arg_parse_argx(arg, stream, subx, SO);
+            } break;
+            case ARGX_GROUP_ROOT:
+            case ARGX_GROUP_OPTIONS: {
+                So next = SO;
+                if(!arg_stream_get_next(stream, &next)) {
+                    result = arg_parse_argx(arg, stream, subx, next);
+                }
+            } break;
+        }
+    } else {
+        arg_parse_group_invalid_opt(stream, argx);
+    }
+    return result;
+}
 
 int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(arg);
@@ -105,21 +132,11 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 result = 0;
             } break;
             case ARGX_TYPE_GROUP: {
-                Argx *subx = 0;
-                if(argx->group_s) {
-                    subx = t_argx_get(argx->group_s->table, so);
-                }
-                if(subx) {
-                    So next = SO;
-                    if(!arg_stream_get_next(stream, &next)) {
-                        result = arg_parse_argx(arg, stream, subx, next);
-                    }
-                } else {
-                    arg_parse_group_invalid_opt(stream, argx);
-                }
+                result = arg_parse_group(arg, stream, argx, so);
             } break;
             case ARGX_TYPE_ENUM: {
                 ASSERT_ARG(argx->group_p);
+                ASSERT_ARG(!so.str);
                 Argx *parent = argx->group_p->parent;
                 ASSERT_ARG(parent);
                 ASSERT_ARG(parent->val);

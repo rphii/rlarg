@@ -91,6 +91,13 @@ int main(const int argc, const char **argv) {
         argx_enum_bind(g2, 0, so("zero"), SO);
         argx_enum_bind(g2, 1, so("one"), SO);
         argx_enum_bind(g2, 2, so("two"), SO);
+    x=argx_pos(arg, so("alphabet"), so("id of thing"));
+      g2=argx_group_options(x);
+        x=argx_opt(g2, 0, so("a"), so("desc"));
+        x=argx_opt(g2, 0, so("b"), so("desc"));
+        x=argx_opt(g2, 0, so("c"), so("desc"));
+        x=argx_opt(g2, 0, so("d"), so("desc"));
+        x=argx_opt(g2, 0, so("e"), so("desc"));
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));
 //        x =argx_enum_unique(g2, so("default"), so("default option"));
