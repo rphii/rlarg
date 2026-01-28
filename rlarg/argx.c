@@ -341,7 +341,7 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
             case ARGX_GROUP: {
                 xso->have_hint = false;
                 so_push(&xso->hint, hint[0]);
-                printff("SUBGROUP %p,id %u,table %p,list %p,%.*s",argx->group_s,argx->group_s->id,argx->group_s->table,argx->group_s->list,SO_F(argx->opt));
+                //printff("SUBGROUP %p,id %u,table %p,list %p,%.*s",argx->group_s,argx->group_s->id,argx->group_s->table,argx->group_s->list,SO_F(argx->opt));
                 if(argx->group_s) {
                     xso->have_hint = true;
                     switch(argx->group_s->id) {
