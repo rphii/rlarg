@@ -40,7 +40,7 @@ typedef struct Argx {
     Argx_Hint hint;
     Argx_List id;
     Argx_Value_Union *val;  /* parsed value */
-    Argx_Value_Union *ref;  /* reference / default value */
+    Argx_Value_Union *ref;  /* reference / default value (refval) */
     VSo sources;            /* from where the value gets set -- should be an array if is_array, else, a single value. optional with a line number (some.config:123) */
     struct Argx_Group *group_p; /* always set to parent group */
     struct Argx_Group *group_s; /* only set if id == ARGX_GROUP */

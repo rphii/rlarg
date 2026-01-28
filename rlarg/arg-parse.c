@@ -19,6 +19,7 @@ void arg_parse_setref_sources_mono(Argx *argx, So src, size_t n) {
 }
 
 void arg_parse_setref_argx(Argx *argx) {
+    if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
     if(argx->ref) {
         if(argx->is_array) {
             switch(argx->id) {
