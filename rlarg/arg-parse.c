@@ -264,17 +264,16 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                         return -1;
                     }
                     ++arg->i_pos;
-                    if(set_rest) {
-                        printff("SET REST!");
-                        /* all positional arguments are parsed, now push the resulting value to the rest! spit out an error if the user can not set the rest */
-                        Argx *rest = stream->rest;
-                        if(!rest || (rest && !rest->val)) {
-                            arg_parse_errmsg_no_rest_allowed(stream);
-                            return -1;
-                        } else {
-                            ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
-                            vso_push(&rest->val->vso, carg);
-                        }
+                } else {
+                    printff("SET REST!");
+                    /* all positional arguments are parsed, now push the resulting value to the rest! spit out an error if the user can not set the rest */
+                    Argx *rest = stream->rest;
+                    if(!rest || (rest && !rest->val)) {
+                        arg_parse_errmsg_no_rest_allowed(stream);
+                        return -1;
+                    } else {
+                        ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
+                        vso_push(&rest->val->vso, carg);
                     }
                 }
             } break;
@@ -288,6 +287,19 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                 arg_parse_option(arg, stream, argx);
             } break;
             case ARG_STREAM_SHORTOPT: {
+                So opts = so_i0(carg, 1);
+                for(size_t i = 0; i < so_len(opts); ++i) {
+                    unsigned char c = so_at(opts, i);
+                    Argx *argx = 0;
+                    if(c >= ARGX_SHORT_MIN && c < ARGX_SHORT_MAX) {
+                        argx = arg->c[c - ARGX_SHORT_MIN];
+                    }
+                    if(!argx) {
+                        arg_parse_errmsg_root_invalid_opt(stream, so_ll(&c, 1));
+                        return -1;
+                    }
+                    arg_parse_option(arg, stream, argx);
+                }
             } break;
         }
         if(situation ) {
