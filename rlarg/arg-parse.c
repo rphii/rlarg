@@ -1,5 +1,7 @@
 #include "arg-parse.h"
 
+/* error messages {{{ */
+
 void arg_parse_errmsg_unhandled_positional_error(Arg_Stream *stream) {
     fprintf(stderr, F("Error occured while parsing: ", FG_RD));
     while(stream->i < array_len(stream->vso)) {
@@ -68,6 +70,10 @@ void arg_parse_errmsg_missing_positionals(Arg *arg) {
     fprintf(stderr, "\n");
 }
 
+/* error messages }}} */
+
+/* coarse parsers {{{ */
+
 int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     So so_split = SO;
     So flagv = SO;
@@ -120,6 +126,10 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return result;
 }
 
+/* coarse parsers }}} */
+
+/* parsers for vector - values {{{ */
+
 int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = -1;
     int v;
@@ -166,6 +176,9 @@ int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return result;
 }
 
+/* parsers for vector - values }}} */
+
+/* parsers for regular - values {{{ */
 
 int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = so_as_yes_or_no(so, &argx->val->b);
@@ -208,7 +221,6 @@ int arg_parse_argx_none(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return 0;
 }
 
-
 int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
     ASSERT_ARG(argx->group_p);
@@ -239,8 +251,12 @@ int arg_parse_argx_group(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return result;
 }
 
+/* parsers for regular - values }}} */
+
 typedef int (*Arg_Parse_Argx_Callback)(Arg *, Arg_Stream *, Argx *, So);
 typedef int (*Arg_Parse_Argx_Vector_Callback)(Arg *, Arg_Stream *, Argx *, So, Arg_Parse_Argx_Callback cb);
+
+/* parsers for vectors {{{ */
 
 int arg_parse_argx_vector(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so, Arg_Parse_Argx_Callback cb) {
     ASSERT_ARG(arg);
@@ -271,6 +287,10 @@ int arg_parse_argx_vector_rest(struct Arg *arg, Arg_Stream *stream, Argx *argx, 
     return 0;
 }
 
+/* parsers for vectors }}} */
+
+/* parser function assignments {{{ */
+
 static Arg_Parse_Argx_Callback static_parse_argx_single_cbs[ARGX_TYPE__COUNT] = {
     [ARGX_TYPE_INT] = arg_parse_argx_int,
     [ARGX_TYPE_SIZE] = arg_parse_argx_size,
@@ -279,6 +299,7 @@ static Arg_Parse_Argx_Callback static_parse_argx_single_cbs[ARGX_TYPE__COUNT] = 
     [ARGX_TYPE_FLAG] = arg_parse_argx_flag,
     [ARGX_TYPE_NONE] = arg_parse_argx_none,
     [ARGX_TYPE_GROUP] = arg_parse_argx_group,
+    [ARGX_TYPE_URI] = arg_parse_argx_so,
     [ARGX_TYPE_STRING] = arg_parse_argx_so,
     [ARGX_TYPE_REST] = 0,
 };
@@ -287,6 +308,7 @@ static Arg_Parse_Argx_Callback static_parse_argx_vector_vals_cbs[ARGX_TYPE__COUN
     [ARGX_TYPE_INT] = arg_parse_argx_vint,
     [ARGX_TYPE_SIZE] = arg_parse_argx_vsize,
     [ARGX_TYPE_BOOL] = arg_parse_argx_vso,
+    [ARGX_TYPE_URI] = arg_parse_argx_vso,
     [ARGX_TYPE_STRING] = arg_parse_argx_vso,
     [ARGX_TYPE_REST] = 0,
     [ARGX_TYPE_NONE] = 0,
@@ -299,6 +321,7 @@ static Arg_Parse_Argx_Vector_Callback static_parse_argx_vector_cbs[ARGX_TYPE__CO
     [ARGX_TYPE_INT] = arg_parse_argx_vector,
     [ARGX_TYPE_SIZE] = arg_parse_argx_vector,
     [ARGX_TYPE_BOOL] = arg_parse_argx_vector,
+    [ARGX_TYPE_URI] = arg_parse_argx_vector,
     [ARGX_TYPE_STRING] = arg_parse_argx_vector,
     [ARGX_TYPE_NONE] = arg_parse_argx_vector_none,
     [ARGX_TYPE_REST] = arg_parse_argx_vector_rest,
@@ -307,19 +330,9 @@ static Arg_Parse_Argx_Vector_Callback static_parse_argx_vector_cbs[ARGX_TYPE__CO
     [ARGX_TYPE_GROUP] = 0,
 };
 
-int arg_parse_argx_regular(struct Arg *arg, Arg_Stream *stream, Argx *argx, Argx_Value_Union *out, So so, Arg_Parse_Argx_Callback cb) {
-    ASSERT_ARG(arg);
-    ASSERT_ARG(stream);
-    ASSERT_ARG(argx);
-    ASSERT_ARG(cb);
-    int result = -1;
-    if(!cb(arg, stream, argx, so)) {
-        result = 0;
-    } else {
-        arg_parse_errmsg_invalid_conversion(stream, argx);
-    }
-    return result;
-}
+/* parser function assignments }}} */
+
+/* main parsing section {{{ */
 
 int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(arg);
@@ -460,9 +473,13 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     return 0;
 }
 
+/* main parsing section }}} */
+
 #define ARGX_SOURCE_REFVAL  so("refval")
 #define ARGX_SOURCE_STDIN   so("stdin")
 #define ARGX_SOURCE_ENVVARS so("envvars")
+
+/* set reference value {{{ */
 
 void arg_parse_setref_sources_mono(Argx *argx, So src, size_t n) {
     for(size_t i = 0; i < n; ++i) {
@@ -568,6 +585,10 @@ void arg_parse_setref(struct Arg *arg) {
     }
 }
 
+/* set reference value }}} */
+
+/* parsing entry points {{{ */
+
 int arg_parse_environment(struct Arg *arg) {
     /* gather environment variables */
     int status = 0;
@@ -616,4 +637,6 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv) {
 
     return status;
 }
+
+/* parsing entry points }}} */
 

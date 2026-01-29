@@ -96,6 +96,16 @@ void argx_builtin_env_compgen(struct Arg *arg) {
     argx_type_bool(x, &arg->builtin.compgen, 0);
 }
 
+void argx_builtin_opt_source(struct Argx_Group *group, So uri) {
+    Arg *arg = group->arg;
+    if(!arg->builtin.sources_argx) {
+        arg->builtin.sources_argx = argx_opt(group, 0, so("source"), so("Source config files"));
+        argx_type_array_uri(arg->builtin.sources_argx, &arg->builtin.sources_vso, &arg->builtin.sources_vso_ref);
+    }
+    Argx *argx = arg->builtin.sources_argx;
+    vso_push(&argx->ref->vso, uri);
+}
+
 void argx_so_free(Argx_So *xso) {
     if(!xso) return;
     if(!xso->argx) return;
