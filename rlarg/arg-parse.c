@@ -44,7 +44,7 @@ void arg_parse_errmsg_invalid_conversion(Arg_Stream *stream, Argx *argx) {
     argx_so_free(&xso);
 }
 
-void arg_parse_group_invalid_opt(Arg_Stream *stream, Argx *argx) {
+void arg_parse_errmsg_group_invalid_opt(Arg_Stream *stream, Argx *argx) {
     Argx_So xso = {0};
     argx_so(&xso, 0, argx);
     if(xso.have_hint) {
@@ -52,6 +52,13 @@ void arg_parse_group_invalid_opt(Arg_Stream *stream, Argx *argx) {
     } else {
         ABORT(ERR_UNREACHABLE("if you reach this code, please tell me how you got here"));
     }
+    printf("\n");
+    argx_so_free(&xso);
+}
+
+void arg_parse_errmsg_root_invalid_opt(Arg_Stream *stream, So opt) {
+    Argx_So xso = {0};
+    printf(F("Option not found in root groups: '%.*s'", FG_RD), SO_F(opt));
     printf("\n");
     argx_so_free(&xso);
 }
@@ -79,7 +86,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             } break;
         }
     } else {
-        arg_parse_group_invalid_opt(stream, argx);
+        arg_parse_errmsg_group_invalid_opt(stream, argx);
     }
     return result;
 }
@@ -92,6 +99,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(argx->is_array) {
         switch(argx->id) {
             case ARGX_TYPE_REST: {
+                arg_stream_not_consumed(stream);
                 stream->rest = argx;
                 result = 0;
             } break;
@@ -198,16 +206,37 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return result;
 }
 
-int arg_parse_positional(struct Arg *arg, Arg_Stream *stream, Argx *argx, bool *set_rest) {
+int arg_parse_positional(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
-    ASSERT_ARG(set_rest);
-    *set_rest = (argx->id == ARGX_TYPE_REST);
-    printff("SET REST? %u", *set_rest);
     int result = arg_parse_argx(arg, stream, argx, stream->carg);
     return result;
 }
+
+int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
+    ASSERT_ARG(arg);
+    ASSERT_ARG(stream);
+    ASSERT_ARG(argx);
+    So so = SO;
+    switch(argx->id) {
+        case ARGX_TYPE_NONE: break;
+        default: {
+            if(!arg_stream_get_next(stream, &so)) {
+                arg_parse_errmsg_missing_value(stream, argx);
+                return -1;
+            }
+        } break;
+    }
+    int result = arg_parse_argx(arg, stream, argx, so);
+    return result;
+}
+
+typedef enum {
+    ARG_STREAM_REST,
+    ARG_STREAM_LONGOPT,
+    ARG_STREAM_SHORTOPT,
+} Arg_Stream_List;
 
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
@@ -216,35 +245,52 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     while(arg_stream_get_next(stream, &carg)) {
         printff(" carg: [%.*s]", SO_F(carg));
         /* determine kind of situation... */
-        bool set_rest = false;
-        if(stream->skip_flag_check) {
-            set_rest = true;
+        Arg_Stream_List situation = ARG_STREAM_REST;
+        if(!stream->skip_flag_check) {
+            if(!so_cmp0(carg, so("--")) && carg.len > 2) situation = ARG_STREAM_LONGOPT;
+            else if(!so_cmp0(carg, so("-"))) situation = ARG_STREAM_SHORTOPT;
         }
         /* now act upon deciding what situation we're in... */
-        if(set_rest) {
-            /* we want to set the rest? check if there are remaining positional arguments to be set */
-            printff("I_POS %u / %zu", arg->i_pos, array_len(arg->pos.list));
-            if(arg->i_pos < array_len(arg->pos.list)) {
-                Argx *pos = array_at(arg->pos.list, arg->i_pos);
-                printff("GOT POSITIONAL ARGX");
-                if(arg_parse_positional(arg, stream, pos, &set_rest)) {
-                    arg_parse_errmsg_unhandled_positional_error(stream);
+        switch(situation) {
+            case ARG_STREAM_REST: {
+                bool set_rest = true;
+                /* we want to set the rest? check if there are remaining positional arguments to be set */
+                printff("I_POS %u / %zu", arg->i_pos, array_len(arg->pos.list));
+                if(arg->i_pos < array_len(arg->pos.list)) {
+                    Argx *pos = array_at(arg->pos.list, arg->i_pos);
+                    printff("GOT POSITIONAL ARGX");
+                    if(arg_parse_positional(arg, stream, pos)) {
+                        arg_parse_errmsg_unhandled_positional_error(stream);
+                        return -1;
+                    }
+                    ++arg->i_pos;
+                    if(set_rest) {
+                        printff("SET REST!");
+                        /* all positional arguments are parsed, now push the resulting value to the rest! spit out an error if the user can not set the rest */
+                        Argx *rest = stream->rest;
+                        if(!rest || (rest && !rest->val)) {
+                            arg_parse_errmsg_no_rest_allowed(stream);
+                            return -1;
+                        } else {
+                            ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
+                            vso_push(&rest->val->vso, carg);
+                        }
+                    }
+                }
+            } break;
+            case ARG_STREAM_LONGOPT: {
+                So opt = so_i0(carg, 2);
+                Argx *argx = t_argx_get(&arg->table, opt);
+                if(!argx) {
+                    arg_parse_errmsg_root_invalid_opt(stream, opt);
                     return -1;
                 }
-                ++arg->i_pos;
-            } 
-            if(set_rest) {
-                printff("SET REST!");
-                /* all positional arguments are parsed, now push the resulting value to the rest! spit out an error if the user can not set the rest */
-                Argx *rest = stream->rest;
-                if(!rest || (rest && !rest->val)) {
-                    arg_parse_errmsg_no_rest_allowed(stream);
-                    return -1;
-                } else {
-                    ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
-                    vso_push(&rest->val->vso, carg);
-                }
-            }
+                arg_parse_option(arg, stream, argx);
+            } break;
+            case ARG_STREAM_SHORTOPT: {
+            } break;
+        }
+        if(situation ) {
         } else {
             /* grab an option */
         }
@@ -351,6 +397,7 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv) {
     Arg_Stream stream_in = {
         .argc = argc ? argc - 1 : 0,
         .argv = argv ? argv + 1 : 0,
+        .source = ARGX_SOURCE_STDIN,
     };
 
     status = arg_parse_stream(arg, &stream_in);

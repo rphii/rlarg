@@ -17,15 +17,15 @@ int main(const int argc, const char **argv) {
     x = argx_opt(g1, 0, so("hi"), so("description"));
         printff("p %p", x);
 
-    bool p = false;
+    bool p1 = false, p2 = false;
     bool d = true;
     x = argx_opt(g1, 'x', so("boolr"), so("a required boolean value"));
         printff("p %p", x);
-        argx_type_bool(x, &p, &d);
+        argx_type_bool(x, &p1, &d);
 
     x = argx_opt(g1, 'X', so("boolo"), so("a optional boolean value"));
         printff("p %p", x);
-        argx_type_bool(x, &p, &d);
+        argx_type_bool(x, &p2, &d);
         argx_hint_kind(x, ARGX_HINT_OPTIONAL);
 
     bool f1, f2, f3;
