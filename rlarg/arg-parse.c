@@ -70,14 +70,22 @@ void arg_parse_errmsg_missing_positionals(Arg *arg) {
 
 int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     So so_split = SO;
+    So flagv = SO;
     int result = -1;
+    bool done = false;
     do {
         Argx *subx = 0;
         printff("parse group of: %.*s", SO_F(argx->opt));
         ASSERT_ARG(argx->group_s);
         if(argx->group_s->id == ARGX_GROUP_FLAGS) {
             if(!so_splice(so, &so_split, ',')) break;
-            printff("SPLICED TO: %.*s", SO_F(so_split));
+            flagv = so("1");
+            if(so_at0(so_split) == '+') {
+                so_split = so_i0(so_split, 1);
+            } else if(so_at0(so_split) == '-') {
+                so_split = so_i0(so_split, 1);
+                flagv = so("0");
+            }
         } else {
             so_split = so;
         }
@@ -86,22 +94,28 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             switch(argx->group_s->id) {
                 case ARGX_GROUP_ENUM: {
                     result = arg_parse_argx(arg, stream, subx, SO);
+                    done = true;
                 } break;
                 case ARGX_GROUP_FLAGS: {
-                    result = arg_parse_argx(arg, stream, subx, SO);
+                    result = arg_parse_argx(arg, stream, subx, flagv);
                 } break;
                 case ARGX_GROUP_ROOT:
                 case ARGX_GROUP_OPTIONS: {
                     So next = SO;
-                    if(!arg_stream_get_next(stream, &next)) {
+                    //if(arg_stream_get_next(stream, &next)) {
                         result = arg_parse_argx(arg, stream, subx, next);
-                    }
+                        done = true;
+                    //} else {
+                        //arg_parse_errmsg_missing_positionals(arg);
+                    //}
                 } break;
             }
         } else {
             arg_parse_errmsg_group_invalid_opt(stream, argx);
         }
+        //if(result) rlc_trace_fatal();
         printff("result %u",result);
+        if(done) break;
     } while(!result);
     return result;
 }
@@ -223,7 +237,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             case ARGX_TYPE_FLAG: {
                 /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
                 ASSERT_ARG(argx->group_p);
-                ASSERT_ARG(!so.str);
+                ASSERT_ARG(so.str);
                 Argx *parent = argx->group_p->parent;
                 ASSERT_ARG(parent);
                 ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
@@ -236,14 +250,17 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                     }
                 }
                 /* now add source and set flag to true */
-                argx->val->b = true;
+                if(so_as_yes_or_no(so, &argx->val->b)) {
+                    ABORT(ERR_UNREACHABLE("always have to succeed parsing what to set the flag to"));
+                }
                 printff("SET FLAG %.*s / source: %.*s", SO_F(argx->opt), SO_F(stream->source));
                 vso_push(&parent->sources, stream->source);
                 vso_push(&argx->sources, stream->source);
                 result = 0;
             } break;
             case ARGX_TYPE_NONE: {
-                arg_stream_not_consumed(stream);
+                printff("TYPE IS NONE!!! [%.*s]",SO_F(argx->opt));
+                //arg_stream_not_consumed(stream);
                 result = 0;
             } break;
         }
@@ -278,6 +295,7 @@ int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
 }
 
 typedef enum {
+    ARG_STREAM_DONE,
     ARG_STREAM_REST,
     ARG_STREAM_LONGOPT,
     ARG_STREAM_SHORTOPT,
@@ -290,7 +308,8 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     while(arg_stream_get_next(stream, &carg)) {
         printff(" carg: [%.*s]", SO_F(carg));
         /* determine kind of situation... */
-        Arg_Stream_List situation = ARG_STREAM_REST;
+        Arg_Stream_List situation = ARG_STREAM_DONE;
+        if(stream->i < array_len(stream->vso)) situation = ARG_STREAM_REST;
         if(!stream->skip_flag_check) {
             if(!so_cmp0(carg, so("--")) && carg.len > 2) situation = ARG_STREAM_LONGOPT;
             else if(!so_cmp0(carg, so("-"))) situation = ARG_STREAM_SHORTOPT;
@@ -303,12 +322,13 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                 printff("I_POS %u / %zu", arg->i_pos, array_len(arg->pos.list));
                 if(arg->i_pos < array_len(arg->pos.list)) {
                     Argx *pos = array_at(arg->pos.list, arg->i_pos);
-                    printff("GOT POSITIONAL ARGX");
+                    printff("GOT POSITIONAL ARGX: %.*s", SO_F(pos->opt));
                     if(arg_parse_positional(arg, stream, pos)) {
                         arg_parse_errmsg_unhandled_positional_error(stream);
                         return -1;
                     }
                     ++arg->i_pos;
+                    printff("POSITIONAL ARGX PARSED OK! -> i_pos %u", arg->i_pos);
                 } else {
                     printff("SET REST!");
                     /* all positional arguments are parsed, now push the resulting value to the rest! spit out an error if the user can not set the rest */
