@@ -490,9 +490,7 @@ int arg_parse_stdin(struct Arg *arg, const int argc, const char **argv) {
     Arg_Stream stream_in = {
         .source = ARGX_SOURCE_STDIN,
     };
-    for(size_t i = 1; i < argc; ++i) {
-        vso_push(&stream_in.vso, so_l((char *)argv[i]));
-    }
+    arg_stream_from_stdin(&stream_in, argc, argv);
     status = arg_parse_stream(arg, &stream_in);
     arg_stream_free(&stream_in);
     return status;
