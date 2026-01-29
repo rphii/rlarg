@@ -3,11 +3,16 @@
 #include <rlso.h>
 #include "rlarg/argx-hint.h"
 
+struct Argx;
+
 /* rlarg/arg-core.c */
 struct Arg *arg_new(void);
 void arg_help(struct Arg *arg);
 void arg_config(struct Arg *arg);
 void arg_free(struct Arg **arg);
+
+/* rlarg/arg-runtime.c */
+void arg_runtime_quit_early(struct Argx *argx, bool val);
 
 /* rlarg/arg-parse.c */
 int arg_parse(struct Arg *arg, const int argc, const char **argv);
@@ -24,7 +29,14 @@ void argx_builtin_env_compgen(struct Arg *arg);
 void argx_builtin_opt_help(struct Argx_Group *group);
 void argx_builtin_opt_source(struct Argx_Group *group, So uri);
 
+typedef int (*Argx_Function)(struct Argx *argx, void *user, So so);
+
 /* rlarg/argx-type.c */
+
+typedef enum {
+    ARGX_PRIORITY_IMMEDIATELY,
+    ARGX_PRIORITY_WHEN_ALL_VALID,
+} Argx_Priority_List;
 
 void argx_type_rest(struct Argx *argx, VSo *val);
 void argx_type_so(struct Argx *argx, So *val, So *ref);
@@ -38,6 +50,8 @@ void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref);
 void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref);
 void argx_type_array_int(struct Argx *argx, int **val, int **ref);
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref);
+
+void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority);
 
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref);
 struct Argx_Group *argx_group_options(struct Argx *argx);

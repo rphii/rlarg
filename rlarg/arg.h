@@ -18,9 +18,11 @@ typedef struct Arg {
 
     int i_pos;          /* index of positional argument parse status */
 
-    T_Argx t_pos;
-    T_Argx t_env;
+    T_Argx t_pos;       /* root of positional arguments */
+    T_Argx t_env;       /* root of environment variables */
     T_Argx t_opt;       /* root of long options -> delve into groups */
+
+    Argx_Callback *queue;   /* any callback that we encountered */
 
     struct {
         bool compgen;
@@ -28,6 +30,11 @@ typedef struct Arg {
         So *sources_vso;
         So *sources_vso_ref;
     } builtin;
+
+    struct {
+        bool wanted;
+        Argx *given;
+    } help;
 
 } Arg;
 
