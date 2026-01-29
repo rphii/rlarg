@@ -120,11 +120,117 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return result;
 }
 
+int arg_parse_argx_vint_single(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = -1;
+    int v;
+    if(!so_as_int(so, &v, 0)) {
+        array_push(argx->val->vi, v);
+        vso_push(&argx->sources, stream->source);
+        result = 0;
+    } else {
+        arg_parse_errmsg_invalid_conversion(stream, argx);
+    }
+    return result;
+}
+
+int arg_parse_argx_vsize_single(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = -1;
+    ssize_t v;
+    if(!so_as_ssize(so, &v, 0)) {
+        array_push(argx->val->vz, v);
+        vso_push(&argx->sources, stream->source);
+        result = 0;
+    } else {
+        arg_parse_errmsg_invalid_conversion(stream, argx);
+    }
+    return result;
+}
+
+int arg_parse_argx_vbool_single(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = -1;
+    bool v;
+    if(!so_as_yes_or_no(so, &v)) {
+        array_push(argx->val->vi, v);
+        vso_push(&argx->sources, stream->source);
+        result = 0;
+    } else {
+        arg_parse_errmsg_invalid_conversion(stream, argx);
+    }
+    return result;
+}
+
+int arg_parse_argx_vso_single(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = 0;
+    vso_push(&argx->val->vso, so);
+    vso_push(&argx->sources, stream->source);
+    return result;
+}
+
+int arg_parse_argx_bool_single(Argx_Value_Union *out, So so) {
+    int result = -1;
+    result = so_as_yes_or_no(so, &out->b);
+    return result;
+}
+
+int arg_parse_argx_int_single(Argx_Value_Union *out, So so) {
+    int result = -1;
+    result = so_as_int(so, &out->i, 0);
+    return result;
+}
+
+int arg_parse_argx_size_single(Argx_Value_Union *out, So so) {
+    int result = -1;
+    result = so_as_ssize(so, &out->z, 0);
+    return result;
+}
+
+int arg_parse_argx_so_single(Argx_Value_Union *out, So so) {
+    out->so = so;
+    return 0;
+}
+
+
+typedef int (*Arg_Parse_Argx_Vector_Single_Callback)(Arg *, Arg_Stream *, Argx *, So);
+typedef int (*Arg_Parse_Argx_Single_Callback)(Argx_Value_Union *, So);
+
+int arg_parse_argx_vector(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so, Arg_Parse_Argx_Vector_Single_Callback cb) {
+    ASSERT_ARG(arg);
+    ASSERT_ARG(stream);
+    ASSERT_ARG(argx);
+    ASSERT_ARG(cb);
+    int result = -1;
+    if(so_at0(so) == '[' && so_atE(so) == ']') {
+        so = so_sub(so, 1, so_len(so) - 1);
+        for(So sp = SO; so_splice(so, &sp, ','); ) {
+            result = cb(arg, stream, argx, sp);
+            if(result) break;
+        }
+    } else {
+        result = cb(arg, stream, argx, so);
+    }
+    return result;
+}
+
+int arg_parse_argx_regular(struct Arg *arg, Arg_Stream *stream, Argx *argx, Argx_Value_Union *out, So so, Arg_Parse_Argx_Single_Callback cb) {
+    ASSERT_ARG(arg);
+    ASSERT_ARG(stream);
+    ASSERT_ARG(argx);
+    ASSERT_ARG(cb);
+    int result = -1;
+    if(!cb(out, so)) {
+        result = 0;
+    } else {
+        arg_parse_errmsg_invalid_conversion(stream, argx);
+    }
+    return result;
+}
+
 int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
     int result = -1;
+    Argx_Value_Union parsed;
     if(argx->is_array) {
         switch(argx->id) {
             case ARGX_TYPE_REST: {
@@ -134,39 +240,16 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             } break;
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                vso_push(&argx->val->vso, so);
-                vso_push(&argx->sources, stream->source);
-                result = 0;
+                result = arg_parse_argx_vector(arg, stream, argx, so, arg_parse_argx_vso_single);
             } break;
             case ARGX_TYPE_INT: {
-                int v;
-                if(!so_as_int(so, &v, 0)) {
-                    array_push(argx->val->vi, v);
-                    vso_push(&argx->sources, stream->source);
-                    result = 0;
-                } else {
-                    arg_parse_errmsg_invalid_conversion(stream, argx);
-                }
+                result = arg_parse_argx_vector(arg, stream, argx, so, arg_parse_argx_vint_single);
             } break;
             case ARGX_TYPE_SIZE: {
-                ssize_t v;
-                if(!so_as_ssize(so, &v, 0)) {
-                    array_push(argx->val->vz, v);
-                    vso_push(&argx->sources, stream->source);
-                    result = 0;
-                } else {
-                    arg_parse_errmsg_invalid_conversion(stream, argx);
-                }
+                result = arg_parse_argx_vector(arg, stream, argx, so, arg_parse_argx_vsize_single);
             } break;
             case ARGX_TYPE_BOOL: {
-                bool v;
-                if(!so_as_yes_or_no(so, &v)) {
-                    array_push(argx->val->vb, v);
-                    vso_push(&argx->sources, stream->source);
-                    result = 0;
-                } else {
-                    arg_parse_errmsg_invalid_conversion(stream, argx);
-                }
+                result = arg_parse_argx_vector(arg, stream, argx, so, arg_parse_argx_vbool_single);
             } break;
             case ARGX_TYPE_ENUM: {
                 ABORT(ERR_UNREACHABLE("vector of ENUM can not be parsed (unsupported)"));
@@ -192,34 +275,17 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 ABORT(ERR_UNREACHABLE("argx of type REST is always an array"));
             } break;
             case ARGX_TYPE_BOOL: {
-                if(!so_as_yes_or_no(so, &argx->val->b)) {
-                    vso_push(&argx->sources, stream->source);
-                    result = 0;
-                } else {
-                    arg_parse_errmsg_invalid_conversion(stream, argx);
-                }
+                if(!(result = arg_parse_argx_regular(arg, stream, argx, &parsed, so, arg_parse_argx_bool_single))) argx->val->b = parsed.b;
             } break;
             case ARGX_TYPE_INT: {
-                if(!so_as_int(so, &argx->val->i, 0)) {
-                    vso_push(&argx->sources, stream->source);
-                    result = 0;
-                } else {
-                    arg_parse_errmsg_invalid_conversion(stream, argx);
-                }
+                if(!(result = arg_parse_argx_regular(arg, stream, argx, &parsed, so, arg_parse_argx_int_single))) argx->val->b = parsed.b;
             } break;
             case ARGX_TYPE_SIZE: {
-                if(!so_as_ssize(so, &argx->val->z, 0)) {
-                    vso_push(&argx->sources, stream->source);
-                    result = 0;
-                } else {
-                    arg_parse_errmsg_invalid_conversion(stream, argx);
-                }
+                if(!(result = arg_parse_argx_regular(arg, stream, argx, &parsed, so, arg_parse_argx_size_single))) argx->val->b = parsed.b;
             } break;
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                so_copy(&argx->val->so, so);
-                vso_push(&argx->sources, stream->source);
-                result = 0;
+                if(!(result = arg_parse_argx_regular(arg, stream, argx, &parsed, so, arg_parse_argx_size_single))) so_copy(&argx->val->so, parsed.so);
             } break;
             case ARGX_TYPE_GROUP: {
                 result = arg_parse_group(arg, stream, argx, so);
