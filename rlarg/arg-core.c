@@ -3,7 +3,7 @@
 
 void arg_free(struct Arg **arg) {
     if(!arg) return;
-    array_free_ext((*arg)->groups, argx_group_free);
+    array_free_ext((*arg)->opts, argx_group_free);
     argx_group_free(&(*arg)->pos);
     argx_group_free(&(*arg)->env);
     free(*arg);
@@ -22,7 +22,7 @@ void arg_help(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
     argx_group_fmt_help(&out, &arg->pos);
-    for(Argx_Group *group = arg->groups; group < array_itE(arg->groups); ++group) {
+    for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
         argx_group_fmt_help(&out, group);
     }
     argx_group_fmt_help(&out, &arg->env);
@@ -33,7 +33,7 @@ void arg_help(struct Arg *arg) {
 void arg_config(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
-    for(Argx_Group *group = arg->groups; group < array_itE(arg->groups); ++group) {
+    for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
         argx_group_fmt_config(&out, group);
     }
     so_print(out);

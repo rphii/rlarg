@@ -319,7 +319,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
             } break;
             case ARG_STREAM_LONGOPT: {
                 So opt = so_i0(carg, 2);
-                Argx *argx = t_argx_get(&arg->table, opt);
+                Argx *argx = t_argx_get(&arg->t_opt, opt);
                 if(!argx) {
                     arg_parse_errmsg_root_invalid_opt(stream, opt);
                     return -1;
@@ -459,7 +459,7 @@ void arg_parse_setref_group(Argx_Group *group) {
 
 void arg_parse_setref(struct Arg *arg) {
     /* apply values from references */
-    for(Argx_Group *group = arg->groups; group < array_itE(arg->groups); ++group) {
+    for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
         arg_parse_setref_group(group);
     }
 }
