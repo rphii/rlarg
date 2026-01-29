@@ -1,34 +1,34 @@
 #include "arg-parse.h"
 
 void arg_parse_errmsg_unhandled_positional_error(Arg_Stream *stream) {
-    printf(F("Error occured while parsing: ", FG_RD));
+    fprintf(stderr, F("Error occured while parsing: ", FG_RD));
     while(stream->i < stream->argc) {
         So carg = so_l(stream->argv[stream->i]);
-        printf("%.*s ", SO_F(carg));
+        fprintf(stderr, "%.*s ", SO_F(carg));
         ++stream->i;
     }
-    printf("\n");
+    fprintf(stderr, "\n");
 }
 
 void arg_parse_errmsg_no_rest_allowed(Arg_Stream *stream) {
-    printf(F("Not allowed to set rest of values: ", FG_RD));
+    fprintf(stderr, F("Not allowed to set rest of values: ", FG_RD));
     while(stream->i < stream->argc) {
         So carg = so_l(stream->argv[stream->i]);
-        printf("%.*s ", SO_F(carg));
+        fprintf(stderr, "%.*s ", SO_F(carg));
         ++stream->i;
     }
-    printf("\n");
+    fprintf(stderr, "\n");
 }
 
 void arg_parse_errmsg_missing_value(Arg_Stream *stream, Argx *argx) {
     Argx_So xso = {0};
     argx_so(&xso, 0, argx);
     if(xso.have_hint) {
-        printf(F("Missing value for argument: %.*s %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint));
+        fprintf(stderr, F("Missing value for argument: %.*s %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint));
     } else {
-        printf(F("Missing value for argument: %.*s", FG_RD), SO_F(xso.argx->opt));
+        fprintf(stderr, F("Missing value for argument: %.*s", FG_RD), SO_F(xso.argx->opt));
     }
-    printf("\n");
+    fprintf(stderr, "\n");
     argx_so_free(&xso);
 }
 
@@ -36,11 +36,11 @@ void arg_parse_errmsg_invalid_conversion(Arg_Stream *stream, Argx *argx) {
     Argx_So xso = {0};
     argx_so(&xso, 0, argx);
     if(xso.have_hint) {
-        printf(F("Invalid conversion for '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+        fprintf(stderr, F("Invalid conversion for '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
     } else {
         ABORT(ERR_UNREACHABLE("if you reach this code, please tell me how you got here"));
     }
-    printf("\n");
+    fprintf(stderr, "\n");
     argx_so_free(&xso);
 }
 
@@ -48,18 +48,18 @@ void arg_parse_errmsg_group_invalid_opt(Arg_Stream *stream, Argx *argx) {
     Argx_So xso = {0};
     argx_so(&xso, 0, argx);
     if(xso.have_hint) {
-        printf(F("Option not found in '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+        fprintf(stderr, F("Option not found in '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
     } else {
         ABORT(ERR_UNREACHABLE("if you reach this code, please tell me how you got here"));
     }
-    printf("\n");
+    fprintf(stderr, "\n");
     argx_so_free(&xso);
 }
 
 void arg_parse_errmsg_root_invalid_opt(Arg_Stream *stream, So opt) {
     Argx_So xso = {0};
-    printf(F("Option not found in root groups: '%.*s'", FG_RD), SO_F(opt));
-    printf("\n");
+    fprintf(stderr, F("Option not found in root groups: '%.*s'", FG_RD), SO_F(opt));
+    fprintf(stderr, "\n");
     argx_so_free(&xso);
 }
 
@@ -406,12 +406,14 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv) {
 
     int status = 0;
 
+    /* gather environment variables */
+
+    /* parse stdin */
     Arg_Stream stream_in = {
         .argc = argc ? argc - 1 : 0,
         .argv = argv ? argv + 1 : 0,
         .source = ARGX_SOURCE_STDIN,
     };
-
     status = arg_parse_stream(arg, &stream_in);
     if(status) return status;
 
