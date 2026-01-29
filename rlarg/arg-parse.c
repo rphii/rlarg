@@ -63,6 +63,11 @@ void arg_parse_errmsg_root_invalid_opt(Arg_Stream *stream, So opt) {
     argx_so_free(&xso);
 }
 
+void arg_parse_errmsg_missing_positionals(Arg *arg) {
+    fprintf(stderr, F("Missing positional values, provided: %u/%zu", FG_RD), arg->i_pos, array_len(arg->pos.list));
+    fprintf(stderr, "\n");
+}
+
 int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     So so_split = SO;
     int result = -1;
@@ -502,6 +507,11 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv) {
 
     if(!status) status = arg_parse_environment(arg);
     if(!status) status = arg_parse_stdin(arg, argc, argv);
+
+    if(arg->i_pos < array_len(arg->pos.list)) {
+        arg_parse_errmsg_missing_positionals(arg);
+        return status = -1;
+    }
 
     arg_parse_setref(arg);
 
