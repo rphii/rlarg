@@ -72,6 +72,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(subx) {
         switch(argx->group_s->id) {
             case ARGX_GROUP_ENUM: {
+                printff("PARSE ENUM, SUBX: %.*s", SO_F(subx->opt));
                 result = arg_parse_argx(arg, stream, subx, SO);
             } break;
             case ARGX_GROUP_FLAGS: {
@@ -195,6 +196,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 ASSERT_ARG(parent);
                 ASSERT_ARG(parent->val);
                 parent->val->i = argx->val_enum;
+                vso_push(&parent->sources, stream->source);
                 result = 0;
             } break;
             case ARGX_TYPE_NONE: {
@@ -387,8 +389,13 @@ void arg_parse_setref_group(Argx_Group *group) {
             switch(argx->group_s->id) {
                 case ARGX_GROUP_OPTIONS:
                 case ARGX_GROUP_FLAGS:
-                case ARGX_GROUP_ROOT: arg_parse_setref_group(argx->group_s); break;
-                case ARGX_GROUP_ENUM: argx->val = argx->ref; break;
+                case ARGX_GROUP_ROOT: {
+                    arg_parse_setref_group(argx->group_s); 
+                } break;
+                case ARGX_GROUP_ENUM: {
+                    if(argx->sources) continue;
+                    argx->val = argx->ref; 
+                } break;
             }
         } else {
             arg_parse_setref_argx(argx);

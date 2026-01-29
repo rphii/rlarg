@@ -39,27 +39,27 @@ int main(const int argc, const char **argv) {
     x = argx_opt(g1, 'v', so("vso"), so("list of strings"));
         argx_type_array_so(x, &vec_p, &vec_v);
 
-    int e_out, e_default = 1;
+    int e_out1, e_out2, e_out3, e_out4, e_default = 1;
     x=argx_opt(g1, 'e', so("enumerator"), so("list of strings"));
-      g2=argx_group_enum(x, &e_out, &e_default);
+      g2=argx_group_enum(x, &e_out1, &e_default);
         e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
 
     x=argx_opt(g1, 0, so("enumerator2"), so("list of strings"));
-      g2=argx_group_enum(x, &e_out, 0);
+      g2=argx_group_enum(x, &e_out2, 0);
         e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
 
     x=argx_opt(g1, 0, so("enumerator33"), so("list of strings"));
-      g2=argx_group_enum(x, &e_out, 0);
+      g2=argx_group_enum(x, &e_out3, 0);
         e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
 
     x=argx_opt(g1, 0, so("enumerator444"), so("list of strings"));
-      g2=argx_group_enum(x, &e_out, 0);
+      g2=argx_group_enum(x, &e_out4, 0);
         e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
