@@ -12,7 +12,7 @@
 typedef struct Arg {
     Argx *c[ARGX_SHORT_COUNT]; /* short options */
 
-    Argx_Groups groups; /* long options */
+    Argx_Groups opts;   /* groups of long options */
     Argx_Group pos;     /* positional arguments */
     Argx_Group env;     /* environment variables */
 
@@ -20,8 +20,7 @@ typedef struct Arg {
 
     T_Argx t_pos;
     T_Argx t_env;
-
-    T_Argx table; /* root of long options -> delve into groups */
+    T_Argx t_opt;       /* root of long options -> delve into groups */
 
     struct {
         bool compgen;
