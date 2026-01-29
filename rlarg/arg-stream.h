@@ -12,8 +12,7 @@
  */
 
 typedef struct Arg_Stream {
-    const char **argv;
-    int argc;
+    VSo vso;
     int i, i_split;
     bool skip_flag_check;   /* set true once we encounter '--' */
     bool not_consumed;
@@ -21,6 +20,9 @@ typedef struct Arg_Stream {
     So carg;
     So source;
 } Arg_Stream;
+
+void arg_stream_free(Arg_Stream *stream);
+void arg_stream_clear(Arg_Stream *stream);
 
 bool arg_stream_get_next(Arg_Stream *stream, So *val);
 bool arg_stream_advance(Arg_Stream *stream);

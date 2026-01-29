@@ -23,6 +23,10 @@ typedef struct Arg {
 
     T_Argx table; /* root of long options -> delve into groups */
 
+    struct {
+        bool compgen;
+    } builtin;
+
 } Arg;
 
 #define RLARG_ARG_H

@@ -2,8 +2,8 @@
 
 void arg_parse_errmsg_unhandled_positional_error(Arg_Stream *stream) {
     fprintf(stderr, F("Error occured while parsing: ", FG_RD));
-    while(stream->i < stream->argc) {
-        So carg = so_l(stream->argv[stream->i]);
+    while(stream->i < array_len(stream->vso)) {
+        So carg = array_at(stream->vso, stream->i);
         fprintf(stderr, "%.*s ", SO_F(carg));
         ++stream->i;
     }
@@ -12,8 +12,8 @@ void arg_parse_errmsg_unhandled_positional_error(Arg_Stream *stream) {
 
 void arg_parse_errmsg_no_rest_allowed(Arg_Stream *stream) {
     fprintf(stderr, F("Not allowed to set rest of values: ", FG_RD));
-    while(stream->i < stream->argc) {
-        So carg = so_l(stream->argv[stream->i]);
+    while(stream->i < array_len(stream->vso)) {
+        So carg = array_at(stream->vso, stream->i);
         fprintf(stderr, "%.*s ", SO_F(carg));
         ++stream->i;
     }
@@ -240,7 +240,7 @@ typedef enum {
 
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
-    printff("parse... argc %u", stream->argc);
+    printff("parse... argc %u", array_len(stream->vso));
     So carg = SO;
     while(arg_stream_get_next(stream, &carg)) {
         printff(" carg: [%.*s]", SO_F(carg));
@@ -312,6 +312,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
 
 #define ARGX_SOURCE_REFVAL  so("refval")
 #define ARGX_SOURCE_STDIN   so("stdin")
+#define ARGX_SOURCE_ENVVARS so("envvars")
 
 void arg_parse_setref_sources_mono(Argx *argx, So src, size_t n) {
     for(size_t i = 0; i < n; ++i) {
@@ -402,23 +403,49 @@ void arg_parse_setref(struct Arg *arg) {
     }
 }
 
+int arg_parse_environment(struct Arg *arg) {
+    /* gather environment variables */
+    int status = 0;
+    Argx **itE = array_itE(arg->env.list);
+    So env = SO, carg = SO;
+    Arg_Stream stream_env = {
+        .source = ARGX_SOURCE_ENVVARS,
+    };
+    for(Argx **it = arg->env.list; it < itE && !status; ++it) {
+        so_env_get(&env, (*it)->opt);
+        printff("PARSE ENV: %.*s: [%.*s]", SO_F((*it)->opt), SO_F(env));
+        arg_stream_clear(&stream_env);
+        vso_push(&stream_env.vso, env);
+        arg_stream_get_next(&stream_env, &carg);
+        status = arg_parse_argx(arg, &stream_env, *it, carg);
+    }
+    arg_stream_free(&stream_env);
+    return status;
+}
+
+int arg_parse_stdin(struct Arg *arg, const int argc, const char **argv) {
+    int status = 0;
+    /* parse stdin */
+    Arg_Stream stream_in = {
+        .source = ARGX_SOURCE_STDIN,
+    };
+    for(size_t i = 1; i < argc; ++i) {
+        vso_push(&stream_in.vso, so_l(argv[i]));
+    }
+    status = arg_parse_stream(arg, &stream_in);
+    arg_stream_free(&stream_in);
+    return status;
+}
+
 int arg_parse(struct Arg *arg, const int argc, const char **argv) {
 
     int status = 0;
 
-    /* gather environment variables */
-
-    /* parse stdin */
-    Arg_Stream stream_in = {
-        .argc = argc ? argc - 1 : 0,
-        .argv = argv ? argv + 1 : 0,
-        .source = ARGX_SOURCE_STDIN,
-    };
-    status = arg_parse_stream(arg, &stream_in);
-    if(status) return status;
+    if(!status) status = arg_parse_environment(arg);
+    if(!status) status = arg_parse_stdin(arg, argc, argv);
 
     arg_parse_setref(arg);
 
-    return 0;
+    return status;
 }
 

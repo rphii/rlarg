@@ -2,11 +2,25 @@
 #include "../rlarg.h"
 #include "arg-stream.h"
 
+void arg_stream_free(Arg_Stream *stream) {
+    vso_free(&stream->vso);
+    memset(stream, 0, sizeof(*stream));
+}
+
+void arg_stream_clear(Arg_Stream *stream) {
+    vso_clear(&stream->vso);
+    stream->i = 0;
+    stream->i_split = 0;
+    stream->skip_flag_check = false;
+    stream->rest = 0;
+    so_zero(&stream->carg);
+}
+
 bool arg_stream_get_next(Arg_Stream *stream, So *val) {
     ASSERT_ARG(stream);
     ASSERT_ARG(val);
     if(!arg_stream_advance(stream)) return false;
-    So carg = so_l((char *)stream->argv[stream->i]);
+    So carg = array_at(stream->vso, stream->i);
     if(stream->i_split) {
         stream->carg = so_i0(carg, stream->i_split);
     } else {
@@ -21,8 +35,9 @@ bool arg_stream_get_next(Arg_Stream *stream, So *val) {
 }
 
 bool arg_stream_advance(Arg_Stream *stream) {
-    if(stream->carg.str && !stream->not_consumed) {
-        So carg = so_l((char *)stream->argv[stream->i]);
+    size_t len = array_len(stream->vso);
+    if(stream->carg.str && !stream->not_consumed && stream->i < len) {
+        So carg = array_at(stream->vso, stream->i);
         if(stream->carg.str == carg.str) {
             if(stream->carg.len < carg.len) {
                 /* probably a split on = */
@@ -38,7 +53,7 @@ bool arg_stream_advance(Arg_Stream *stream) {
         }
     }
     stream->not_consumed = false;
-    return (stream->i < stream->argc);
+    return (stream->i < len);
 }
 
 void arg_stream_not_consumed(Arg_Stream *stream) {
