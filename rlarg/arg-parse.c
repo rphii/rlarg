@@ -169,21 +169,25 @@ int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 
 int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = so_as_yes_or_no(so, &argx->val->b);
+    vso_push(&argx->sources, stream->source);
     return result;
 }
 
 int arg_parse_argx_int(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = so_as_int(so, &argx->val->i, 0);
+    vso_push(&argx->sources, stream->source);
     return result;
 }
 
 int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = so_as_ssize(so, &argx->val->z, 0);
+    vso_push(&argx->sources, stream->source);
     return result;
 }
 
 int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     argx->val->so = so;
+    vso_push(&argx->sources, stream->source);
     return 0;
 }
 
@@ -194,7 +198,7 @@ int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(parent);
     ASSERT_ARG(parent->val);
     parent->val->i = argx->val_enum;
-    //vso_push(&parent->sources, stream->source);
+    vso_push(&parent->sources, stream->source);
     return 0;
 }
 
@@ -225,8 +229,8 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
         ABORT(ERR_UNREACHABLE("always have to succeed parsing what to set the flag to"));
     }
     //printff("SET FLAG %.*s / source: %.*s", SO_F(argx->opt), SO_F(stream->source));
-    //vso_push(&parent->sources, stream->source);
-    //vso_push(&argx->sources, stream->source);
+    vso_push(&parent->sources, stream->source);
+    vso_push(&argx->sources, stream->source);
     return 0;
 }
 
