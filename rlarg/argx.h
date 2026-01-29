@@ -19,6 +19,8 @@ typedef enum {
     ARGX_TYPE_GROUP,
     ARGX_TYPE_ENUM,
     ARGX_TYPE_FLAG,
+    /* keep above */
+    ARGX_TYPE__COUNT,
 } Argx_Type_List;
 
 typedef enum {
