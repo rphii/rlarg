@@ -4,7 +4,9 @@
 #include <rlc.h>
 #include "argx-hint.h"
 
-#define ARG_X_SHORT_COUNT   ('~' - '!')
+#define ARGX_SHORT_MIN      ('!')
+#define ARGX_SHORT_MAX      ('~')
+#define ARGX_SHORT_COUNT    (ARGX_SHORT_MAX - ARGX_SHORT_MIN)
 
 typedef enum {
     ARGX_TYPE_NONE,

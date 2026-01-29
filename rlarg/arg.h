@@ -10,7 +10,7 @@
 #include <rlc.h>
 
 typedef struct Arg {
-    Argx *c[ARG_X_SHORT_COUNT]; /* short options */
+    Argx *c[ARGX_SHORT_COUNT]; /* short options */
 
     Argx_Groups groups; /* long options */
     Argx_Group pos;     /* positional arguments */
