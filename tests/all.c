@@ -12,6 +12,8 @@ int main(const int argc, const char **argv) {
     printff("group 'default' pointers: %p, %p", g1, g2);
     ASSERT(g1 == g2, "should point to the same");
 
+    argx_builtin_env_compgen(arg);
+
     struct Argx *x, *e1, *e2, *e3;
 
     x = argx_opt(g1, 0, so("hi"), so("description"));

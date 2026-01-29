@@ -20,6 +20,8 @@ struct Argx *argx_opt(struct Argx_Group *group, char c, So name, So desc);
 struct Argx *argx_pos(struct Arg *arg, So name, So desc);
 struct Argx *argx_env(struct Arg *arg, So name, So desc);
 
+void argx_builtin_env_compgen(struct Arg *arg);
+
 /* rlarg/argx-type.c */
 
 void argx_type_rest(struct Argx *argx, VSo *val);

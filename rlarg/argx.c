@@ -90,6 +90,11 @@ struct Argx *argx_env(struct Arg *arg, So name, So desc) {
     return argx;
 }
 
+void argx_builtin_env_compgen(struct Arg *arg) {
+    Argx *x = argx_env(arg, so("COMPGEN_WORDLIST"), so("Generate input for autocompletion"));
+    argx_type_bool(x, &arg->builtin.compgen, 0);
+}
+
 void argx_so_free(Argx_So *xso) {
     if(!xso) return;
     if(!xso->argx) return;
