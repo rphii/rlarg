@@ -120,7 +120,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return result;
 }
 
-int arg_parse_argx_vint_single(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = -1;
     int v;
     if(!so_as_int(so, &v, 0)) {
@@ -133,7 +133,7 @@ int arg_parse_argx_vint_single(struct Arg *arg, Arg_Stream *stream, Argx *argx, 
     return result;
 }
 
-int arg_parse_argx_vsize_single(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+int arg_parse_argx_vsize(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = -1;
     ssize_t v;
     if(!so_as_ssize(so, &v, 0)) {
@@ -146,7 +146,7 @@ int arg_parse_argx_vsize_single(struct Arg *arg, Arg_Stream *stream, Argx *argx,
     return result;
 }
 
-int arg_parse_argx_vbool_single(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = -1;
     bool v;
     if(!so_as_yes_or_no(so, &v)) {
@@ -159,41 +159,86 @@ int arg_parse_argx_vbool_single(struct Arg *arg, Arg_Stream *stream, Argx *argx,
     return result;
 }
 
-int arg_parse_argx_vso_single(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
     vso_push(&argx->val->vso, so);
     vso_push(&argx->sources, stream->source);
     return result;
 }
 
-int arg_parse_argx_bool_single(Argx_Value_Union *out, So so) {
-    int result = -1;
-    result = so_as_yes_or_no(so, &out->b);
+
+int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = so_as_yes_or_no(so, &argx->val->b);
     return result;
 }
 
-int arg_parse_argx_int_single(Argx_Value_Union *out, So so) {
-    int result = -1;
-    result = so_as_int(so, &out->i, 0);
+int arg_parse_argx_int(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = so_as_int(so, &argx->val->i, 0);
     return result;
 }
 
-int arg_parse_argx_size_single(Argx_Value_Union *out, So so) {
-    int result = -1;
-    result = so_as_ssize(so, &out->z, 0);
+int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = so_as_ssize(so, &argx->val->z, 0);
     return result;
 }
 
-int arg_parse_argx_so_single(Argx_Value_Union *out, So so) {
-    out->so = so;
+int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    argx->val->so = so;
+    return 0;
+}
+
+int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(!so.str);
+    Argx *parent = argx->group_p->parent;
+    ASSERT_ARG(parent);
+    ASSERT_ARG(parent->val);
+    parent->val->i = argx->val_enum;
+    //vso_push(&parent->sources, stream->source);
+    return 0;
+}
+
+int arg_parse_argx_none(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    //printff("TYPE IS NONE!!! [%.*s]",SO_F(argx->opt));
+    //arg_stream_not_consumed(stream);
     return 0;
 }
 
 
-typedef int (*Arg_Parse_Argx_Vector_Single_Callback)(Arg *, Arg_Stream *, Argx *, So);
-typedef int (*Arg_Parse_Argx_Single_Callback)(Argx_Value_Union *, So);
+int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
+    ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(so.str);
+    Argx *parent = argx->group_p->parent;
+    ASSERT_ARG(parent);
+    ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
+    if(!parent->sources) {
+        printff("RESET FLAGS %.*s", SO_F(parent->opt));
+        Argx **itE = array_itE(parent->group_s->list);
+        for(Argx **it = parent->group_s->list; it < itE; ++it) {
+            printff("RESET FLAG %.*s", SO_F((*it)->opt));
+            (*it)->val->b = false;
+        }
+    }
+    /* now add source and set flag to true */
+    if(so_as_yes_or_no(so, &argx->val->b)) {
+        ABORT(ERR_UNREACHABLE("always have to succeed parsing what to set the flag to"));
+    }
+    //printff("SET FLAG %.*s / source: %.*s", SO_F(argx->opt), SO_F(stream->source));
+    //vso_push(&parent->sources, stream->source);
+    //vso_push(&argx->sources, stream->source);
+    return 0;
+}
 
-int arg_parse_argx_vector(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so, Arg_Parse_Argx_Vector_Single_Callback cb) {
+int arg_parse_argx_group(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = arg_parse_group(arg, stream, argx, so);
+    return result;
+}
+
+typedef int (*Arg_Parse_Argx_Callback)(Arg *, Arg_Stream *, Argx *, So);
+typedef int (*Arg_Parse_Argx_Vector_Callback)(Arg *, Arg_Stream *, Argx *, So, Arg_Parse_Argx_Callback cb);
+
+int arg_parse_argx_vector(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so, Arg_Parse_Argx_Callback cb) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
@@ -211,13 +256,60 @@ int arg_parse_argx_vector(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so
     return result;
 }
 
-int arg_parse_argx_regular(struct Arg *arg, Arg_Stream *stream, Argx *argx, Argx_Value_Union *out, So so, Arg_Parse_Argx_Single_Callback cb) {
+int arg_parse_argx_vector_none(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so, Arg_Parse_Argx_Callback cb) {
+    arg_stream_not_consumed(stream);
+    return 0;
+}
+
+int arg_parse_argx_vector_rest(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so, Arg_Parse_Argx_Callback cb) {
+    arg_stream_not_consumed(stream);
+    stream->rest = argx;
+    return 0;
+}
+
+static Arg_Parse_Argx_Callback static_parse_argx_single_cbs[ARGX_TYPE__COUNT] = {
+    [ARGX_TYPE_INT] = arg_parse_argx_int,
+    [ARGX_TYPE_SIZE] = arg_parse_argx_size,
+    [ARGX_TYPE_BOOL] = arg_parse_argx_bool,
+    [ARGX_TYPE_ENUM] = arg_parse_argx_enum,
+    [ARGX_TYPE_FLAG] = arg_parse_argx_flag,
+    [ARGX_TYPE_NONE] = arg_parse_argx_none,
+    [ARGX_TYPE_GROUP] = arg_parse_argx_group,
+    [ARGX_TYPE_STRING] = arg_parse_argx_so,
+    [ARGX_TYPE_REST] = 0,
+};
+
+static Arg_Parse_Argx_Callback static_parse_argx_vector_vals_cbs[ARGX_TYPE__COUNT] = {
+    [ARGX_TYPE_INT] = arg_parse_argx_vint,
+    [ARGX_TYPE_SIZE] = arg_parse_argx_vsize,
+    [ARGX_TYPE_BOOL] = arg_parse_argx_vso,
+    [ARGX_TYPE_STRING] = arg_parse_argx_vso,
+    [ARGX_TYPE_REST] = 0,
+    [ARGX_TYPE_NONE] = 0,
+    [ARGX_TYPE_ENUM] = 0,
+    [ARGX_TYPE_FLAG] = 0,
+    [ARGX_TYPE_GROUP] = 0,
+};
+
+static Arg_Parse_Argx_Vector_Callback static_parse_argx_vector_cbs[ARGX_TYPE__COUNT] = {
+    [ARGX_TYPE_INT] = arg_parse_argx_vector,
+    [ARGX_TYPE_SIZE] = arg_parse_argx_vector,
+    [ARGX_TYPE_BOOL] = arg_parse_argx_vector,
+    [ARGX_TYPE_STRING] = arg_parse_argx_vector,
+    [ARGX_TYPE_NONE] = arg_parse_argx_vector_none,
+    [ARGX_TYPE_REST] = arg_parse_argx_vector_rest,
+    [ARGX_TYPE_ENUM] = 0,
+    [ARGX_TYPE_FLAG] = 0,
+    [ARGX_TYPE_GROUP] = 0,
+};
+
+int arg_parse_argx_regular(struct Arg *arg, Arg_Stream *stream, Argx *argx, Argx_Value_Union *out, So so, Arg_Parse_Argx_Callback cb) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
     ASSERT_ARG(cb);
     int result = -1;
-    if(!cb(out, so)) {
+    if(!cb(arg, stream, argx, so)) {
         result = 0;
     } else {
         arg_parse_errmsg_invalid_conversion(stream, argx);
@@ -230,105 +322,22 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
     int result = -1;
-    Argx_Value_Union parsed;
     if(argx->is_array) {
-        switch(argx->id) {
-            case ARGX_TYPE_REST: {
-                arg_stream_not_consumed(stream);
-                stream->rest = argx;
-                result = 0;
-            } break;
-            case ARGX_TYPE_URI:
-            case ARGX_TYPE_STRING: {
-                result = arg_parse_argx_vector(arg, stream, argx, so, arg_parse_argx_vso_single);
-            } break;
-            case ARGX_TYPE_INT: {
-                result = arg_parse_argx_vector(arg, stream, argx, so, arg_parse_argx_vint_single);
-            } break;
-            case ARGX_TYPE_SIZE: {
-                result = arg_parse_argx_vector(arg, stream, argx, so, arg_parse_argx_vsize_single);
-            } break;
-            case ARGX_TYPE_BOOL: {
-                result = arg_parse_argx_vector(arg, stream, argx, so, arg_parse_argx_vbool_single);
-            } break;
-            case ARGX_TYPE_ENUM: {
-                ABORT(ERR_UNREACHABLE("vector of ENUM can not be parsed (unsupported)"));
-            } break;
-            case ARGX_TYPE_FLAG: {
-                ABORT(ERR_UNREACHABLE("vector of FLAG can not be parsed (unsupported)"));
-            } break;
-            case ARGX_TYPE_GROUP: {
-                ABORT(ERR_UNREACHABLE("vector of GROUP can not be parsed (unsupported)"));
-            } break;
-            case ARGX_TYPE_NONE: {
-                arg_stream_not_consumed(stream);
-                result = 0;
-            } break;
+        if(argx->id < ARGX_TYPE__COUNT) {
+            Arg_Parse_Argx_Callback cb = static_parse_argx_vector_vals_cbs[argx->id];
+            Arg_Parse_Argx_Vector_Callback vcb = static_parse_argx_vector_cbs[argx->id];
+            ASSERT_ARG(vcb);
+            result = vcb(arg, stream, argx, so, cb);
         }
     } else {
         if(argx->sources) {
             /* TODO: ability to detect duplicate setting of values... for now just clear sources so they don't pile up */
             vso_clear(&argx->sources);
         }
-        switch(argx->id) {
-            case ARGX_TYPE_REST: {
-                ABORT(ERR_UNREACHABLE("argx of type REST is always an array"));
-            } break;
-            case ARGX_TYPE_BOOL: {
-                if(!(result = arg_parse_argx_regular(arg, stream, argx, &parsed, so, arg_parse_argx_bool_single))) argx->val->b = parsed.b;
-            } break;
-            case ARGX_TYPE_INT: {
-                if(!(result = arg_parse_argx_regular(arg, stream, argx, &parsed, so, arg_parse_argx_int_single))) argx->val->b = parsed.b;
-            } break;
-            case ARGX_TYPE_SIZE: {
-                if(!(result = arg_parse_argx_regular(arg, stream, argx, &parsed, so, arg_parse_argx_size_single))) argx->val->b = parsed.b;
-            } break;
-            case ARGX_TYPE_URI:
-            case ARGX_TYPE_STRING: {
-                if(!(result = arg_parse_argx_regular(arg, stream, argx, &parsed, so, arg_parse_argx_size_single))) so_copy(&argx->val->so, parsed.so);
-            } break;
-            case ARGX_TYPE_GROUP: {
-                result = arg_parse_group(arg, stream, argx, so);
-            } break;
-            case ARGX_TYPE_ENUM: {
-                ASSERT_ARG(argx->group_p);
-                ASSERT_ARG(!so.str);
-                Argx *parent = argx->group_p->parent;
-                ASSERT_ARG(parent);
-                ASSERT_ARG(parent->val);
-                parent->val->i = argx->val_enum;
-                vso_push(&parent->sources, stream->source);
-                result = 0;
-            } break;
-            case ARGX_TYPE_FLAG: {
-                /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
-                ASSERT_ARG(argx->group_p);
-                ASSERT_ARG(so.str);
-                Argx *parent = argx->group_p->parent;
-                ASSERT_ARG(parent);
-                ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
-                if(!parent->sources) {
-                    printff("RESET FLAGS %.*s", SO_F(parent->opt));
-                    Argx **itE = array_itE(parent->group_s->list);
-                    for(Argx **it = parent->group_s->list; it < itE; ++it) {
-                        printff("RESET FLAG %.*s", SO_F((*it)->opt));
-                        (*it)->val->b = false;
-                    }
-                }
-                /* now add source and set flag to true */
-                if(so_as_yes_or_no(so, &argx->val->b)) {
-                    ABORT(ERR_UNREACHABLE("always have to succeed parsing what to set the flag to"));
-                }
-                printff("SET FLAG %.*s / source: %.*s", SO_F(argx->opt), SO_F(stream->source));
-                vso_push(&parent->sources, stream->source);
-                vso_push(&argx->sources, stream->source);
-                result = 0;
-            } break;
-            case ARGX_TYPE_NONE: {
-                printff("TYPE IS NONE!!! [%.*s]",SO_F(argx->opt));
-                //arg_stream_not_consumed(stream);
-                result = 0;
-            } break;
+        if(argx->id < ARGX_TYPE__COUNT) {
+            Arg_Parse_Argx_Callback cb = static_parse_argx_single_cbs[argx->id];
+            ASSERT_ARG(cb);
+            result = cb(arg, stream, argx, so);
         }
     }
     return result;
