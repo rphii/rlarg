@@ -188,6 +188,7 @@ struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc)
 struct Argx *argx_flag(struct Argx_Group *group, bool *val, bool *ref, So name, So desc) {
     struct Argx *x = argx_opt(group, 0, name, desc);
     argx_type_bool(x, val, ref);
+    x->id = ARGX_TYPE_FLAG;
     return x;
 }
 

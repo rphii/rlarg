@@ -12,12 +12,13 @@ typedef enum {
     ARGX_TYPE_NONE,
     ARGX_TYPE_REST,
     ARGX_TYPE_INT,
-    ARGX_TYPE_ENUM,
     ARGX_TYPE_SIZE,
     ARGX_TYPE_BOOL,
     ARGX_TYPE_STRING,
     ARGX_TYPE_URI,
     ARGX_TYPE_GROUP,
+    ARGX_TYPE_ENUM,
+    ARGX_TYPE_FLAG,
 } Argx_Type_List;
 
 typedef enum {

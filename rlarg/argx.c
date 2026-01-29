@@ -15,6 +15,7 @@ void argx_free(Argx *argx) {
     //printff("free argx: %.*s",SO_F(argx->opt));
     if(argx->is_array) {
         switch(argx->id) {
+            case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("array of FLAG unsupported (how did you reach this code?)"));
             case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("array of ENUM unsupported (how did you reach this code?)"));
             case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("array of GROUP unsupported (how did you reach this code?)"));
             case ARGX_TYPE_NONE: {}
@@ -332,6 +333,9 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
             case ARGX_TYPE_ENUM: {
                 ABORT(ERR_UNREACHABLE("vector of ENUM is not supported, and thus you should never see this message"));
             } break;
+            case ARGX_TYPE_FLAG: {
+                ABORT(ERR_UNREACHABLE("vector of FLAG is not supported, and thus you should never see this message"));
+            } break;
         }
     } else {
         switch(argx->id) {
@@ -339,6 +343,7 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                 //xso->ref_visible = false;
                 xso->have_hint = false;
             } break;
+            case ARGX_TYPE_FLAG:
             case ARGX_TYPE_BOOL: {
                 argx_so_type_bool(&xso->set_val, argx->val);
                 argx_so_type_bool(&xso->set_ref, argx->ref);

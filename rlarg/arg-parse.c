@@ -64,31 +64,40 @@ void arg_parse_errmsg_root_invalid_opt(Arg_Stream *stream, So opt) {
 }
 
 int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    So so_split = SO;
     int result = -1;
-    Argx *subx = 0;
-    printff("parse group of: %.*s", SO_F(argx->opt));
-    ASSERT_ARG(argx->group_s);
-    subx = t_argx_get(argx->group_s->table, so);
-    if(subx) {
-        switch(argx->group_s->id) {
-            case ARGX_GROUP_ENUM: {
-                printff("PARSE ENUM, SUBX: %.*s", SO_F(subx->opt));
-                result = arg_parse_argx(arg, stream, subx, SO);
-            } break;
-            case ARGX_GROUP_FLAGS: {
-                result = arg_parse_argx(arg, stream, subx, SO);
-            } break;
-            case ARGX_GROUP_ROOT:
-            case ARGX_GROUP_OPTIONS: {
-                So next = SO;
-                if(!arg_stream_get_next(stream, &next)) {
-                    result = arg_parse_argx(arg, stream, subx, next);
-                }
-            } break;
+    do {
+        Argx *subx = 0;
+        printff("parse group of: %.*s", SO_F(argx->opt));
+        ASSERT_ARG(argx->group_s);
+        if(argx->group_s->id == ARGX_GROUP_FLAGS) {
+            if(!so_splice(so, &so_split, ',')) break;
+            printff("SPLICED TO: %.*s", SO_F(so_split));
+        } else {
+            so_split = so;
         }
-    } else {
-        arg_parse_errmsg_group_invalid_opt(stream, argx);
-    }
+        subx = t_argx_get(argx->group_s->table, so_split);
+        if(subx) {
+            switch(argx->group_s->id) {
+                case ARGX_GROUP_ENUM: {
+                    result = arg_parse_argx(arg, stream, subx, SO);
+                } break;
+                case ARGX_GROUP_FLAGS: {
+                    result = arg_parse_argx(arg, stream, subx, SO);
+                } break;
+                case ARGX_GROUP_ROOT:
+                case ARGX_GROUP_OPTIONS: {
+                    So next = SO;
+                    if(!arg_stream_get_next(stream, &next)) {
+                        result = arg_parse_argx(arg, stream, subx, next);
+                    }
+                } break;
+            }
+        } else {
+            arg_parse_errmsg_group_invalid_opt(stream, argx);
+        }
+        printff("result %u",result);
+    } while(!result);
     return result;
 }
 
@@ -143,6 +152,9 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             case ARGX_TYPE_ENUM: {
                 ABORT(ERR_UNREACHABLE("vector of ENUM can not be parsed (unsupported)"));
             } break;
+            case ARGX_TYPE_FLAG: {
+                ABORT(ERR_UNREACHABLE("vector of FLAG can not be parsed (unsupported)"));
+            } break;
             case ARGX_TYPE_GROUP: {
                 ABORT(ERR_UNREACHABLE("vector of GROUP can not be parsed (unsupported)"));
             } break;
@@ -152,6 +164,10 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             } break;
         }
     } else {
+        if(argx->sources) {
+            /* TODO: ability to detect duplicate setting of values... for now just clear sources so they don't pile up */
+            vso_clear(&argx->sources);
+        }
         switch(argx->id) {
             case ARGX_TYPE_REST: {
                 ABORT(ERR_UNREACHABLE("argx of type REST is always an array"));
@@ -197,6 +213,28 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 ASSERT_ARG(parent->val);
                 parent->val->i = argx->val_enum;
                 vso_push(&parent->sources, stream->source);
+                result = 0;
+            } break;
+            case ARGX_TYPE_FLAG: {
+                /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
+                ASSERT_ARG(argx->group_p);
+                ASSERT_ARG(!so.str);
+                Argx *parent = argx->group_p->parent;
+                ASSERT_ARG(parent);
+                ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
+                if(!parent->sources) {
+                    printff("RESET FLAGS %.*s", SO_F(parent->opt));
+                    Argx **itE = array_itE(parent->group_s->list);
+                    for(Argx **it = parent->group_s->list; it < itE; ++it) {
+                        printff("RESET FLAG %.*s", SO_F((*it)->opt));
+                        (*it)->val->b = false;
+                    }
+                }
+                /* now add source and set flag to true */
+                argx->val->b = true;
+                printff("SET FLAG %.*s / source: %.*s", SO_F(argx->opt), SO_F(stream->source));
+                vso_push(&parent->sources, stream->source);
+                vso_push(&argx->sources, stream->source);
                 result = 0;
             } break;
             case ARGX_TYPE_NONE: {
@@ -286,7 +324,10 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                     arg_parse_errmsg_root_invalid_opt(stream, opt);
                     return -1;
                 }
-                arg_parse_option(arg, stream, argx);
+                if(arg_parse_option(arg, stream, argx)) {
+                    arg_parse_errmsg_unhandled_positional_error(stream);
+                    return -1;
+                }
             } break;
             case ARG_STREAM_SHORTOPT: {
                 So opts = so_i0(carg, 1);
@@ -300,7 +341,10 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                         arg_parse_errmsg_root_invalid_opt(stream, so_ll(&c, 1));
                         return -1;
                     }
-                    arg_parse_option(arg, stream, argx);
+                    if(arg_parse_option(arg, stream, argx)) {
+                        arg_parse_errmsg_unhandled_positional_error(stream);
+                        return -1;
+                    }
                 }
             } break;
         }
@@ -348,11 +392,21 @@ void arg_parse_setref_argx(Argx *argx) {
                 case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
                 case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
                 case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("case is handled separately"));
+                case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         } else {
             //printff(" v %p = r %p id %u",argx->val,argx->ref,argx->id);
             switch(argx->id) {
                 arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (bool)(argx->ref));
+                case ARGX_TYPE_FLAG: {
+                    /* check parent sources as well */
+                    ASSERT_ARG(argx->group_p);
+                    Argx *parent = argx->group_p->parent;
+                    ASSERT_ARG(parent);
+                    if(!parent->sources) {
+                        argx->val->b = argx->ref->b;
+                    }
+                } break;
                 case ARGX_TYPE_BOOL: {
                     argx->val->b = argx->ref->b;
                 } break;
@@ -437,7 +491,7 @@ int arg_parse_stdin(struct Arg *arg, const int argc, const char **argv) {
         .source = ARGX_SOURCE_STDIN,
     };
     for(size_t i = 1; i < argc; ++i) {
-        vso_push(&stream_in.vso, so_l(argv[i]));
+        vso_push(&stream_in.vso, so_l((char *)argv[i]));
     }
     status = arg_parse_stream(arg, &stream_in);
     arg_stream_free(&stream_in);
