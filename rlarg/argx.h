@@ -2,6 +2,7 @@
 
 #include <rlso.h>
 #include <rlc.h>
+#include "../rlarg.h"
 #include "argx-hint.h"
 
 #define ARGX_SHORT_MIN      ('!')
@@ -23,11 +24,6 @@ typedef enum {
     ARGX_TYPE__COUNT,
 } Argx_Type_List;
 
-typedef enum {
-    ARGX_PRIORITY_WHEN_VALID,
-    ARGX_PRIORITY_IMMEDIATELY,
-} Argx_Priority_List;
-
 typedef union Argx_Value_Union {
     int i;
     int *vi;
@@ -37,8 +33,13 @@ typedef union Argx_Value_Union {
     bool *vb;
     So so;
     VSo vso;
-    struct Argx_Group *group;
 } Argx_Value_Union;
+
+typedef struct Argx_Callback {
+    Argx_Priority_List priority;
+    Argx_Function func;
+    void *user;
+} Argx_Callback;
 
 typedef struct Argx {
     char c;
@@ -54,6 +55,7 @@ typedef struct Argx {
     bool is_array;
     bool is_env;
     int val_enum;
+    Argx_Callback callback;
 } Argx, *V_Argx;
 
 LUT_INCLUDE(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL);
@@ -81,6 +83,8 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx);
 
 void argx_fmt_help(So *out, Argx *argx);
 void argx_fmt_config(So *out, Argx *argx);
+
+bool argx_flag_is_any_source_set(Argx *argx);
 
 #define RLARG_ARG_X_H
 #endif /* RLARG_ARG_X_H */

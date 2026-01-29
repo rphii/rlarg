@@ -108,12 +108,13 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 case ARGX_GROUP_ROOT:
                 case ARGX_GROUP_OPTIONS: {
                     So next = SO;
-                    //if(arg_stream_get_next(stream, &next)) {
+                    if(arg_stream_get_next(stream, &next)) {
+                        printff("GOT NEXT");
                         result = arg_parse_argx(arg, stream, subx, next);
                         done = true;
-                    //} else {
-                        //arg_parse_errmsg_missing_positionals(arg);
-                    //}
+                    } else {
+                        arg_parse_errmsg_missing_positionals(arg);
+                    }
                 } break;
             }
         } else {
@@ -228,7 +229,10 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     Argx *parent = argx->group_p->parent;
     ASSERT_ARG(parent);
     ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
-    if(!parent->sources) {
+    /* check if there are no sources in any of the associated enums */
+    bool have_sources = argx_flag_is_any_source_set(argx);
+    /* act upon it */
+    if(!have_sources) {
         printff("RESET FLAGS %.*s", SO_F(parent->opt));
         Argx **itE = array_itE(parent->group_s->list);
         for(Argx **it = parent->group_s->list; it < itE; ++it) {
@@ -241,7 +245,6 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
         ABORT(ERR_UNREACHABLE("always have to succeed parsing what to set the flag to"));
     }
     //printff("SET FLAG %.*s / source: %.*s", SO_F(argx->opt), SO_F(stream->source));
-    vso_push(&parent->sources, stream->source);
     vso_push(&argx->sources, stream->source);
     return 0;
 }
@@ -516,10 +519,12 @@ void arg_parse_setref_argx(Argx *argx) {
                 case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         } else {
-            //printff(" v %p = r %p id %u",argx->val,argx->ref,argx->id);
+            printff(" v %p = r %p id %u [%.*s]",argx->val,argx->ref,argx->id,SO_F(argx->opt));
+            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (bool)(argx->ref));
             switch(argx->id) {
-                arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (bool)(argx->ref));
                 case ARGX_TYPE_FLAG: {
+                    bool have_sources = argx_flag_is_any_source_set(argx);
+                    if(have_sources) break;
                     /* check parent sources as well */
                     ASSERT_ARG(argx->group_p);
                     Argx *parent = argx->group_p->parent;
