@@ -16,6 +16,15 @@ void arg_stream_clear(Arg_Stream *stream) {
     so_zero(&stream->carg);
 }
 
+void arg_stream_from_stdin(Arg_Stream *stream, const int argc, const char **argv) {
+    ASSERT_ARG(stream);
+    ASSERT_ARG(argv);
+    ASSERT_ARG(argc);
+    for(size_t i = 1; i < argc; ++i) {
+        vso_push(&stream->vso, so_l((char *)argv[i]));
+    }
+}
+
 bool arg_stream_get_next(Arg_Stream *stream, So *val) {
     ASSERT_ARG(stream);
     ASSERT_ARG(val);
