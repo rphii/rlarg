@@ -24,6 +24,9 @@ typedef struct Arg {
 
     struct {
         bool compgen;
+        Argx *sources_argx;
+        So *sources_vso;
+        So *sources_vso_ref;
     } builtin;
 
 } Arg;
