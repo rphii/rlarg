@@ -94,7 +94,19 @@ struct Argx *argx_env(struct Arg *arg, So name, So desc) {
 void argx_builtin_env_compgen(struct Arg *arg) {
     Argx *x = argx_env(arg, so("COMPGEN_WORDLIST"), so("generate input for autocompletion"));
     argx_type_bool(x, &arg->builtin.compgen, 0);
-    printff("VAL p %p",x->val.b);
+}
+
+int argx_callback_config(Argx *argx, void *user, So so) {
+    arg_runtime_quit_when_all_valid(argx, true);
+    Arg *arg = user;
+    arg->builtin.config = true;
+    return 0;
+}
+
+void argx_builtin_env_config(struct Arg *arg) {
+    Argx *x = argx_env(arg, so("CONFIG_PRINT"), so("generate config if parser is left in a valid state"));
+    argx_type_bool(x, &arg->builtin.compgen, 0);
+    argx_callback(x, argx_callback_config, arg, ARGX_PRIORITY_WHEN_ALL_VALID);
 }
 
 int argx_callback_help(Argx *argx, void *user, So so) {

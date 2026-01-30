@@ -728,6 +728,10 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
 
     arg_parse_setref(arg);
 
+    if(arg->builtin.config) {
+        arg_config(arg);
+    }
+
 defer:
 
     arg_parse_help(arg);

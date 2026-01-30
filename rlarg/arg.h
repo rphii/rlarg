@@ -28,6 +28,7 @@ typedef struct Arg {
         bool quit_early;
         bool quit_when_all_valid;
         bool compgen;
+        bool config;
         Argx *sources_argx;
         So *sources_vso;
         So *sources_vso_ref;
