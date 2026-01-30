@@ -2,6 +2,7 @@
 
 #include <rlso.h>
 #include <stddef.h>
+#include "arg-parse.h"
 
 /* consider:
  *  --switch=value
@@ -19,6 +20,7 @@ typedef struct Arg_Stream {
     struct Argx *rest;      /* pointer to an argx of type ARGX_TYPE_REST */
     So carg;
     So source;
+    Arg_Parse_Error_List error_id;
 } Arg_Stream;
 
 void arg_stream_free(Arg_Stream *stream);

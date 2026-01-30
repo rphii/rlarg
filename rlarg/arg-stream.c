@@ -13,6 +13,7 @@ void arg_stream_clear(Arg_Stream *stream) {
     stream->i_split = 0;
     stream->skip_flag_check = false;
     stream->rest = 0;
+    stream->error_id = 0;
     so_zero(&stream->carg);
 }
 
