@@ -21,6 +21,7 @@ int main(const int argc, const char **argv) {
     ASSERT(g1 == g2, "should point to the same");
 
     argx_builtin_env_compgen(arg);
+    argx_builtin_env_config(arg);
     argx_builtin_opt_help(g1);
     argx_builtin_opt_source(g1, so("$HOME/.config/rphiic/colors.conf"));
 
@@ -134,9 +135,12 @@ int main(const int argc, const char **argv) {
     if(arg_parse(arg, argc, argv, &quit_early)) goto clean;
     if(quit_early) goto clean;
     status = 0;
+
+#if 0
     arg_help(arg);
     printff("::::::CONFIG:::::");
     arg_config(arg);
+#endif
 
 clean:
     arg_free(&arg);
