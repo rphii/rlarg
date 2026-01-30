@@ -165,11 +165,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             }
         } else {
             arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_GROUP, argx);
-            //arg_parse_set_help_error(arg, argx);
-            //arg->help.error = true;
         }
-        //if(result) rlc_trace_fatal();
-        //printff("result %u",result);
         if(done) break;
     } while(!result);
     return result;
@@ -190,8 +186,6 @@ int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) 
         result = 0;
     } else {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
-        //arg_parse_set_help_error(arg, argx);
-        //arg->help.error = true;
     }
     return result;
 }
@@ -207,8 +201,6 @@ int arg_parse_argx_vsize(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
         result = 0;
     } else {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
-        //arg_parse_set_help_error(arg, argx);
-        //arg->help.error = true;
     }
     return result;
 }
@@ -224,8 +216,6 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
         result = 0;
     } else {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
-        //arg_parse_set_help_error(arg, argx);
-        //arg->help.error = true;
     }
     return result;
 }
@@ -443,8 +433,6 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             result = cb(arg, stream, argx, so);
             if(result) {
                 arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
-                //arg_parse_set_help_error(arg, argx);
-                //arg->help.error = true;
             }
         }
     }
@@ -476,11 +464,8 @@ int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
         case ARGX_TYPE_NONE: break;
         default: {
             arg_parse_set_help_any(arg, argx);
-            //arg->help.last = argx;
-            //printff("LAST = %.*s",SO_F(arg->help.last->opt));
             if(!arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) {
                 arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_VALUE, argx);
-                //arg_parse_set_help_error(arg, argx);
                 return -1;
             }
         } break;
@@ -634,6 +619,10 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
 error_but_maybe_get_env_help:
         if(status && arg->help.wanted) {
             Argx *argx = t_argx_get(&arg->t_env, carg);
+            if(argx) {
+                arg_parse_set_help_any(arg, argx);
+            }
+            argx = t_argx_get(&arg->t_pos, carg);
             if(argx) {
                 arg_parse_set_help_any(arg, argx);
             }
