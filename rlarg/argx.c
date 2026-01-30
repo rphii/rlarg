@@ -340,103 +340,107 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     xso->val_config = xso->val_visible;
     xso->have_hint = true;
     argx_so_hierarchy(&xso->hierarchy, argx->group_p);
-    if(argx->is_array) {
-        switch(argx->id) {
-            case ARGX_TYPE_NONE: {
-                //xso->ref_visible = false;
-                xso->have_hint = false;
-            } break;
-            case ARGX_TYPE_BOOL: {
-                argx_so_type_array_bool(&xso->set_val, &argx->val);
-                argx_so_type_array_bool(&xso->set_ref, &argx->ref);
-                so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
-            } break;
-            case ARGX_TYPE_INT: {
-                argx_so_type_array_int(&xso->set_val, &argx->val);
-                argx_so_type_array_int(&xso->set_ref, &argx->ref);
-                so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
-            } break;
-            case ARGX_TYPE_SIZE: {
-                argx_so_type_array_size(&xso->set_val, &argx->val);
-                argx_so_type_array_size(&xso->set_ref, &argx->ref);
-                so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
-            } break;
-            case ARGX_TYPE_REST:
-            case ARGX_TYPE_URI:
-            case ARGX_TYPE_STRING: {
-                argx_so_like_array_string(&xso->set_val, &argx->val);
-                argx_so_like_array_string(&xso->set_ref, &argx->ref);
-                so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
-            } break;
-            case ARGX_TYPE_GROUP: {
-                ABORT(ERR_UNREACHABLE("vector of GROUP is not supported, and thus you should never see this message"));
-            } break;
-            case ARGX_TYPE_ENUM: {
-                ABORT(ERR_UNREACHABLE("vector of ENUM is not supported, and thus you should never see this message"));
-            } break;
-            case ARGX_TYPE_FLAG: {
-                ABORT(ERR_UNREACHABLE("vector of FLAG is not supported, and thus you should never see this message"));
-            } break;
+    if(!argx->is_hidden) {
+        if(argx->is_array) {
+            switch(argx->id) {
+                case ARGX_TYPE_NONE: {
+                    //xso->ref_visible = false;
+                    xso->have_hint = false;
+                } break;
+                case ARGX_TYPE_BOOL: {
+                    argx_so_type_array_bool(&xso->set_val, &argx->val);
+                    argx_so_type_array_bool(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_INT: {
+                    argx_so_type_array_int(&xso->set_val, &argx->val);
+                    argx_so_type_array_int(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_SIZE: {
+                    argx_so_type_array_size(&xso->set_val, &argx->val);
+                    argx_so_type_array_size(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_REST:
+                case ARGX_TYPE_URI:
+                case ARGX_TYPE_STRING: {
+                    argx_so_like_array_string(&xso->set_val, &argx->val);
+                    argx_so_like_array_string(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_GROUP: {
+                    ABORT(ERR_UNREACHABLE("vector of GROUP is not supported, and thus you should never see this message"));
+                } break;
+                case ARGX_TYPE_ENUM: {
+                    ABORT(ERR_UNREACHABLE("vector of ENUM is not supported, and thus you should never see this message"));
+                } break;
+                case ARGX_TYPE_FLAG: {
+                    ABORT(ERR_UNREACHABLE("vector of FLAG is not supported, and thus you should never see this message"));
+                } break;
+            }
+        } else {
+            switch(argx->id) {
+                case ARGX_TYPE_NONE: {
+                    //xso->ref_visible = false;
+                    xso->have_hint = false;
+                } break;
+                case ARGX_TYPE_FLAG:
+                case ARGX_TYPE_BOOL: {
+                    argx_so_type_bool(&xso->set_val, &argx->val);
+                    argx_so_type_bool(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_INT: {
+                    argx_so_type_int(&xso->set_val, &argx->val);
+                    argx_so_type_int(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_SIZE: {
+                    argx_so_type_size(&xso->set_val, &argx->val);
+                    argx_so_type_size(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_URI:
+                case ARGX_TYPE_STRING: {
+                    argx_so_like_string(&xso->set_val, &argx->val);
+                    argx_so_like_string(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_GROUP: {
+                    xso->have_hint = false;
+                    so_push(&xso->hint, hint[0]);
+                    //printff("SUBGROUP %p,id %u,table %p,list %p,%.*s",argx->group_s,argx->group_s->id,argx->group_s->table,argx->group_s->list,SO_F(argx->opt));
+                    if(argx->group_s) {
+                        xso->have_hint = true;
+                        switch(argx->group_s->id) {
+                            case ARGX_GROUP_ENUM: {
+                                argx_so_enum(xso, fmt, argx);
+                                xso->val_config = (bool)(xso->set_val.len);
+                            } break;
+                            case ARGX_GROUP_FLAGS: {
+                                argx_so_flags(xso, fmt, argx);
+                                xso->val_config = (bool)(xso->set_val.len);
+                            } break;
+                            case ARGX_GROUP_OPTIONS: {
+                                argx_so_options(xso, fmt, argx);
+                                xso->val_group = true;
+                            } break;
+                            case ARGX_GROUP_ROOT: ABORT(ERR_UNREACHABLE("case has to be handled from the outside"));
+                        }
+                    }
+                    so_push(&xso->hint, hint[1]);
+                } break;
+                case ARGX_TYPE_ENUM: {
+                    xso->have_hint = false;
+                } break;
+                case ARGX_TYPE_REST: {
+                    ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));
+                } break;
+            }
         }
     } else {
-        switch(argx->id) {
-            case ARGX_TYPE_NONE: {
-                //xso->ref_visible = false;
-                xso->have_hint = false;
-            } break;
-            case ARGX_TYPE_FLAG:
-            case ARGX_TYPE_BOOL: {
-                argx_so_type_bool(&xso->set_val, &argx->val);
-                argx_so_type_bool(&xso->set_ref, &argx->ref);
-                so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
-            } break;
-            case ARGX_TYPE_INT: {
-                argx_so_type_int(&xso->set_val, &argx->val);
-                argx_so_type_int(&xso->set_ref, &argx->ref);
-                so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
-            } break;
-            case ARGX_TYPE_SIZE: {
-                argx_so_type_size(&xso->set_val, &argx->val);
-                argx_so_type_size(&xso->set_ref, &argx->ref);
-                so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
-            } break;
-            case ARGX_TYPE_URI:
-            case ARGX_TYPE_STRING: {
-                argx_so_like_string(&xso->set_val, &argx->val);
-                argx_so_like_string(&xso->set_ref, &argx->ref);
-                so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
-            } break;
-            case ARGX_TYPE_GROUP: {
-                xso->have_hint = false;
-                so_push(&xso->hint, hint[0]);
-                //printff("SUBGROUP %p,id %u,table %p,list %p,%.*s",argx->group_s,argx->group_s->id,argx->group_s->table,argx->group_s->list,SO_F(argx->opt));
-                if(argx->group_s) {
-                    xso->have_hint = true;
-                    switch(argx->group_s->id) {
-                        case ARGX_GROUP_ENUM: {
-                            argx_so_enum(xso, fmt, argx);
-                            xso->val_config = (bool)(xso->set_val.len);
-                        } break;
-                        case ARGX_GROUP_FLAGS: {
-                            argx_so_flags(xso, fmt, argx);
-                            xso->val_config = (bool)(xso->set_val.len);
-                        } break;
-                        case ARGX_GROUP_OPTIONS: {
-                            argx_so_options(xso, fmt, argx);
-                            xso->val_group = true;
-                        } break;
-                        case ARGX_GROUP_ROOT: ABORT(ERR_UNREACHABLE("case has to be handled from the outside"));
-                    }
-                }
-                so_push(&xso->hint, hint[1]);
-            } break;
-            case ARGX_TYPE_ENUM: {
-                xso->have_hint = false;
-            } break;
-            case ARGX_TYPE_REST: {
-                ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));
-            } break;
-        }
+        xso->val_visible = false;
     }
     xso->argx = argx;
 }

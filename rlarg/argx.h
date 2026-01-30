@@ -63,6 +63,7 @@ typedef struct Argx {
     Argx_Callback callback;
     bool is_array;
     bool is_env;
+    bool is_hidden;
     int val_enum;
     So desc;
     So opt;

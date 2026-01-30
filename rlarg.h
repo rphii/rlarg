@@ -54,6 +54,7 @@ void argx_type_array_int(struct Argx *argx, int **val, int **ref);
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref);
 
 void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority);
+void argx_hide(struct Argx *argx, bool hide);
 
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref);
 struct Argx_Group *argx_group_options(struct Argx *argx);
