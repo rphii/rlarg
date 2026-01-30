@@ -478,10 +478,12 @@ void argx_fmt_help(So *out, Argx *argx) {
 
     ASSERT_ARG(argx->group_p);
     bool treat_as_options = (argx->group_p == argx->group_p->arg->opts);
-    bool treat_as_envvars = (argx->group_p == &argx->group_p->arg->env);
+    bool treat_short_spacing = (
+            argx->group_p == &argx->group_p->arg->env
+         || argx->group_p == &argx->group_p->arg->pos);
 
     /* format the name */
-    if(treat_as_envvars) {
+    if(treat_short_spacing) {
         so_fmt(out, "  %.*s", SO_F(argx->opt));
     } else {
         char c = argx->c ? argx->c : ' ';
