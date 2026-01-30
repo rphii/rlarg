@@ -224,6 +224,7 @@ int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(parent);
     ASSERT_ARG(parent->val.i);
     if(parent->val.i) *parent->val.i = argx->val_enum;
+    vso_push(&argx->sources, stream->source);
     vso_push(&parent->sources, stream->source);
     return 0;
 }
@@ -706,7 +707,17 @@ void arg_parse_help(Arg *arg) {
         argx_so_free(&xso);
 
         arg_parse_help_fmt_rec(&out, arg->help.last);
-        so_println(out);
+
+        size_t len = array_len(arg->help.last->sources);
+        if(len) {
+            so_fmt(&out, "sources:\n");
+            for(size_t i = 0; i < len; ++i) {
+                So src = array_at(arg->help.last->sources, i);
+                so_fmt(&out, "  %.*s%s\n", SO_F(src), i + 1 < len ? "," : "");
+            }
+        }
+
+        so_print(out);
         so_free(&out);
     }
 }
