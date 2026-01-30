@@ -43,8 +43,8 @@ typedef struct Arg {
     } builtin;
 
     struct {
-        Arg_Help_Source any;
-        Arg_Help_Source error;
+        Argx *last;
+        Argx *error;
         bool wanted;
         size_t n;
         Argx *argx;
