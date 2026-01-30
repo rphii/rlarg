@@ -33,8 +33,8 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     if(!stream->error_id && !arg->help.wanted) {
         stream->error_id = id;
         switch(id) {
-            case ARG_PARSE_ERROR_INVALID_TABLE_CONFIG: /* pseudo */
-            case ARG_PARSE_ERROR_INVALID_OPTION_CONFIG: /* pseudo */
+            case ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG: /* pseudo */
+            case ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG: /* pseudo */
                 break;
             case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_SHORTOPT: /* pseudo */
@@ -70,11 +70,11 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 case ARG_PARSE_ERROR_MISSING_SHORTOPT: { /* pseudo */
                     fprintf(stderr, F("Missing short options, only provided with: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
-                case ARG_PARSE_ERROR_INVALID_TABLE_CONFIG: { /* pseudo */
-                    fprintf(stderr, F("Invalid hierarchy which has no option table: %.*s", FG_RD_B), SO_F(argx->opt));
+                case ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG: { /* pseudo */
+                    fprintf(stderr, F("Hierarchy reveals no option table: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
-                case ARG_PARSE_ERROR_INVALID_OPTION_CONFIG: { /* pseudo */
-                    fprintf(stderr, F("Invalid hierarchy which has no argument: %.*s", FG_RD_B), SO_F(argx->opt));
+                case ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG: { /* pseudo */
+                    fprintf(stderr, F("Hierarchy reveals no option: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
                     fprintf(stderr, F("Missing positional values, provided with %u/%zu valid", FG_RD_B), arg->i_pos, array_len(arg->pos.list));
@@ -489,8 +489,10 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         .source.path = path
     };
     int line_number = 1;
+    int status = 0;
     for(So line = SO; so_splice(config, &line, '\n'); ++line_number) {
         arg_stream_clear(&stream_config);
+        stream_config.source.line_number = line_number;
         if(so_is_zero(line)) continue;
         line = so_trim(so_split_ch(line, '#', 0));
         if(!so_len(line)) continue;
@@ -506,29 +508,27 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
             if(!table) {
                 Argx pseudo = { .opt = lhs };
-                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_INVALID_TABLE_CONFIG, &pseudo);
-                return -1;
+                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
+                status = -1;
+                goto skip_try_next;
             }
             argx = t_argx_get(table, opt);
-            if(!argx) {
-                Argx pseudo = { .opt = lhs };
-                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_INVALID_OPTION_CONFIG, &pseudo);
-                return -1;
-            }
+            if(!argx) break;
             table = argx->group_s ? argx->group_s->table : 0;
         }
         if(!argx) {
             Argx pseudo = { .opt = lhs };
-            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_INVALID_OPTION_CONFIG, &pseudo);
-            return -1;
+            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG, &pseudo);
+            status = -1;
+            goto skip_try_next;
         }
         /* parse */
-        stream_config.source.line_number = line_number;
         //printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
         stream_config.carg = rhs;
         arg_parse_argx(arg, &stream_config, argx, rhs);
+skip_try_next:
     }
-    return 0;
+    return status;
 }
 
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
@@ -840,8 +840,8 @@ void arg_parse_help(Arg *arg) {
 void arg_parse_configs(Arg *arg) {
     ASSERT_ARG(arg);
     So extend = SO;
-    for(size_t i = 0; i < array_len(arg->builtin.sources_vso_ref); ++i) {
-        So path = array_at(arg->builtin.sources_vso_ref, i);
+    for(size_t i = 0; i < array_len(arg->builtin.sources_vso); ++i) {
+        So path = array_at(arg->builtin.sources_vso, i);
         so_clear(&extend);
         so_extend_wordexp(&extend, path, false);
         //printff("SOURCE [%.*s]",SO_F(extend));

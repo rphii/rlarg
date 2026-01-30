@@ -41,7 +41,6 @@ typedef struct Arg {
         bool config; // TODO: should probably rename to config_print; or smth. env_config_print?
         Argx *sources_argx;
         VSo sources_vso;        /* visible vso sources */
-        VSo sources_vso_ref;    /* reference vso sources */
         VSo sources_content;    /* content of sources */
         VSo sources_paths;      /* paths to sources */
     } builtin;
