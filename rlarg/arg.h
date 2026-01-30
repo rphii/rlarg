@@ -9,6 +9,13 @@
 #include <rlso.h>
 #include <rlc.h>
 
+enum Arg_Parse_Error_List;
+
+typedef struct Arg_Help_Source {
+    size_t i;
+    Argx *last;
+} Arg_Help_Source;
+
 typedef struct Arg {
     Argx *c[ARGX_SHORT_COUNT]; /* short options */
 
@@ -23,6 +30,7 @@ typedef struct Arg {
     T_Argx t_opt;       /* root of long options -> delve into groups */
 
     Argx_Callback_Queue *queue;   /* any callback that we encountered */
+    Arg_Stream stream_in;
 
     struct {
         bool quit_early;
@@ -35,10 +43,10 @@ typedef struct Arg {
     } builtin;
 
     struct {
+        Arg_Help_Source any;
+        Arg_Help_Source error;
         bool wanted;
-        bool error;
-        bool given;
-        Argx *last;
+        size_t n;
         Argx *argx;
     } help;
 
