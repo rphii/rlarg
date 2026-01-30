@@ -687,7 +687,12 @@ void arg_parse_help_fmt_rec(So *out, Argx *argx) {
 }
 
 void arg_parse_help(Arg *arg) {
-    if(!((arg->help.wanted || arg->help.error) && arg->help.last)) return;
+    if(!((arg->help.wanted || arg->help.error) && arg->help.last)) {
+        if(arg->builtin.config) {
+            arg_config(arg);
+        }
+        return;
+    }
 
     if(arg->help.last == arg->help.argx) {
         arg_help(arg);
@@ -727,10 +732,6 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     }
 
     arg_parse_setref(arg);
-
-    if(arg->builtin.config) {
-        arg_config(arg);
-    }
 
 defer:
 
