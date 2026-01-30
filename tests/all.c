@@ -4,6 +4,7 @@
 int cbtest(struct Argx *argx, void *user, So so) {
     printff(F("HELLO WORLD [%.*s]", FG_GN_B), SO_F(so));
     if(!so_cmp(so, so("111"))) {
+        printff(F("QUITTING EARLY", FG_GN_B));
         arg_runtime_quit_early(argx, true);
     }
     return 0;

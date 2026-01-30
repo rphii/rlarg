@@ -489,6 +489,9 @@ typedef enum {
 } Arg_Stream_List;
 
 int arg_parse_config(struct Arg *arg, So config, So path) {
+    arg->help.error = 0;
+    arg->help.last = 0;
+    arg->help.wanted = false;
     Arg_Stream stream_config = {
         .source.path = path
     };
@@ -516,7 +519,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         if(!argx) ABORT("NO ARGX 2");
         /* parse */
         stream_config.source.line_number = line_number;
-        printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
+        //printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
         stream_config.carg = rhs;
         arg_parse_argx(arg, &stream_config, argx, rhs);
     }
@@ -849,7 +852,7 @@ void arg_parse_configs(Arg *arg) {
         So path = array_at(arg->builtin.sources_vso_ref, i);
         so_clear(&extend);
         so_extend_wordexp(&extend, path, false);
-        printff("SOURCE [%.*s]",SO_F(extend));
+        //printff("SOURCE [%.*s]",SO_F(extend));
         /* check if I already loaded a file at that location */
         bool have_already_loaded = false;
         for(size_t j = 0; j < array_len(arg->builtin.sources_paths); ++j) {
@@ -859,7 +862,7 @@ void arg_parse_configs(Arg *arg) {
             break;
         }
         if(have_already_loaded) {
-            printff("ALREADY LOADED");
+            //printff("ALREADY LOADED");
             continue;
         }
         /* can safely load the file for the first time */
@@ -867,14 +870,17 @@ void arg_parse_configs(Arg *arg) {
         if(!so_file_read(extend, &content)) {
             vso_push(&arg->builtin.sources_paths, extend);
             vso_push(&arg->builtin.sources_content, content);
-            printff("PARSE CONFIG [%.*s]",SO_F(extend));
+            //printff("PARSE CONFIG [%.*s]",SO_F(extend));
             arg_parse_config(arg, content, extend);
             so_zero(&extend);
         } else {
-            printff("COULD NOT OPEN [%.*s]",SO_F(extend));
+            //printff("COULD NOT OPEN [%.*s]",SO_F(extend));
         }
     }
     so_free(&extend);
+    arg->help.error = 0;
+    arg->help.last = 0;
+    arg->help.wanted = false;
 }
 
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early) {
