@@ -105,7 +105,7 @@ int argx_callback_config(Argx *argx, void *user, So so) {
 
 void argx_builtin_env_config(struct Arg *arg) {
     Argx *x = argx_env(arg, so("CONFIG_PRINT"), so("generate config if parser is left in a valid state"));
-    argx_type_bool(x, &arg->builtin.compgen, 0);
+    argx_type_bool(x, &arg->builtin.config, 0);
     argx_callback(x, argx_callback_config, arg, ARGX_PRIORITY_WHEN_ALL_VALID);
 }
 

@@ -24,6 +24,7 @@ int main(const int argc, const char **argv) {
     argx_builtin_env_config(arg);
     argx_builtin_opt_help(g1);
     argx_builtin_opt_source(g1, so("$HOME/.config/rphiic/colors.conf"));
+    argx_builtin_opt_source(g1, so("all.conf"));
 
     struct Argx *x, *e1, *e2, *e3;
 

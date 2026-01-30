@@ -747,7 +747,9 @@ void arg_parse_help(Arg *arg) {
 #endif
 
     if(!help) {
-        if(arg->builtin.config) {
+        if(arg->builtin.compgen) {
+            arg_compgen_global(arg);
+        } else if(arg->builtin.config) {
             arg_config(arg);
         }
         return;
