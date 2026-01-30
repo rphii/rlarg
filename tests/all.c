@@ -136,6 +136,12 @@ int main(const int argc, const char **argv) {
 //           argx_enum_bind(x, e1);
 //           argx_enum_bind(x, e2);
 
+    So content = SO;
+#if 1
+    so_file_read(so("all.conf"), &content);
+    arg_parse_config(arg, content);
+#endif
+
     int status = 1;
     bool quit_early;
     if(arg_parse(arg, argc, argv, &quit_early)) goto clean;
@@ -149,6 +155,8 @@ int main(const int argc, const char **argv) {
 #endif
 
 clean:
+    so_free(&content);
+
     arg_free(&arg);
     vso_free(&vec_v);
     return status;
