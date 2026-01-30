@@ -514,17 +514,19 @@ void argx_fmt_config(So *out, Argx *argx) {
             argx_fmt_config(out, *it);
         }
     } else {
+        So hierarchy;
+        so_split_ch(xso.hierarchy, '.', &hierarchy);
         if(xso.val_config) {
-            so_fmt(out, "%.*s%.*s = %.*s", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
+            so_fmt(out, "%.*s%.*s = %.*s", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
             if(xso.have_hint) {
                 so_fmt(out, " # %.*s", SO_F(xso.hint));
             }
             so_push(out, '\n');
         } else {
             if(xso.have_hint) {
-                so_fmt(out, "# %.*s%.*s = %.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.hint));
+                so_fmt(out, "# %.*s%.*s = %.*s\n", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.hint));
             } else {
-                so_fmt(out, "# %.*s%.*s\n", SO_F(xso.hierarchy), SO_F(argx->opt));
+                so_fmt(out, "# %.*s%.*s\n", SO_F(hierarchy), SO_F(argx->opt));
             }
         }
     }

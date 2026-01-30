@@ -5,12 +5,14 @@
 void arg_parse_set_help_any(struct Arg *arg, Argx *argx) {
     ASSERT_ARG(arg);
     ASSERT_ARG(argx);
+    if(arg->builtin.config) return;
     arg->help.last = argx;
 }
 
 void arg_parse_set_help_error(struct Arg *arg, Argx *argx) {
     ASSERT_ARG(arg);
     if(!argx) return;
+    if(arg->builtin.config) return;
     //printff("SET ERROR if !%zu: %.*s",arg->help.error.i,SO_F(argx->opt));
     if(!arg->help.error) {
         arg->help.error = argx;
@@ -26,6 +28,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     ASSERT_ARG(stream);
     ASSERT_ARG(id);
     Argx_So xso = {0};
+    if(arg->builtin.config) return;
     if(argx) { printff(F("ERROR %u, set %u [%.*s]", FG_RD_B), id, stream->error_id, SO_F(argx->opt)); }
     else printff(F("ERROR %u, set %u", FG_RD_B), id, stream->error_id);
     if(!stream->error_id && !arg->help.wanted) {
@@ -47,6 +50,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
         }
         if(!arg->builtin.compgen) {
             if(argx) argx_so(&xso, 0, argx);
+            fprintf(stderr, F("%.*s: ", FG_MG), SO_F(stream->source));
             switch(id) {
                 case ARG_PARSE_ERROR_INVALID_CONVERSION: {
                     fprintf(stderr, F("Invalid conversion for '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
@@ -432,6 +436,7 @@ int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
     switch(argx->id) {
         case ARGX_TYPE_NONE: break;
         default: {
+            arg_parse_set_help_any(arg, argx);
             //arg->help.last = argx;
             //printff("LAST = %.*s",SO_F(arg->help.last->opt));
             if(!arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) {
@@ -451,6 +456,38 @@ typedef enum {
     ARG_STREAM_LONGOPT,
     ARG_STREAM_SHORTOPT,
 } Arg_Stream_List;
+
+int arg_parse_config(struct Arg *arg, So config) {
+    Arg_Stream stream_config = { .source = so("config") };
+    int line_number = 1;
+    for(So line = SO; so_splice(config, &line, '\n'); ++line_number) {
+        arg_stream_clear(&stream_config);
+        if(so_is_zero(line)) continue;
+        line = so_trim(so_split_ch(line, '#', 0));
+        if(!so_len(line)) continue;
+        printff("LINE[%.*s]",SO_F(line));
+        /* split on '=' , then...
+         *  -> LHS : split on '.' and follow tables to get final argx
+         *  -> RHS : pass on to parse_argx
+         */
+        So rhs, lhs = so_trim(so_split_ch(line, '=', &rhs));
+        rhs = so_trim(rhs);
+        T_Argx *table = &arg->t_opt;
+        Argx *argx = 0;
+        for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
+            if(!table) ABORT("NO TABLE");
+            argx = t_argx_get(table, opt);
+            if(!argx) ABORT("NO ARGX");
+            table = argx->group_s ? argx->group_s->table : 0;
+        }
+        if(!argx) ABORT("NO ARGX 2");
+        /* parse */
+        printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
+        stream_config.carg = rhs;
+        arg_parse_argx(arg, &stream_config, argx, rhs);
+    }
+    return 0;
+}
 
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */

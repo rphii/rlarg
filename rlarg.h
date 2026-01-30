@@ -18,6 +18,7 @@ void arg_runtime_quit_when_all_valid(struct Argx *argx, bool val);
 
 /* rlarg/arg-parse.c */
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early);
+int arg_parse_config(struct Arg *arg, So config);
 
 /* rlarg/argx-group.c */
 struct Argx_Group *argx_group(struct Arg *arg, So name);

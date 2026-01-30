@@ -35,13 +35,13 @@ typedef struct Arg {
     struct {
         bool quit_early;
         bool quit_when_all_valid;
-        bool compgen;
-        bool compgen_flags;     /* only true has an effect. forces the generation of flags / options */
-        bool compgen_done;
-        bool config;
+        bool compgen;               /* main trigger for compgen */
+        bool compgen_flags;         /* only true has an effect. forces the generation of flags / options */
+        bool compgen_done;          /* helps us only printin one single compgen instance */
+        bool config; // TODO: should probably rename to config_print; or smth. env_config_print?
         Argx *sources_argx;
-        So *sources_vso;
-        So *sources_vso_ref;
+        VSo sources_vso;
+        VSo sources_vso_ref;
     } builtin;
 
     struct {
