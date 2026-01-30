@@ -25,14 +25,15 @@ typedef enum {
 } Argx_Type_List;
 
 typedef union Argx_Value_Union {
-    int i;
-    int *vi;
-    ssize_t z;
-    ssize_t *vz;
-    bool b;
-    bool *vb;
-    So so;
-    VSo vso;
+    void *any;
+    int *i;
+    int **vi;
+    ssize_t *z;
+    ssize_t **vz;
+    bool *b;
+    bool **vb;
+    So *so;
+    VSo *vso;
 } Argx_Value_Union;
 
 typedef struct Argx_Callback {
@@ -47,8 +48,8 @@ typedef struct Argx_Callback_Queue {
 } Argx_Callback_Queue;
 
 typedef struct Argx {
-    Argx_Value_Union *val;  /* parsed value */
-    Argx_Value_Union *ref;  /* reference / default value (refval) */
+    Argx_Value_Union val;  /* parsed value */
+    Argx_Value_Union ref;  /* reference / default value (refval) */
     Argx_Hint hint;
     Argx_Type_List id;
     VSo sources;            /* from where the value gets set -- should be an array if is_array, else, a single value. optional with a line number (some.config:123) */

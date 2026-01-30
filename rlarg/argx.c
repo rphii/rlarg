@@ -22,20 +22,20 @@ void argx_free(Argx *argx) {
             case ARGX_TYPE_REST:
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                if(argx->val) array_free(argx->val->vso);
-                if(argx->ref) array_free(argx->ref->vso);
+                if(argx->val.vso) array_free(*argx->val.vso);
+                if(argx->ref.vso) array_free(*argx->ref.vso);
             } break;
             case ARGX_TYPE_INT: {
-                if(argx->val) array_free(argx->val->vi);
-                if(argx->ref) array_free(argx->ref->vi);
+                if(argx->val.vi) array_free(*argx->val.vi);
+                if(argx->ref.vi) array_free(*argx->ref.vi);
             } break;
             case ARGX_TYPE_SIZE: {
-                if(argx->val) array_free(argx->val->vz);
-                if(argx->ref) array_free(argx->ref->vz);
+                if(argx->val.vz) array_free(*argx->val.vz);
+                if(argx->ref.vz) array_free(*argx->ref.vz);
             } break;
             case ARGX_TYPE_BOOL: {
-                if(argx->val) array_free(argx->val->vb);
-                if(argx->ref) array_free(argx->ref->vb);
+                if(argx->val.vb) array_free(*argx->val.vb);
+                if(argx->ref.vb) array_free(*argx->ref.vb);
             } break;
         }
     } else {
@@ -104,7 +104,7 @@ void argx_builtin_opt_source(struct Argx_Group *group, So uri) {
         argx_type_array_uri(arg->builtin.sources_argx, &arg->builtin.sources_vso, &arg->builtin.sources_vso_ref);
     }
     Argx *argx = arg->builtin.sources_argx;
-    vso_push(&argx->ref->vso, uri);
+    vso_push(argx->ref.vso, uri);
 }
 
 void argx_so_free(Argx_So *xso) {
@@ -129,22 +129,22 @@ void argx_so_clear(Argx_So *xso) {
 
 void argx_so_like_string(So *out, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val) so_fmt(out, "'%.*s'", SO_F(val->so));
+    if(val->so) so_fmt(out, "'%.*s'", SO_F(*val->so));
 }
 
 void argx_so_type_int(So *out, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val) so_fmt(out, "%d", val->i);
+    if(val->i) so_fmt(out, "%d", *val->i);
 }
 
 void argx_so_type_size(So *out, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val) so_fmt(out, "%zi", val->z);
+    if(val->z) so_fmt(out, "%zi", *val->z);
 }
 
 void argx_so_type_bool(So *out, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val) so_extend(out, val->b ? so("true") : so("false"));
+    if(val->b) so_extend(out, *val->b ? so("true") : so("false"));
 }
 
 /* non vector types }}} */
@@ -153,10 +153,11 @@ void argx_so_type_bool(So *out, Argx_Value_Union *val) {
 
 void argx_so_like_array_string(So *out, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val) {
+    ASSERT_ARG(val);
+    if(val->vso) {
         so_push(out, '[');
-        So *vE = array_itE(val->vso);
-        for(So *v = val->vso; v < vE; ++v) {
+        So *vE = array_itE(*val->vso);
+        for(So *v = *val->vso; v < vE; ++v) {
             so_push(out, '\'');
             so_extend(out, *v);
             so_push(out, '\'');
@@ -168,10 +169,11 @@ void argx_so_like_array_string(So *out, Argx_Value_Union *val) {
 
 void argx_so_type_array_int(So *out, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val) {
+    ASSERT_ARG(val);
+    if(val->vi) {
         so_push(out, '[');
-        int *vE = array_itE(val->vi);
-        for(int *v = val->vi; v < vE; ++v) {
+        int *vE = array_itE(*val->vi);
+        for(int *v = *val->vi; v < vE; ++v) {
             so_fmt(out, "%d", *v);
             if(v + 1 < vE) so_extend(out, so(", "));
         }
@@ -181,10 +183,11 @@ void argx_so_type_array_int(So *out, Argx_Value_Union *val) {
 
 void argx_so_type_array_size(So *out, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val) {
+    ASSERT_ARG(val);
+    if(val->vz) {
         so_push(out, '[');
-        ssize_t *vE = array_itE(val->vz);
-        for(ssize_t *v = val->vz; v < vE; ++v) {
+        ssize_t *vE = array_itE(*val->vz);
+        for(ssize_t *v = *val->vz; v < vE; ++v) {
             so_fmt(out, "%d", *v);
             if(v + 1 < vE) so_extend(out, so(", "));
         }
@@ -194,10 +197,11 @@ void argx_so_type_array_size(So *out, Argx_Value_Union *val) {
 
 void argx_so_type_array_bool(So *out, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val) {
+    ASSERT_ARG(val);
+    if(val->vb) {
         so_push(out, '[');
-        bool *vE = array_itE(val->vb);
-        for(bool *v = val->vb; v < vE; ++v) {
+        bool *vE = array_itE(*val->vb);
+        for(bool *v = *val->vb; v < vE; ++v) {
             so_extend(out, *v ? so("true") : so("false"));
             if(v + 1 < vE) so_extend(out, so(", "));
         }
@@ -212,11 +216,11 @@ void argx_so_enum(Argx_So *xso, Argx_Fmt *fmt,  Argx *argx) {
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
         /* check if iterator matches selected value */
-        if(argx->val && argx->val->i == (*it)->val_enum) {
+        if(argx->val.i == (*it)->val_enum) {
             so_extend(&xso->set_val, (*it)->opt);
             current_is_selected = true;
         }
-        if(argx->ref && argx->ref->i == (*it)->val_enum) {
+        if(argx->ref.i == (*it)->val_enum) {
             so_extend(&xso->set_ref, (*it)->opt);
         }
         /* format hint */
@@ -235,12 +239,12 @@ void argx_so_flags(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
         /* check if iterator matches selected value */
-        if((*it)->val && (*it)->val->b) {
+        if((*it)->val.b) {
             if(iv++) so_push(&xso->set_val, ',');
             so_extend(&xso->set_val, (*it)->opt);
             current_is_selected = true;
         }
-        if((*it)->ref && (*it)->ref->b) {
+        if((*it)->ref.b) {
             if(ir++) so_push(&xso->set_ref, ',');
             so_extend(&xso->set_ref, (*it)->opt);
         }
@@ -259,11 +263,11 @@ void argx_so_options(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         /* check if iterator matches selected value */
-        if((*it)->val && (*it)->val->b) {
+        if((*it)->val.b) {
             if(iv++) so_push(&xso->set_val, ',');
             so_extend(&xso->set_val, (*it)->opt);
         }
-        if((*it)->ref && (*it)->ref->b) {
+        if((*it)->ref.b) {
             if(ir++) so_push(&xso->set_ref, ',');
             so_extend(&xso->set_ref, (*it)->opt);
         }
@@ -306,7 +310,7 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     }
     /* format the value */
     //xso->ref_visible = (bool)(argx->ref);
-    xso->val_visible = (bool)(argx->val);
+    xso->val_visible = (bool)(argx->val.any);
     xso->val_config = xso->val_visible;
     xso->have_hint = true;
     argx_so_hierarchy(&xso->hierarchy, argx->group_p);
@@ -317,25 +321,25 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                 xso->have_hint = false;
             } break;
             case ARGX_TYPE_BOOL: {
-                argx_so_type_array_bool(&xso->set_val, argx->val);
-                argx_so_type_array_bool(&xso->set_ref, argx->ref);
+                argx_so_type_array_bool(&xso->set_val, &argx->val);
+                argx_so_type_array_bool(&xso->set_ref, &argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_TYPE_INT: {
-                argx_so_type_array_int(&xso->set_val, argx->val);
-                argx_so_type_array_int(&xso->set_ref, argx->ref);
+                argx_so_type_array_int(&xso->set_val, &argx->val);
+                argx_so_type_array_int(&xso->set_ref, &argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_TYPE_SIZE: {
-                argx_so_type_array_size(&xso->set_val, argx->val);
-                argx_so_type_array_size(&xso->set_ref, argx->ref);
+                argx_so_type_array_size(&xso->set_val, &argx->val);
+                argx_so_type_array_size(&xso->set_ref, &argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_TYPE_REST:
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                argx_so_like_array_string(&xso->set_val, argx->val);
-                argx_so_like_array_string(&xso->set_ref, argx->ref);
+                argx_so_like_array_string(&xso->set_val, &argx->val);
+                argx_so_like_array_string(&xso->set_ref, &argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_TYPE_GROUP: {
@@ -356,24 +360,24 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
             } break;
             case ARGX_TYPE_FLAG:
             case ARGX_TYPE_BOOL: {
-                argx_so_type_bool(&xso->set_val, argx->val);
-                argx_so_type_bool(&xso->set_ref, argx->ref);
+                argx_so_type_bool(&xso->set_val, &argx->val);
+                argx_so_type_bool(&xso->set_ref, &argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_TYPE_INT: {
-                argx_so_type_int(&xso->set_val, argx->val);
-                argx_so_type_int(&xso->set_ref, argx->ref);
+                argx_so_type_int(&xso->set_val, &argx->val);
+                argx_so_type_int(&xso->set_ref, &argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_TYPE_SIZE: {
-                argx_so_type_size(&xso->set_val, argx->val);
-                argx_so_type_size(&xso->set_ref, argx->ref);
+                argx_so_type_size(&xso->set_val, &argx->val);
+                argx_so_type_size(&xso->set_ref, &argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                argx_so_like_string(&xso->set_val, argx->val);
-                argx_so_like_string(&xso->set_ref, argx->ref);
+                argx_so_like_string(&xso->set_val, &argx->val);
+                argx_so_like_string(&xso->set_ref, &argx->ref);
                 so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
             } break;
             case ARGX_TYPE_GROUP: {
