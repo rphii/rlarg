@@ -114,13 +114,13 @@ int argx_callback_help(Argx *argx, void *user, So so) {
     Arg *arg = user;
     printff("!!!!! HELP WANTED");
     arg->help.wanted = true;
-    arg->help.argx = argx;
     return 0;
 }
 
 void argx_builtin_opt_help(struct Argx_Group *group) {
     Argx *x = argx_opt(group, 'h', so("help"), so("print this help"));
     argx_callback(x, argx_callback_help, group->arg, ARGX_PRIORITY_IMMEDIATELY);
+    group->arg->help.argx = x;
 }
 
 void argx_builtin_opt_source(struct Argx_Group *group, So uri) {

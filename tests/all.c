@@ -95,7 +95,7 @@ int main(const int argc, const char **argv) {
     x=argx_opt(g1, '1', so("1111"), so("nothing"));
     x=argx_opt(g1, '2', so("somerandom"), so("nothing"));
 
-#if 1
+#if 0
     bool posb = false;
     int pose;
     So soa = SO, sob = SO, soc = SO, sod = SO, soe = SO;
