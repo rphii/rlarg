@@ -478,14 +478,15 @@ void argx_fmt_help(So *out, Argx *argx) {
 
     ASSERT_ARG(argx->group_p);
     bool treat_as_options = (argx->group_p == argx->group_p->arg->opts);
+    bool treat_as_envvars = (argx->group_p == &argx->group_p->arg->env);
 
     /* format the name */
-    if(treat_as_options) {
+    if(treat_as_envvars) {
+        so_fmt(out, "  %.*s", SO_F(argx->opt));
+    } else {
         char c = argx->c ? argx->c : ' ';
         so_fmt(out, "  %c%c", argx->c ? '-' : ' ', c);
-        so_fmt(out, "  --%.*s", SO_F(argx->opt));
-    } else {
-        so_fmt(out, "  %.*s", SO_F(argx->opt));
+        so_fmt(out, "  %s%.*s", treat_as_options ? "--" : "  ", SO_F(argx->opt));
     }
 
     if(xso.have_hint) {
