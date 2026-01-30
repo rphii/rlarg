@@ -2,6 +2,8 @@
 #include "arg.h"
 #include "arg-compgen.h"
 
+/* error messages {{{ */
+
 void arg_parse_set_help_any(struct Arg *arg, Argx *argx) {
     ASSERT_ARG(arg);
     ASSERT_ARG(argx);
@@ -19,9 +21,6 @@ void arg_parse_set_help_error(struct Arg *arg, Argx *argx) {
     }
     arg_parse_set_help_any(arg, argx);
 }
-
-
-/* error messages {{{ */
 
 void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx *argx) {
     ASSERT_ARG(arg);
@@ -69,7 +68,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     fprintf(stderr, F("Missing short options, only provided with: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
-                    fprintf(stderr, F("Missing positional values, provided: %u/%zu", FG_RD_B), arg->i_pos, array_len(arg->pos.list));
+                    fprintf(stderr, F("Missing positional values, provided with %u/%zu valid", FG_RD_B), arg->i_pos, array_len(arg->pos.list));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_VALUE: {
                     fprintf(stderr, F("Missing value for argument: %.*s %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint));
@@ -805,21 +804,7 @@ void arg_parse_help_fmt_rec(So *out, Argx *argx) {
 }
 
 void arg_parse_help(Arg *arg) {
-    Argx *help = 0;
-    //help = arg->help.any.i > arg->help.error.i ? arg->help.any.last : arg->help.error.last;
-#if 0
-    if(arg->help.wanted) {
-        help = arg->help.any.last;
-        printff("HELP W: %.*s",SO_F(help->opt));
-    } else if(arg->help.error.i) {
-        help = arg->help.any.i > arg->help.error.i ? arg->help.any.last : arg->help.error.last;
-        printff("HELP E: %.*s",SO_F(help->opt));
-    }
-#else
-    //printff("any %zu / last %zu",arg->help.last,arg->help.error);
-    help = arg->help.wanted ? arg->help.last : arg->help.error;
-    //printff("HELP?%p/WANTED?%u",help,arg->help.wanted);
-#endif
+    Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
 
     if(!help) {
         if(arg->builtin.compgen) {
@@ -827,10 +812,7 @@ void arg_parse_help(Arg *arg) {
         } else if(arg->builtin.config) {
             arg_config(arg);
         }
-        return;
-    }
-
-    if(help == arg->help.argx) {
+    } else if(help == arg->help.argx) {
         if(arg->builtin.compgen) {
             arg_compgen_global(arg);
         } else {
