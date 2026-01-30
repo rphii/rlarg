@@ -498,10 +498,6 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
 
 /* main parsing section }}} */
 
-#define ARGX_SOURCE_REFVAL  so("refval")
-#define ARGX_SOURCE_STDIN   so("stdin")
-#define ARGX_SOURCE_ENVVARS so("envvars")
-
 /* set reference value {{{ */
 
 void arg_parse_setref_sources_mono(Argx *argx, So src, size_t n) {
@@ -552,6 +548,7 @@ void arg_parse_setref_argx(Argx *argx) {
             switch(argx->id) {
                 case ARGX_TYPE_FLAG: {
                     bool have_sources = argx_flag_is_any_source_set(argx);
+                    //printff("FLAG->HAVE SOURCE %u",have_sources);
                     if(have_sources) break;
                     /* check parent sources as well */
                     ASSERT_ARG(argx->group_p);

@@ -42,6 +42,11 @@ typedef struct Argx_Callback {
     void *user;
 } Argx_Callback;
 
+#define ARGX_SOURCE_REFVAL  so("refval")
+#define ARGX_SOURCE_STDIN   so("stdin")
+#define ARGX_SOURCE_ENVVARS so("envvars")
+
+
 typedef struct Argx_Callback_Queue {
     struct Argx *argx;
     So so;
