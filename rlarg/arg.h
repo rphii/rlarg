@@ -46,7 +46,6 @@ typedef struct Arg {
         Argx *last;
         Argx *error;
         bool wanted;
-        size_t n;
         Argx *argx;
     } help;
 
