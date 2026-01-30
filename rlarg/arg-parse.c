@@ -29,8 +29,8 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     ASSERT_ARG(id);
     Argx_So xso = {0};
     if(arg->builtin.config) return;
-    if(argx) { printff(F("ERROR %u, set %u [%.*s]", FG_RD_B), id, stream->error_id, SO_F(argx->opt)); }
-    else printff(F("ERROR %u, set %u", FG_RD_B), id, stream->error_id);
+    //if(argx) { printff(F("ERROR %u, set %u [%.*s]", FG_RD_B), id, stream->error_id, SO_F(argx->opt)); }
+    //else printff(F("ERROR %u, set %u", FG_RD_B), id, stream->error_id);
     if(!stream->error_id && !arg->help.wanted) {
         stream->error_id = id;
         switch(id) {
@@ -57,25 +57,25 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             }
             switch(id) {
                 case ARG_PARSE_ERROR_INVALID_CONVERSION: {
-                    fprintf(stderr, F("Invalid conversion for '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+                    fprintf(stderr, F("Invalid conversion for '%.*s' %.*s: %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_GROUP: {
-                    fprintf(stderr, F("Option not found in '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+                    fprintf(stderr, F("Option not found in '%.*s' %.*s: %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: { /* pseudo */
-                    fprintf(stderr, F("Option not found in root groups: '%.*s'", FG_RD), SO_F(argx->opt));
+                    fprintf(stderr, F("Option not found in root groups: '%.*s'", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_SHORTOPT: { /* pseudo */
-                    fprintf(stderr, F("Missing short options, only provided with: %.*s", FG_RD), SO_F(argx->opt));
+                    fprintf(stderr, F("Missing short options, only provided with: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
-                    fprintf(stderr, F("Missing positional values, provided: %u/%zu", FG_RD), arg->i_pos, array_len(arg->pos.list));
+                    fprintf(stderr, F("Missing positional values, provided: %u/%zu", FG_RD_B), arg->i_pos, array_len(arg->pos.list));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_VALUE: {
-                    fprintf(stderr, F("Missing value for argument: %.*s %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint));
+                    fprintf(stderr, F("Missing value for argument: %.*s %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint));
                 } break;
                 case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL: {
-                    fprintf(stderr, F("Unknown error occured while parsing: ", FG_RD));
+                    fprintf(stderr, F("Unknown error occured while parsing: ", FG_RD_B));
                     while(stream->i < array_len(stream->vso)) {
                         So carg = array_at(stream->vso, stream->i);
                         fprintf(stderr, "%.*s ", SO_F(carg));
@@ -83,7 +83,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     }
                 } break;
                 case ARG_PARSE_ERROR_NO_REST_ALLOWED: {
-                    fprintf(stderr, F("Not allowed to set rest of values: ", FG_RD));
+                    fprintf(stderr, F("Not allowed to set rest of values: ", FG_RD_B));
                     while(stream->i < array_len(stream->vso)) {
                         So carg = array_at(stream->vso, stream->i);
                         fprintf(stderr, "%.*s ", SO_F(carg));
@@ -166,8 +166,10 @@ int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) 
     int result = -1;
     int v;
     if(!so_as_int(so, &v, 0)) {
-        if(argx->val.vi) array_push(*argx->val.vi, v);
-        array_push(argx->sources, stream->source);
+        if(!arg->help.wanted) {
+            if(argx->val.vi) array_push(*argx->val.vi, v);
+            array_push(argx->sources, stream->source);
+        }
         result = 0;
     } else {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
@@ -181,8 +183,10 @@ int arg_parse_argx_vsize(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     int result = -1;
     ssize_t v;
     if(!so_as_ssize(so, &v, 0)) {
-        if(argx->val.vz) array_push(*argx->val.vz, v);
-        array_push(argx->sources, stream->source);
+        if(!arg->help.wanted) {
+            if(argx->val.vz) array_push(*argx->val.vz, v);
+            array_push(argx->sources, stream->source);
+        }
         result = 0;
     } else {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
@@ -196,8 +200,10 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     int result = -1;
     bool v;
     if(!so_as_yes_or_no(so, &v)) {
-        if(argx->val.vi) array_push(*argx->val.vi, v);
-        array_push(argx->sources, stream->source);
+        if(!arg->help.wanted) {
+            if(argx->val.vi) array_push(*argx->val.vi, v);
+            array_push(argx->sources, stream->source);
+        }
         result = 0;
     } else {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
@@ -209,8 +215,10 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
 
 int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
-    if(argx->val.vso) vso_push(argx->val.vso, so);
-    array_push(argx->sources, stream->source);
+    if(!arg->help.wanted) {
+        if(argx->val.vso) vso_push(argx->val.vso, so);
+        array_push(argx->sources, stream->source);
+    }
     return result;
 }
 
@@ -221,31 +229,38 @@ int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     bool v;
     int result = so_as_yes_or_no(so, &v);
-    if(argx->val.b) *argx->val.b = v;
-    printff("VAL p %p : %.*s",argx->val.b,SO_F(argx->opt));
-    array_push(argx->sources, stream->source);
+    if(!arg->help.wanted) {
+        if(argx->val.b) *argx->val.b = v;
+        array_push(argx->sources, stream->source);
+    }
     return result;
 }
 
 int arg_parse_argx_int(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int v;
     int result = so_as_int(so, &v, 0);
-    if(argx->val.i) *argx->val.i = v;
-    array_push(argx->sources, stream->source);
+    if(!arg->help.wanted) {
+        if(argx->val.i) *argx->val.i = v;
+        array_push(argx->sources, stream->source);
+    }
     return result;
 }
 
 int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ssize_t v;
     int result = so_as_ssize(so, &v, 0);
-    if(argx->val.z) *argx->val.z = v;
-    array_push(argx->sources, stream->source);
+    if(!arg->help.wanted) {
+        if(argx->val.z) *argx->val.z = v;
+        array_push(argx->sources, stream->source);
+    }
     return result;
 }
 
 int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    if(argx->val.vso) *argx->val.so = so;
-    array_push(argx->sources, stream->source);
+    if(!arg->help.wanted) {
+        if(argx->val.vso) *argx->val.so = so;
+        array_push(argx->sources, stream->source);
+    }
     return 0;
 }
 
@@ -255,9 +270,11 @@ int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     Argx *parent = argx->group_p->parent;
     ASSERT_ARG(parent);
     ASSERT_ARG(parent->val.i);
-    if(parent->val.i) *parent->val.i = argx->val_enum;
-    array_push(argx->sources, stream->source);
-    array_push(parent->sources, stream->source);
+    if(!arg->help.wanted) {
+        if(parent->val.i) *parent->val.i = argx->val_enum;
+        array_push(argx->sources, stream->source);
+        array_push(parent->sources, stream->source);
+    }
     return 0;
 }
 
@@ -278,10 +295,10 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     bool have_sources = argx_flag_is_any_source_set(argx);
     /* act upon it */
     if(!have_sources) {
-        printff("RESET FLAGS %.*s", SO_F(parent->opt));
+        //printff("RESET FLAGS %.*s", SO_F(parent->opt));
         Argx **itE = array_itE(parent->group_s->list);
         for(Argx **it = parent->group_s->list; it < itE; ++it) {
-            printff("RESET FLAG %.*s", SO_F((*it)->opt));
+            //printff("RESET FLAG %.*s", SO_F((*it)->opt));
             if((*it)->val.b) *(*it)->val.b = false;
         }
     }
@@ -290,9 +307,11 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(so_as_yes_or_no(so, &flag)) {
         ABORT(ERR_UNREACHABLE("always have to succeed parsing what to set the flag to"));
     }
-    if(argx->val.b) *argx->val.b = flag;
-    //printff("SET FLAG %.*s / source: %.*s", SO_F(argx->opt), SO_F(stream->source));
-    array_push(argx->sources, stream->source);
+    if(!arg->help.wanted) {
+        if(argx->val.b) *argx->val.b = flag;
+        array_push(argx->sources, stream->source);
+        array_push(parent->sources, stream->source);
+    }
     return 0;
 }
 
@@ -327,7 +346,6 @@ int arg_parse_argx_vector(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so
 }
 
 int arg_parse_argx_vector_none(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so, Arg_Parse_Argx_Callback cb) {
-    arg_stream_not_consumed(stream);
     return 0;
 }
 
@@ -398,7 +416,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             result = vcb(arg, stream, argx, so, cb);
         }
     } else {
-        if(argx->sources) {
+        if(argx->sources && !arg->help.wanted) {
             /* TODO: ability to detect duplicate setting of values... for now just clear sources so they don't pile up */
             array_clear_ext(argx->sources, so_free);
         }
