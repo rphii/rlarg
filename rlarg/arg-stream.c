@@ -2,6 +2,15 @@
 #include "../rlarg.h"
 #include "arg-stream.h"
 
+bool arg_stream_souces_only_contains(Arg_Stream_Source *sources, So cmp) {
+    Arg_Stream_Source *itE = array_itE(sources);
+    bool result = false;
+    for(Arg_Stream_Source *it = sources; it < itE; ++it) {
+        result = (!it->line_number && !so_cmp(it->path, cmp));
+    }
+    return result;
+}
+
 void arg_stream_free(Arg_Stream *stream) {
     vso_free(&stream->vso);
     memset(stream, 0, sizeof(*stream));

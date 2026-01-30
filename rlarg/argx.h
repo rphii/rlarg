@@ -9,6 +9,8 @@
 #define ARGX_SHORT_MAX      ('~')
 #define ARGX_SHORT_COUNT    (ARGX_SHORT_MAX - ARGX_SHORT_MIN)
 
+typedef struct Arg_Stream_Source Arg_Stream_Source;
+
 typedef enum {
     ARGX_TYPE_NONE,
     ARGX_TYPE_REST,
@@ -57,7 +59,7 @@ typedef struct Argx {
     Argx_Value_Union ref;  /* reference / default value (refval) */
     Argx_Hint hint;
     Argx_Type_List id;
-    VSo sources;            /* from where the value gets set -- should be an array if is_array, else, a single value. optional with a line number (some.config:123) */
+    Arg_Stream_Source *sources;  /* from where the value gets set -- should be an array if is_array, else, a single value. optional with a line number (some.config:123) */
     struct Argx_Group *group_p; /* always set to parent group */
     struct Argx_Group *group_s; /* only set if id == ARGX_GROUP */
     Argx_Callback callback;

@@ -43,7 +43,7 @@ void argx_free(Argx *argx) {
             argx_group_free(argx->group_s);
         }
     }
-    vso_free(&argx->sources);
+    array_free_ext(argx->sources, so_free);
 }
 
 void v_argx_free(V_Argx *vargs) {
@@ -545,7 +545,7 @@ bool argx_flag_is_any_source_set(Argx *argx) {
     Argx **itE = array_itE(parent->group_s->list);
     for(Argx **it = parent->group_s->list; it < itE; ++it) {
         if(!(*it)->sources) continue;
-        if(!so_cmp(*(*it)->sources, ARGX_SOURCE_REFVAL)) continue;
+        if(arg_stream_souces_only_contains((*it)->sources, ARGX_SOURCE_REFVAL)) continue;
         have_sources = true;
         break;
     }

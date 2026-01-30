@@ -50,7 +50,11 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
         }
         if(!arg->builtin.compgen) {
             if(argx) argx_so(&xso, 0, argx);
-            fprintf(stderr, F("%.*s: ", FG_MG), SO_F(stream->source));
+            if(stream->source.line_number) {
+                fprintf(stderr, F("%.*s:%u: ", FG_MG), SO_F(stream->source.path), stream->source.line_number);
+            } else {
+                fprintf(stderr, F("%.*s: ", FG_MG), SO_F(stream->source.path));
+            }
             switch(id) {
                 case ARG_PARSE_ERROR_INVALID_CONVERSION: {
                     fprintf(stderr, F("Invalid conversion for '%.*s' %.*s: %.*s", FG_RD), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
@@ -163,7 +167,7 @@ int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) 
     int v;
     if(!so_as_int(so, &v, 0)) {
         if(argx->val.vi) array_push(*argx->val.vi, v);
-        vso_push(&argx->sources, stream->source);
+        array_push(argx->sources, stream->source);
         result = 0;
     } else {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
@@ -178,7 +182,7 @@ int arg_parse_argx_vsize(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     ssize_t v;
     if(!so_as_ssize(so, &v, 0)) {
         if(argx->val.vz) array_push(*argx->val.vz, v);
-        vso_push(&argx->sources, stream->source);
+        array_push(argx->sources, stream->source);
         result = 0;
     } else {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
@@ -193,7 +197,7 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     bool v;
     if(!so_as_yes_or_no(so, &v)) {
         if(argx->val.vi) array_push(*argx->val.vi, v);
-        vso_push(&argx->sources, stream->source);
+        array_push(argx->sources, stream->source);
         result = 0;
     } else {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
@@ -206,7 +210,7 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
 int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
     if(argx->val.vso) vso_push(argx->val.vso, so);
-    vso_push(&argx->sources, stream->source);
+    array_push(argx->sources, stream->source);
     return result;
 }
 
@@ -219,7 +223,7 @@ int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = so_as_yes_or_no(so, &v);
     if(argx->val.b) *argx->val.b = v;
     printff("VAL p %p : %.*s",argx->val.b,SO_F(argx->opt));
-    vso_push(&argx->sources, stream->source);
+    array_push(argx->sources, stream->source);
     return result;
 }
 
@@ -227,7 +231,7 @@ int arg_parse_argx_int(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int v;
     int result = so_as_int(so, &v, 0);
     if(argx->val.i) *argx->val.i = v;
-    vso_push(&argx->sources, stream->source);
+    array_push(argx->sources, stream->source);
     return result;
 }
 
@@ -235,13 +239,13 @@ int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ssize_t v;
     int result = so_as_ssize(so, &v, 0);
     if(argx->val.z) *argx->val.z = v;
-    vso_push(&argx->sources, stream->source);
+    array_push(argx->sources, stream->source);
     return result;
 }
 
 int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(argx->val.vso) *argx->val.so = so;
-    vso_push(&argx->sources, stream->source);
+    array_push(argx->sources, stream->source);
     return 0;
 }
 
@@ -252,8 +256,8 @@ int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(parent);
     ASSERT_ARG(parent->val.i);
     if(parent->val.i) *parent->val.i = argx->val_enum;
-    vso_push(&argx->sources, stream->source);
-    vso_push(&parent->sources, stream->source);
+    array_push(argx->sources, stream->source);
+    array_push(parent->sources, stream->source);
     return 0;
 }
 
@@ -288,7 +292,7 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     }
     if(argx->val.b) *argx->val.b = flag;
     //printff("SET FLAG %.*s / source: %.*s", SO_F(argx->opt), SO_F(stream->source));
-    vso_push(&argx->sources, stream->source);
+    array_push(argx->sources, stream->source);
     return 0;
 }
 
@@ -396,7 +400,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     } else {
         if(argx->sources) {
             /* TODO: ability to detect duplicate setting of values... for now just clear sources so they don't pile up */
-            vso_clear(&argx->sources);
+            array_clear_ext(argx->sources, so_free);
         }
         if(argx->id < ARGX_TYPE__COUNT) {
             Arg_Parse_Argx_Callback cb = static_parse_argx_single_cbs[argx->id];
@@ -457,8 +461,10 @@ typedef enum {
     ARG_STREAM_SHORTOPT,
 } Arg_Stream_List;
 
-int arg_parse_config(struct Arg *arg, So config) {
-    Arg_Stream stream_config = { .source = so("config") };
+int arg_parse_config(struct Arg *arg, So config, So path) {
+    Arg_Stream stream_config = {
+        .source.path = path
+    };
     int line_number = 1;
     for(So line = SO; so_splice(config, &line, '\n'); ++line_number) {
         arg_stream_clear(&stream_config);
@@ -482,6 +488,7 @@ int arg_parse_config(struct Arg *arg, So config) {
         }
         if(!argx) ABORT("NO ARGX 2");
         /* parse */
+        stream_config.source.line_number = line_number;
         printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
         stream_config.carg = rhs;
         arg_parse_argx(arg, &stream_config, argx, rhs);
@@ -592,7 +599,8 @@ error_but_maybe_get_env_help:
 
 void arg_parse_setref_sources_mono(Argx *argx, So src, size_t n) {
     for(size_t i = 0; i < n; ++i) {
-        vso_push(&argx->sources, src);
+        Arg_Stream_Source source = { .path = src };
+        array_push(argx->sources, source);
     }
 }
 
@@ -716,7 +724,7 @@ int arg_parse_environment(struct Arg *arg) {
     Argx **itE = array_itE(arg->env.list);
     So env = SO, carg = SO;
     Arg_Stream stream_env = {
-        .source = ARGX_SOURCE_ENVVARS,
+        .source.path = ARGX_SOURCE_ENVVARS,
     };
     for(Argx **it = arg->env.list; it < itE && !status; ++it) {
         so_env_get(&env, (*it)->opt);
@@ -734,7 +742,7 @@ int arg_parse_environment(struct Arg *arg) {
 int arg_parse_stdin(struct Arg *arg, const int argc, const char **argv) {
     int status = 0;
     /* parse stdin */
-    arg->stream_in.source = ARGX_SOURCE_STDIN,
+    arg->stream_in.source.path = ARGX_SOURCE_STDIN,
     arg_stream_from_stdin(&arg->stream_in, argc, argv);
     status = arg_parse_stream(arg, &arg->stream_in);
     /* check if there are missing positional values */
