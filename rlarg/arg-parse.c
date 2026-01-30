@@ -547,8 +547,8 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
         }
         /* now act upon deciding what situation we're in... */
         switch(situation) {
+            case ARG_STREAM_DONE: break;
             case ARG_STREAM_REST: {
-                bool set_rest = true;
                 /* we want to set the rest? check if there are remaining positional arguments to be set */
                 //printff("I_POS %u / %zu", arg->i_pos, array_len(arg->pos.list));
                 if(arg->i_pos < array_len(arg->pos.list)) {
@@ -648,6 +648,7 @@ void arg_parse_setref_argx(Argx *argx) {
     if(argx->ref.any) {
         if(argx->is_array) {
             switch(argx->id) {
+                default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
                 case ARGX_TYPE_BOOL: {
                     if(argx->val.vb) {
                         array_extend(*argx->val.vb, *argx->ref.vb);
@@ -683,6 +684,7 @@ void arg_parse_setref_argx(Argx *argx) {
             //printff(" v %p = r %p id %u [%.*s]",argx->val,argx->ref,argx->id,SO_F(argx->opt));
             arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (int)(bool)(argx->ref.any));
             switch(argx->id) {
+                default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
                 case ARGX_TYPE_FLAG: {
                     bool have_sources = argx_flag_is_any_source_set(argx);
                     //printff("FLAG->HAVE SOURCE %u",have_sources);
