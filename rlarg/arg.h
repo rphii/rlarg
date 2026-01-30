@@ -26,6 +26,7 @@ typedef struct Arg {
 
     struct {
         bool quit_early;
+        bool quit_when_all_valid;
         bool compgen;
         Argx *sources_argx;
         So *sources_vso;
@@ -34,7 +35,9 @@ typedef struct Arg {
 
     struct {
         bool wanted;
-        Argx *given;
+        bool error;
+        bool given;
+        Argx *last;
     } help;
 
 } Arg;
