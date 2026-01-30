@@ -74,7 +74,7 @@ bool arg_stream_advance(Arg_Stream *stream) {
             ++stream->i;
         }
     }
-    printff("i %u < len %zu / not consumed %u", stream->i, len, stream->not_consumed);
+    //printff("i %u < len %zu / not consumed %u", stream->i, len, stream->not_consumed);
     stream->not_consumed = false;
     return (stream->i < len);
 }
