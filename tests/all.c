@@ -17,7 +17,7 @@ int main(const int argc, const char **argv) {
     struct Argx_Group *g2 = argx_group(arg, so("default"));
     struct Argx_Group *g3 = 0;
 
-    printff("group 'default' pointers: %p, %p", g1, g2);
+    //printff("group 'default' pointers: %p, %p", g1, g2);
     ASSERT(g1 == g2, "should point to the same");
 
     argx_builtin_env_compgen(arg);
@@ -29,16 +29,16 @@ int main(const int argc, const char **argv) {
     struct Argx *x, *e1, *e2, *e3;
 
     x = argx_opt(g1, 0, so("hi"), so("description"));
-        printff("p %p", x);
+        //printff("p %p", x);
 
     bool p1 = false, p2 = false;
     bool d = true;
     x = argx_opt(g1, 'x', so("boolr"), so("a required boolean value"));
-        printff("p %p", x);
+        //printff("p %p", x);
         argx_type_bool(x, &p1, &d);
 
     x = argx_opt(g1, 'X', so("boolo"), so("a optional boolean value"));
-        printff("p %p", x);
+        //printff("p %p", x);
         argx_type_bool(x, &p2, &d);
         argx_hint_kind(x, ARGX_HINT_OPTIONAL);
 

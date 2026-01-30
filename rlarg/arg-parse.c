@@ -109,7 +109,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     bool done = false;
     do {
         Argx *subx = 0;
-        printff("parse group of: %.*s", SO_F(argx->opt));
+        //printff("parse group of: %.*s", SO_F(argx->opt));
         ASSERT_ARG(argx->group_s);
         if(argx->group_s->id == ARGX_GROUP_FLAGS) {
             if(!so_splice(so, &so_split, ',')) break;
@@ -138,7 +138,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 case ARGX_GROUP_OPTIONS: {
                     So next = SO;
                     if(arg_stream_get_next(stream, &next, &arg->builtin.compgen_flags)) {
-                        printff("GOT NEXT");
+                        //printff("GOT NEXT");
                         result = arg_parse_argx(arg, stream, subx, next);
                         done = true;
                     } else {
@@ -152,7 +152,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             //arg->help.error = true;
         }
         //if(result) rlc_trace_fatal();
-        printff("result %u",result);
+        //printff("result %u",result);
         if(done) break;
     } while(!result);
     return result;
@@ -489,7 +489,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         if(so_is_zero(line)) continue;
         line = so_trim(so_split_ch(line, '#', 0));
         if(!so_len(line)) continue;
-        printff("LINE[%.*s]",SO_F(line));
+        //printff("LINE[%.*s]",SO_F(line));
         /* split on '=' , then...
          *  -> LHS : split on '.' and follow tables to get final argx
          *  -> RHS : pass on to parse_argx
@@ -507,7 +507,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         if(!argx) ABORT("NO ARGX 2");
         /* parse */
         stream_config.source.line_number = line_number;
-        printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
+        //printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
         stream_config.carg = rhs;
         arg_parse_argx(arg, &stream_config, argx, rhs);
     }
@@ -516,11 +516,11 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
 
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
-    printff("parse... argc %u", array_len(stream->vso));
+    //printff("parse... argc %u", array_len(stream->vso));
     So carg = SO;
     int status = 0;
     while(arg_stream_get_next(stream, &carg, &arg->builtin.compgen_flags)) {
-        printff(" carg: [%.*s]", SO_F(carg));
+        //printff(" carg: [%.*s]", SO_F(carg));
         /* determine kind of situation... */
         Arg_Stream_List situation = ARG_STREAM_DONE;
         if(stream->i < array_len(stream->vso)) situation = ARG_STREAM_REST;
@@ -533,19 +533,19 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
             case ARG_STREAM_REST: {
                 bool set_rest = true;
                 /* we want to set the rest? check if there are remaining positional arguments to be set */
-                printff("I_POS %u / %zu", arg->i_pos, array_len(arg->pos.list));
+                //printff("I_POS %u / %zu", arg->i_pos, array_len(arg->pos.list));
                 if(arg->i_pos < array_len(arg->pos.list)) {
                     Argx *pos = array_at(arg->pos.list, arg->i_pos);
-                    printff("GOT POSITIONAL ARGX: %.*s", SO_F(pos->opt));
+                    //printff("GOT POSITIONAL ARGX: %.*s", SO_F(pos->opt));
                     if(arg_parse_positional(arg, stream, pos)) {
                         arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNHANDLED_POSITIONAL, 0);
                         status = -1;
                         goto error_but_maybe_get_env_help;
                     }
                     ++arg->i_pos;
-                    printff("POSITIONAL ARGX PARSED OK! -> i_pos %u", arg->i_pos);
+                    //printff("POSITIONAL ARGX PARSED OK! -> i_pos %u", arg->i_pos);
                 } else {
-                    printff("SET REST!");
+                    //printff("SET REST!");
                     /* all positional arguments are parsed, now push the resulting value to the rest! spit out an error if the user can not set the rest */
                     Argx *rest = stream->rest;
                     if(!rest || (rest && !rest->val.vso)) {
@@ -746,7 +746,7 @@ int arg_parse_environment(struct Arg *arg) {
     };
     for(Argx **it = arg->env.list; it < itE && !status; ++it) {
         so_env_get(&env, (*it)->opt);
-        printff("PARSE ENV: %.*s: [%.*s]", SO_F((*it)->opt), SO_F(env));
+        //printff("PARSE ENV: %.*s: [%.*s]", SO_F((*it)->opt), SO_F(env));
         if(!so_len(env)) continue;
         arg_stream_clear(&stream_env);
         vso_push(&stream_env.vso, env);
@@ -806,7 +806,7 @@ void arg_parse_help(Arg *arg) {
 #else
     //printff("any %zu / last %zu",arg->help.last,arg->help.error);
     help = arg->help.wanted ? arg->help.last : arg->help.error;
-    printff("HELP?%p/WANTED?%u",help,arg->help.wanted);
+    //printff("HELP?%p/WANTED?%u",help,arg->help.wanted);
 #endif
 
     if(!help) {

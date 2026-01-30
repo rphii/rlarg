@@ -112,7 +112,7 @@ void argx_builtin_env_config(struct Arg *arg) {
 int argx_callback_help(Argx *argx, void *user, So so) {
     arg_runtime_quit_when_all_valid(argx, true);
     Arg *arg = user;
-    printff("!!!!! HELP WANTED");
+    //printff("!!!!! HELP WANTED");
     arg->help.wanted = true;
     return 0;
 }
