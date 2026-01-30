@@ -681,7 +681,7 @@ void arg_parse_setref_argx(Argx *argx) {
             }
         } else {
             //printff(" v %p = r %p id %u [%.*s]",argx->val,argx->ref,argx->id,SO_F(argx->opt));
-            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (bool)(argx->ref.any));
+            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (int)(bool)(argx->ref.any));
             switch(argx->id) {
                 case ARGX_TYPE_FLAG: {
                     bool have_sources = argx_flag_is_any_source_set(argx);
@@ -875,11 +875,43 @@ void arg_parse_configs(Arg *arg) {
     arg->help.wanted = false;
 }
 
+/* these set the sources if there is NOT a refval present -- opposite of setref */
+void arg_parse_setup_sources_argx(Argx *argx) {
+    if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
+    if(!argx->ref.any) {
+        if(argx->is_array) {
+            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->val.vb));
+        } else {
+            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, 1);
+        }
+    }
+}
+
+/* these set the sources if there is NOT a refval present -- opposite of setref */
+void arg_parse_setup_sources_group(Argx_Group *group) {
+    if(!group) return;
+    for(Argx **it = group->list; it < array_itE(group->list); ++it) {
+        //printff("setref for: %.*s",SO_F((*it)->opt));
+        ASSERT_ARG(it);
+        Argx *argx = *it;
+        ASSERT_ARG(argx);
+        if(argx->id == ARGX_TYPE_GROUP) {
+            arg_parse_setup_sources_group(argx->group_s); 
+        } else {
+            arg_parse_setup_sources_argx(argx);
+        }
+    }
+}
+
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early) {
     ASSERT_ARG(arg);
     ASSERT_ARG(quit_early);
 
     int status = 0;
+
+    arg_parse_setup_sources_group(arg->opts);
+    arg_parse_setup_sources_group(&arg->env);
+    arg_parse_setup_sources_group(&arg->pos);
 
     if(!status) status = arg_parse_environment(arg);
     if(arg->builtin.quit_early) goto defer;
