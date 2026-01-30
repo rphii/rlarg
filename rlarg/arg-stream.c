@@ -28,9 +28,7 @@ void arg_stream_from_stdin(Arg_Stream *stream, const int argc, const char **argv
 bool arg_stream_get_next(Arg_Stream *stream, So *val) {
     ASSERT_ARG(stream);
     ASSERT_ARG(val);
-    printff(" get next");
     if(!arg_stream_advance(stream)) return false;
-    printff(" get next OK");
     So carg = array_at(stream->vso, stream->i);
     if(stream->i_split) {
         stream->carg = so_i0(carg, stream->i_split);
@@ -39,11 +37,9 @@ bool arg_stream_get_next(Arg_Stream *stream, So *val) {
     }
     if(!stream->skip_flag_check && !so_cmp(stream->carg, so("--"))) {
         stream->skip_flag_check = true;
-        printff(" get next sub, cuz found '--'");
         return arg_stream_get_next(stream, val);
     }
     *val = stream->carg;
-    printff(" got next ok");
     return true;
 }
 

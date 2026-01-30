@@ -135,7 +135,7 @@ int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) 
     int result = -1;
     int v;
     if(!so_as_int(so, &v, 0)) {
-        array_push(argx->val->vi, v);
+        if(argx->val) array_push(argx->val->vi, v);
         vso_push(&argx->sources, stream->source);
         result = 0;
     } else {
@@ -148,7 +148,7 @@ int arg_parse_argx_vsize(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     int result = -1;
     ssize_t v;
     if(!so_as_ssize(so, &v, 0)) {
-        array_push(argx->val->vz, v);
+        if(argx->val) array_push(argx->val->vz, v);
         vso_push(&argx->sources, stream->source);
         result = 0;
     } else {
@@ -161,7 +161,7 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     int result = -1;
     bool v;
     if(!so_as_yes_or_no(so, &v)) {
-        array_push(argx->val->vi, v);
+        if(argx->val) array_push(argx->val->vi, v);
         vso_push(&argx->sources, stream->source);
         result = 0;
     } else {
@@ -172,7 +172,7 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
 
 int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
-    vso_push(&argx->val->vso, so);
+    if(argx->val) vso_push(&argx->val->vso, so);
     vso_push(&argx->sources, stream->source);
     return result;
 }
@@ -182,25 +182,32 @@ int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 /* parsers for regular - values {{{ */
 
 int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    int result = so_as_yes_or_no(so, &argx->val->b);
+    bool v;
+    int result = so_as_yes_or_no(so, &v);
+    if(argx->val) argx->val->b = v;
+    printff("VAL p %p : %.*s",argx->val,SO_F(argx->opt));
     vso_push(&argx->sources, stream->source);
     return result;
 }
 
 int arg_parse_argx_int(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    int result = so_as_int(so, &argx->val->i, 0);
+    int v;
+    int result = so_as_int(so, &v, 0);
+    if(argx->val) argx->val->i = v;
     vso_push(&argx->sources, stream->source);
     return result;
 }
 
 int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    int result = so_as_ssize(so, &argx->val->z, 0);
+    ssize_t v;
+    int result = so_as_ssize(so, &v, 0);
+    if(argx->val) argx->val->z = v;
     vso_push(&argx->sources, stream->source);
     return result;
 }
 
 int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    argx->val->so = so;
+    if(argx->val) argx->val->so = so;
     vso_push(&argx->sources, stream->source);
     return 0;
 }
@@ -211,7 +218,7 @@ int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     Argx *parent = argx->group_p->parent;
     ASSERT_ARG(parent);
     ASSERT_ARG(parent->val);
-    parent->val->i = argx->val_enum;
+    if(parent->val) parent->val->i = argx->val_enum;
     vso_push(&parent->sources, stream->source);
     return 0;
 }
@@ -358,6 +365,17 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             Arg_Parse_Argx_Callback cb = static_parse_argx_single_cbs[argx->id];
             ASSERT_ARG(cb);
             result = cb(arg, stream, argx, so);
+            if(result) {
+                arg_parse_errmsg_invalid_conversion(stream, argx);
+            }
+        }
+    }
+    if(!result && argx->callback.func) {
+        if(argx->callback.priority == ARGX_PRIORITY_IMMEDIATELY) {
+            result = argx->callback.func(argx, argx->callback.user, so);
+        } else {
+            Argx_Callback_Queue q = { .callback = &argx->callback, .so = so };
+            array_push(arg->queue, q);
         }
     }
     return result;
@@ -519,7 +537,7 @@ void arg_parse_setref_argx(Argx *argx) {
                 case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
         } else {
-            printff(" v %p = r %p id %u [%.*s]",argx->val,argx->ref,argx->id,SO_F(argx->opt));
+            //printff(" v %p = r %p id %u [%.*s]",argx->val,argx->ref,argx->id,SO_F(argx->opt));
             arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (bool)(argx->ref));
             switch(argx->id) {
                 case ARGX_TYPE_FLAG: {
@@ -605,6 +623,7 @@ int arg_parse_environment(struct Arg *arg) {
     for(Argx **it = arg->env.list; it < itE && !status; ++it) {
         so_env_get(&env, (*it)->opt);
         printff("PARSE ENV: %.*s: [%.*s]", SO_F((*it)->opt), SO_F(env));
+        if(!so_len(env)) continue;
         arg_stream_clear(&stream_env);
         vso_push(&stream_env.vso, env);
         arg_stream_get_next(&stream_env, &carg);
@@ -626,12 +645,17 @@ int arg_parse_stdin(struct Arg *arg, const int argc, const char **argv) {
     return status;
 }
 
-int arg_parse(struct Arg *arg, const int argc, const char **argv) {
+int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early) {
+    ASSERT_ARG(arg);
+    ASSERT_ARG(quit_early);
 
     int status = 0;
 
     if(!status) status = arg_parse_environment(arg);
+    if(arg->builtin.quit_early) goto defer;
+
     if(!status) status = arg_parse_stdin(arg, argc, argv);
+    if(arg->builtin.quit_early) goto defer;
 
     if(arg->i_pos < array_len(arg->pos.list)) {
         arg_parse_errmsg_missing_positionals(arg);
@@ -640,6 +664,8 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv) {
 
     arg_parse_setref(arg);
 
+defer:
+    *quit_early = arg->builtin.quit_early;
     return status;
 }
 

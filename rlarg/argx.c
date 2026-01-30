@@ -94,6 +94,7 @@ struct Argx *argx_env(struct Arg *arg, So name, So desc) {
 void argx_builtin_env_compgen(struct Arg *arg) {
     Argx *x = argx_env(arg, so("COMPGEN_WORDLIST"), so("Generate input for autocompletion"));
     argx_type_bool(x, &arg->builtin.compgen, 0);
+    printff("VAL p %p",x->val);
 }
 
 void argx_builtin_opt_source(struct Argx_Group *group, So uri) {

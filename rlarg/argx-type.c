@@ -17,7 +17,6 @@ void argx_type_rest(struct Argx *argx, VSo *val) {
 
 void argx_type_so(struct Argx *argx, So *val, So *ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_STRING;
@@ -29,7 +28,6 @@ void argx_type_so(struct Argx *argx, So *val, So *ref) {
 
 void argx_type_uri(struct Argx *argx, So *val, So *ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_STRING;
@@ -41,7 +39,6 @@ void argx_type_uri(struct Argx *argx, So *val, So *ref) {
 
 void argx_type_bool(struct Argx *argx, bool *val, bool *ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_BOOL;
@@ -53,7 +50,6 @@ void argx_type_bool(struct Argx *argx, bool *val, bool *ref) {
 
 void argx_type_int(struct Argx *argx, int *val, int *ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_INT;
@@ -65,7 +61,6 @@ void argx_type_int(struct Argx *argx, int *val, int *ref) {
 
 void argx_type_size(struct Argx *argx, ssize_t *val, ssize_t *ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_SIZE;
@@ -85,7 +80,6 @@ void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Prior
 
 void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_STRING;
@@ -98,7 +92,6 @@ void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
 
 void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_URI;
@@ -111,7 +104,6 @@ void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref) {
 
 void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_BOOL;
@@ -124,7 +116,6 @@ void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref) {
 
 void argx_type_array_int(struct Argx *argx, int **val, int **ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_INT;
@@ -137,7 +128,6 @@ void argx_type_array_int(struct Argx *argx, int **val, int **ref) {
 
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
     ASSERT_ARG(argx);
-    ASSERT_ARG(val);
     argx->val = (Argx_Value_Union *)val;
     argx->ref = (Argx_Value_Union *)ref;
     argx->id = ARGX_TYPE_SIZE;

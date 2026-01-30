@@ -15,7 +15,7 @@ void arg_free(struct Arg **arg);
 void arg_runtime_quit_early(struct Argx *argx, bool val);
 
 /* rlarg/arg-parse.c */
-int arg_parse(struct Arg *arg, const int argc, const char **argv);
+int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early);
 
 /* rlarg/argx-group.c */
 struct Argx_Group *argx_group(struct Arg *arg, So name);
