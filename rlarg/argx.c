@@ -457,7 +457,7 @@ void argx_fmt_help(So *out, Argx *argx) {
     ASSERT_ARG(argx);
 
     Argx_So xso = {0};
-    Argx_Fmt fmt = {0};
+    Argx_Fmt fmt = {};
     argx_so(&xso, &fmt, argx);
 
     /* aligning... gather lengths and spacing (( +1 because of spaces between things )) */
