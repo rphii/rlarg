@@ -43,7 +43,7 @@ typedef struct Argx_Callback {
 } Argx_Callback;
 
 typedef struct Argx_Callback_Queue {
-    Argx_Callback *callback;
+    struct Argx *argx;
     So so;
 } Argx_Callback_Queue;
 
