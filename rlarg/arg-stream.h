@@ -28,7 +28,7 @@ void arg_stream_clear(Arg_Stream *stream);
 
 void arg_stream_from_stdin(Arg_Stream *stream, const int argc, const char **argv);
 
-bool arg_stream_get_next(Arg_Stream *stream, So *val);
+bool arg_stream_get_next(Arg_Stream *stream, So *val, bool *compgen_flags);
 bool arg_stream_advance(Arg_Stream *stream);
 void arg_stream_not_consumed(Arg_Stream *stream);
 

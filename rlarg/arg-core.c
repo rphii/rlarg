@@ -31,6 +31,37 @@ void arg_help(struct Arg *arg) {
     so_free(&out);
 }
 
+void arg_help_argx_rec(So *out, Argx *argx) {
+    if(!argx) return;
+    arg_help_argx_rec(out, argx->group_p ? argx->group_p->parent : 0);
+    argx_fmt_help(out, argx);
+}
+
+
+void arg_help_argx(struct Argx *help) {
+    So out = SO;
+    Argx_So xso = {0};
+    Argx_Fmt fmt = {};
+
+    argx_so(&xso, &fmt, help);
+    so_fmt(&out, "%.*s%.*s:\n", SO_F(xso.hierarchy), SO_F(xso.argx->opt));
+    argx_so_free(&xso);
+
+    arg_help_argx_rec(&out, help);
+
+    size_t len = array_len(help->sources);
+    if(len) {
+        so_fmt(&out, "sources:\n");
+        for(size_t i = 0; i < len; ++i) {
+            So src = array_at(help->sources, i);
+            so_fmt(&out, "  %.*s%s\n", SO_F(src), i + 1 < len ? "," : "");
+        }
+    }
+
+    so_print(out);
+    so_free(&out);
+}
+
 void arg_config(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;

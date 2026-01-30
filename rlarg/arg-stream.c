@@ -26,7 +26,7 @@ void arg_stream_from_stdin(Arg_Stream *stream, const int argc, const char **argv
     }
 }
 
-bool arg_stream_get_next(Arg_Stream *stream, So *val) {
+bool arg_stream_get_next(Arg_Stream *stream, So *val, bool *compgen_flags) {
     ASSERT_ARG(stream);
     ASSERT_ARG(val);
     if(!arg_stream_advance(stream)) return false;
@@ -37,8 +37,11 @@ bool arg_stream_get_next(Arg_Stream *stream, So *val) {
         stream->carg = so_split_ch(carg, '=', 0);
     }
     if(!stream->skip_flag_check && !so_cmp(stream->carg, so("--"))) {
+        if(compgen_flags) *compgen_flags = true;
         stream->skip_flag_check = true;
-        return arg_stream_get_next(stream, val);
+        return arg_stream_get_next(stream, val, compgen_flags);
+    } else {
+        if(compgen_flags) *compgen_flags = false;
     }
     *val = stream->carg;
     return true;
