@@ -356,6 +356,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
     int result = -1;
+    arg->help.last = argx; /* set help BEFORE doing any furhter parsing */
     if(argx->is_array) {
         if(argx->id < ARGX_TYPE__COUNT) {
             Arg_Parse_Argx_Callback cb = static_parse_argx_vector_vals_cbs[argx->id];
@@ -386,7 +387,6 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             array_push(arg->queue, q);
         }
     }
-    arg->help.last = argx;
     return result;
 }
 
@@ -680,6 +680,12 @@ int arg_queue_post_parsing(Arg *arg) {
     return result;
 }
 
+void arg_help_fmt(So *out, Argx *argx) {
+    if(!argx) return;
+    arg_help_fmt(out, argx->group_p ? argx->group_p->parent : 0);
+    argx_fmt_help(out, argx);
+}
+
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early) {
     ASSERT_ARG(arg);
     ASSERT_ARG(quit_early);
@@ -705,6 +711,17 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
 defer:
     if((arg->help.wanted || arg->help.error) && arg->help.last) {
         printff("PRINTIG HELP: %.*s", SO_F(arg->help.last->opt));
+        So out = SO;
+        Argx_So xso = {0};
+        Argx_Fmt fmt = {};
+
+        argx_so(&xso, &fmt, arg->help.last);
+        so_fmt(&out, "%.*s%.*s:\n", SO_F(xso.hierarchy), SO_F(xso.argx->opt));
+        argx_so_free(&xso);
+
+        arg_help_fmt(&out, arg->help.last);
+        so_println(out);
+        so_free(&out);
     }
 
     *quit_early = arg->builtin.quit_early || arg->builtin.quit_when_all_valid;
