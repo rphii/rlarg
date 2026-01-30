@@ -476,10 +476,17 @@ void argx_fmt_help(So *out, Argx *argx) {
     size_t len_end_desc = spacing_desc + so_len_nfx(argx->desc) + 1; 
     //int spacing_
 
+    ASSERT_ARG(argx->group_p);
+    bool treat_as_options = (argx->group_p == argx->group_p->arg->opts);
+
     /* format the name */
-    char c = argx->c ? argx->c : ' ';
-    so_fmt(out, "  %c%c", argx->c ? '-' : ' ', c);
-    so_fmt(out, "  --%.*s", SO_F(argx->opt));
+    if(treat_as_options) {
+        char c = argx->c ? argx->c : ' ';
+        so_fmt(out, "  %c%c", argx->c ? '-' : ' ', c);
+        so_fmt(out, "  --%.*s", SO_F(argx->opt));
+    } else {
+        so_fmt(out, "  %.*s", SO_F(argx->opt));
+    }
 
     if(xso.have_hint) {
         if(!compact_hint) so_push(out, '\n');
