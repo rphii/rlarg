@@ -216,11 +216,11 @@ void argx_so_enum(Argx_So *xso, Argx_Fmt *fmt,  Argx *argx) {
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
         /* check if iterator matches selected value */
-        if(argx->val.i == (*it)->val_enum) {
+        if(argx->val.i && *argx->val.i == (*it)->val_enum) {
             so_extend(&xso->set_val, (*it)->opt);
             current_is_selected = true;
         }
-        if(argx->ref.i == (*it)->val_enum) {
+        if(argx->ref.i && *argx->ref.i == (*it)->val_enum) {
             so_extend(&xso->set_ref, (*it)->opt);
         }
         /* format hint */
@@ -239,12 +239,12 @@ void argx_so_flags(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
         /* check if iterator matches selected value */
-        if((*it)->val.b) {
+        if((*it)->val.b && *(*it)->val.b) {
             if(iv++) so_push(&xso->set_val, ',');
             so_extend(&xso->set_val, (*it)->opt);
             current_is_selected = true;
         }
-        if((*it)->ref.b) {
+        if((*it)->ref.b && *(*it)->ref.b) {
             if(ir++) so_push(&xso->set_ref, ',');
             so_extend(&xso->set_ref, (*it)->opt);
         }
@@ -263,11 +263,11 @@ void argx_so_options(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         /* check if iterator matches selected value */
-        if((*it)->val.b) {
+        if((*it)->val.b && *(*it)->val.b) {
             if(iv++) so_push(&xso->set_val, ',');
             so_extend(&xso->set_val, (*it)->opt);
         }
-        if((*it)->ref.b) {
+        if((*it)->ref.b && *(*it)->ref.b) {
             if(ir++) so_push(&xso->set_ref, ',');
             so_extend(&xso->set_ref, (*it)->opt);
         }
@@ -509,10 +509,10 @@ bool argx_flag_is_any_source_set(Argx *argx) {
     ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
     /* check if there are no sources in any of the associated enums */
     bool have_sources = false;
-    printff("ARE THERE ANY SOURCES??");
     Argx **itE = array_itE(parent->group_s->list);
     for(Argx **it = parent->group_s->list; it < itE; ++it) {
         if(!(*it)->sources) continue;
+        if(!so_cmp(*(*it)->sources, ARGX_SOURCE_REFVAL)) continue;
         have_sources = true;
         break;
     }
