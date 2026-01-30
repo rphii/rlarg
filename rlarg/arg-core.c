@@ -53,8 +53,12 @@ void arg_help_argx(struct Argx *help) {
     if(len) {
         so_fmt(&out, "sources:\n");
         for(size_t i = 0; i < len; ++i) {
-            So src = array_at(help->sources, i);
-            so_fmt(&out, "  %.*s%s\n", SO_F(src), i + 1 < len ? "," : "");
+            Arg_Stream_Source src = array_at(help->sources, i);
+            if(src.line_number) {
+                so_fmt(&out, "  %.*s:%u%s\n", SO_F(src.path), src.line_number, i + 1 < len ? "," : "");
+            } else {
+                so_fmt(&out, "  %.*s%s\n", SO_F(src.path), i + 1 < len ? "," : "");
+            }
         }
     }
 

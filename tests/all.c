@@ -139,7 +139,7 @@ int main(const int argc, const char **argv) {
     So content = SO;
 #if 1
     so_file_read(so("all.conf"), &content);
-    arg_parse_config(arg, content);
+    arg_parse_config(arg, content, so("all.conf"));
 #endif
 
     int status = 1;

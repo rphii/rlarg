@@ -12,6 +12,13 @@
  *  toml? (configuration file)
  */
 
+typedef struct Arg_Stream_Source {
+    So path;
+    int line_number;
+} Arg_Stream_Source;
+
+bool arg_stream_souces_only_contains(Arg_Stream_Source *sources, So cmp);
+
 typedef struct Arg_Stream {
     VSo vso;
     int i, i_split;
@@ -19,7 +26,7 @@ typedef struct Arg_Stream {
     bool not_consumed;
     struct Argx *rest;      /* pointer to an argx of type ARGX_TYPE_REST */
     So carg;
-    So source;
+    Arg_Stream_Source source;
     Arg_Parse_Error_List error_id;
 } Arg_Stream;
 
