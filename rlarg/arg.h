@@ -40,8 +40,10 @@ typedef struct Arg {
         bool compgen_done;          /* helps us only printin one single compgen instance */
         bool config; // TODO: should probably rename to config_print; or smth. env_config_print?
         Argx *sources_argx;
-        VSo sources_vso;
-        VSo sources_vso_ref;
+        VSo sources_vso;        /* visible vso sources */
+        VSo sources_vso_ref;    /* reference vso sources */
+        VSo sources_content;    /* content of sources */
+        VSo sources_paths;      /* paths to sources */
     } builtin;
 
     struct {

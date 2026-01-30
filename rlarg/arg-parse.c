@@ -100,6 +100,15 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
 
 /* error messages }}} */
 
+void arg_parse_add_source(struct Argx *argx, Arg_Stream_Source source) {
+    if(source.line_number) {
+        source.path = so_clone(source.path);
+        array_push(argx->sources, source);
+    } else {
+        array_push(argx->sources, source);
+    }
+}
+
 /* coarse parsers {{{ */
 
 int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
@@ -168,7 +177,7 @@ int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) 
     if(!so_as_int(so, &v, 0)) {
         if(!arg->help.wanted) {
             if(argx->val.vi) array_push(*argx->val.vi, v);
-            array_push(argx->sources, stream->source);
+            arg_parse_add_source(argx, stream->source);
         }
         result = 0;
     } else {
@@ -185,7 +194,7 @@ int arg_parse_argx_vsize(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     if(!so_as_ssize(so, &v, 0)) {
         if(!arg->help.wanted) {
             if(argx->val.vz) array_push(*argx->val.vz, v);
-            array_push(argx->sources, stream->source);
+            arg_parse_add_source(argx, stream->source);
         }
         result = 0;
     } else {
@@ -202,7 +211,7 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     if(!so_as_yes_or_no(so, &v)) {
         if(!arg->help.wanted) {
             if(argx->val.vi) array_push(*argx->val.vi, v);
-            array_push(argx->sources, stream->source);
+            arg_parse_add_source(argx, stream->source);
         }
         result = 0;
     } else {
@@ -217,7 +226,7 @@ int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
     if(!arg->help.wanted) {
         if(argx->val.vso) vso_push(argx->val.vso, so);
-        array_push(argx->sources, stream->source);
+        arg_parse_add_source(argx, stream->source);
     }
     return result;
 }
@@ -231,7 +240,7 @@ int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = so_as_yes_or_no(so, &v);
     if(!arg->help.wanted) {
         if(argx->val.b) *argx->val.b = v;
-        array_push(argx->sources, stream->source);
+        arg_parse_add_source(argx, stream->source);
     }
     return result;
 }
@@ -241,7 +250,7 @@ int arg_parse_argx_int(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = so_as_int(so, &v, 0);
     if(!arg->help.wanted) {
         if(argx->val.i) *argx->val.i = v;
-        array_push(argx->sources, stream->source);
+        arg_parse_add_source(argx, stream->source);
     }
     return result;
 }
@@ -251,7 +260,7 @@ int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = so_as_ssize(so, &v, 0);
     if(!arg->help.wanted) {
         if(argx->val.z) *argx->val.z = v;
-        array_push(argx->sources, stream->source);
+        arg_parse_add_source(argx, stream->source);
     }
     return result;
 }
@@ -259,7 +268,7 @@ int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(!arg->help.wanted) {
         if(argx->val.vso) *argx->val.so = so;
-        array_push(argx->sources, stream->source);
+        arg_parse_add_source(argx, stream->source);
     }
     return 0;
 }
@@ -272,8 +281,8 @@ int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(parent->val.i);
     if(!arg->help.wanted) {
         if(parent->val.i) *parent->val.i = argx->val_enum;
-        array_push(argx->sources, stream->source);
-        array_push(parent->sources, stream->source);
+        arg_parse_add_source(argx, stream->source);
+        arg_parse_add_source(parent, stream->source);
     }
     return 0;
 }
@@ -309,8 +318,8 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     }
     if(!arg->help.wanted) {
         if(argx->val.b) *argx->val.b = flag;
-        array_push(argx->sources, stream->source);
-        array_push(parent->sources, stream->source);
+        arg_parse_add_source(argx, stream->source);
+        arg_parse_add_source(parent, stream->source);
     }
     return 0;
 }
@@ -507,7 +516,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         if(!argx) ABORT("NO ARGX 2");
         /* parse */
         stream_config.source.line_number = line_number;
-        //printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
+        printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
         stream_config.carg = rhs;
         arg_parse_argx(arg, &stream_config, argx, rhs);
     }
@@ -618,7 +627,7 @@ error_but_maybe_get_env_help:
 void arg_parse_setref_sources_mono(Argx *argx, So src, size_t n) {
     for(size_t i = 0; i < n; ++i) {
         Arg_Stream_Source source = { .path = src };
-        array_push(argx->sources, source);
+        arg_parse_add_source(argx, source);
     }
 }
 
@@ -833,6 +842,41 @@ void arg_parse_help(Arg *arg) {
     }
 }
 
+void arg_parse_configs(Arg *arg) {
+    ASSERT_ARG(arg);
+    So extend = SO;
+    for(size_t i = 0; i < array_len(arg->builtin.sources_vso_ref); ++i) {
+        So path = array_at(arg->builtin.sources_vso_ref, i);
+        so_clear(&extend);
+        so_extend_wordexp(&extend, path, false);
+        printff("SOURCE [%.*s]",SO_F(extend));
+        /* check if I already loaded a file at that location */
+        bool have_already_loaded = false;
+        for(size_t j = 0; j < array_len(arg->builtin.sources_paths); ++j) {
+            So loaded = array_at(arg->builtin.sources_paths, j);
+            if(so_cmp(loaded, extend)) continue;
+            have_already_loaded = true;
+            break;
+        }
+        if(have_already_loaded) {
+            printff("ALREADY LOADED");
+            continue;
+        }
+        /* can safely load the file for the first time */
+        So content = SO;
+        if(!so_file_read(extend, &content)) {
+            vso_push(&arg->builtin.sources_paths, extend);
+            vso_push(&arg->builtin.sources_content, content);
+            printff("PARSE CONFIG [%.*s]",SO_F(extend));
+            arg_parse_config(arg, content, extend);
+            so_zero(&extend);
+        } else {
+            printff("COULD NOT OPEN [%.*s]",SO_F(extend));
+        }
+    }
+    so_free(&extend);
+}
+
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early) {
     ASSERT_ARG(arg);
     ASSERT_ARG(quit_early);
@@ -841,6 +885,8 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
 
     if(!status) status = arg_parse_environment(arg);
     if(arg->builtin.quit_early) goto defer;
+
+    arg_parse_configs(arg);
 
     if(!status) status = arg_parse_stdin(arg, argc, argv);
     if(arg->builtin.quit_early) goto defer;

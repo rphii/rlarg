@@ -137,7 +137,7 @@ int main(const int argc, const char **argv) {
 //           argx_enum_bind(x, e2);
 
     So content = SO;
-#if 1
+#if 0
     so_file_read(so("all.conf"), &content);
     arg_parse_config(arg, content, so("all.conf"));
 #endif

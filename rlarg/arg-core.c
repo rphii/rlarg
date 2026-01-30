@@ -7,6 +7,8 @@ void arg_free(struct Arg **arg) {
     argx_group_free(&(*arg)->pos);
     argx_group_free(&(*arg)->env);
     array_free((*arg)->queue);
+    vso_free(&(*arg)->builtin.sources_paths);
+    vso_free(&(*arg)->builtin.sources_content);
     free(*arg);
     *arg = 0;
 }
