@@ -502,6 +502,7 @@ void argx_fmt_config(So *out, Argx *argx) {
     argx_so_free(&xso);
 }
 
+/* TODO: this has to be reworked anyways, (removed) if I want to have +flags work as I want */
 bool argx_flag_is_any_source_set(Argx *argx) {
     ASSERT_ARG(argx->group_p);
     Argx *parent = argx->group_p->parent;
