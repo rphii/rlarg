@@ -52,6 +52,7 @@ void arg_compgen_global(struct Arg *arg) {
         arg_compgen_group(group, &any_out);
     }
     arg_compgen_group(&arg->env, &any_out);
+    arg_compgen_group(&arg->pos, &any_out);
     /* also print the argx information about the next positional in line */
     Argx *argx = arg->i_pos < array_len(arg->pos.list) ? array_at(arg->pos.list, arg->i_pos) : 0;
     static_arg_compgen_argx(arg, argx, &any_out);
