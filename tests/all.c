@@ -3,7 +3,9 @@
 
 int cbtest(struct Argx *argx, void *user, So so) {
     printff(F("HELLO WORLD [%.*s]", FG_GN_B), SO_F(so));
-    arg_runtime_quit_early(argx, true);
+    if(!so_cmp(so, so("111"))) {
+        arg_runtime_quit_early(argx, true);
+    }
     return 0;
 }
 
@@ -118,7 +120,7 @@ int main(const int argc, const char **argv) {
 
     x=argx_opt(g1, 0, so("func"), so("function call"));
       argx_type_int(x, 0, 0);
-      argx_callback(x, cbtest, 0, ARGX_PRIORITY_IMMEDIATELY);
+      argx_callback(x, cbtest, 0, ARGX_PRIORITY_WHEN_ALL_VALID);
 
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));

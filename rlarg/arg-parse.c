@@ -376,7 +376,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
         if(argx->callback.priority == ARGX_PRIORITY_IMMEDIATELY) {
             result = argx->callback.func(argx, argx->callback.user, so);
         } else {
-            Argx_Callback_Queue q = { .callback = &argx->callback, .so = so };
+            Argx_Callback_Queue q = { .argx = argx, .so = so };
             array_push(arg->queue, q);
         }
     }
@@ -655,6 +655,19 @@ int arg_parse_stdin(struct Arg *arg, const int argc, const char **argv) {
     return status;
 }
 
+int arg_queue_post_parsing(Arg *arg) {
+    int result = 0;
+    Argx_Callback_Queue *itE = array_itE(arg->queue);
+    for(Argx_Callback_Queue *it = arg->queue; it < itE; ++it) {
+        ASSERT_ARG(it->argx);
+        ASSERT_ARG(it->argx->callback.func);
+        result = it->argx->callback.func(it->argx, it->argx->callback.user, it->so);
+        if(arg->builtin.quit_early) break;
+        if(result) break;
+    }
+    return result;
+}
+
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early) {
     ASSERT_ARG(arg);
     ASSERT_ARG(quit_early);
@@ -665,6 +678,9 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     if(arg->builtin.quit_early) goto defer;
 
     if(!status) status = arg_parse_stdin(arg, argc, argv);
+    if(arg->builtin.quit_early) goto defer;
+
+    if(!status) status = arg_queue_post_parsing(arg);
     if(arg->builtin.quit_early) goto defer;
 
     if(arg->i_pos < array_len(arg->pos.list)) {
