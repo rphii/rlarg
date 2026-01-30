@@ -78,6 +78,11 @@ void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Prior
     argx->callback.priority = priority;
 }
 
+void argx_hide(struct Argx *argx, bool hide) {
+    ASSERT_ARG(argx);
+    argx->is_hidden = hide;
+}
+
 void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
     argx->val.vso = val;

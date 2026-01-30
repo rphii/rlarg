@@ -648,6 +648,7 @@ void arg_parse_setref(struct Arg *arg) {
     for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
         arg_parse_setref_group(group);
     }
+    arg_parse_setref_group(&arg->env);
 }
 
 /* set reference value }}} */
