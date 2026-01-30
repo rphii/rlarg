@@ -38,6 +38,7 @@ typedef struct Arg {
         bool error;
         bool given;
         Argx *last;
+        Argx *argx;
     } help;
 
 } Arg;
