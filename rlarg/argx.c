@@ -92,15 +92,27 @@ struct Argx *argx_env(struct Arg *arg, So name, So desc) {
 }
 
 void argx_builtin_env_compgen(struct Arg *arg) {
-    Argx *x = argx_env(arg, so("COMPGEN_WORDLIST"), so("Generate input for autocompletion"));
+    Argx *x = argx_env(arg, so("COMPGEN_WORDLIST"), so("generate input for autocompletion"));
     argx_type_bool(x, &arg->builtin.compgen, 0);
-    printff("VAL p %p",x->val);
+    printff("VAL p %p",x->val.b);
+}
+
+int argx_callback_help(Argx *argx, void *user, So so) {
+    arg_runtime_quit_when_all_valid(argx, true);
+    Arg *arg = user;
+    arg->help.wanted = true;
+    return 0;
+}
+
+void argx_builtin_opt_help(struct Argx_Group *group) {
+    Argx *x = argx_opt(group, 'h', so("help"), so("print this help"));
+    argx_callback(x, argx_callback_help, group->arg, ARGX_PRIORITY_IMMEDIATELY);
 }
 
 void argx_builtin_opt_source(struct Argx_Group *group, So uri) {
     Arg *arg = group->arg;
     if(!arg->builtin.sources_argx) {
-        arg->builtin.sources_argx = argx_opt(group, 0, so("source"), so("Source config files"));
+        arg->builtin.sources_argx = argx_opt(group, 0, so("source"), so("source config files"));
         argx_type_array_uri(arg->builtin.sources_argx, &arg->builtin.sources_vso, &arg->builtin.sources_vso_ref);
     }
     Argx *argx = arg->builtin.sources_argx;

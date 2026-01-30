@@ -114,11 +114,13 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                         done = true;
                     } else {
                         arg_parse_errmsg_missing_positionals(arg);
+                        arg->help.error = true;
                     }
                 } break;
             }
         } else {
             arg_parse_errmsg_group_invalid_opt(stream, argx);
+            arg->help.error = true;
         }
         //if(result) rlc_trace_fatal();
         printff("result %u",result);
@@ -140,6 +142,7 @@ int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) 
         result = 0;
     } else {
         arg_parse_errmsg_invalid_conversion(stream, argx);
+        arg->help.error = true;
     }
     return result;
 }
@@ -153,6 +156,7 @@ int arg_parse_argx_vsize(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
         result = 0;
     } else {
         arg_parse_errmsg_invalid_conversion(stream, argx);
+        arg->help.error = true;
     }
     return result;
 }
@@ -166,6 +170,7 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
         result = 0;
     } else {
         arg_parse_errmsg_invalid_conversion(stream, argx);
+        arg->help.error = true;
     }
     return result;
 }
@@ -369,6 +374,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             result = cb(arg, stream, argx, so);
             if(result) {
                 arg_parse_errmsg_invalid_conversion(stream, argx);
+                arg->help.error = true;
             }
         }
     }
@@ -380,6 +386,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             array_push(arg->queue, q);
         }
     }
+    arg->help.last = argx;
     return result;
 }
 
@@ -399,8 +406,10 @@ int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
     switch(argx->id) {
         case ARGX_TYPE_NONE: break;
         default: {
+            arg->help.last = argx;
             if(!arg_stream_get_next(stream, &so)) {
                 arg_parse_errmsg_missing_value(stream, argx);
+                arg->help.error = true;
                 return -1;
             }
         } break;
@@ -440,6 +449,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                     printff("GOT POSITIONAL ARGX: %.*s", SO_F(pos->opt));
                     if(arg_parse_positional(arg, stream, pos)) {
                         arg_parse_errmsg_unhandled_positional_error(stream);
+                        arg->help.error = true;
                         return -1;
                     }
                     ++arg->i_pos;
@@ -450,6 +460,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                     Argx *rest = stream->rest;
                     if(!rest || (rest && !rest->val.vso)) {
                         arg_parse_errmsg_no_rest_allowed(stream);
+                        arg->help.error = true;
                         return -1;
                     } else {
                         ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
@@ -462,10 +473,12 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                 Argx *argx = t_argx_get(&arg->t_opt, opt);
                 if(!argx) {
                     arg_parse_errmsg_root_invalid_opt(stream, opt);
+                    arg->help.error = true;
                     return -1;
                 }
                 if(arg_parse_option(arg, stream, argx)) {
                     arg_parse_errmsg_unhandled_positional_error(stream);
+                    arg->help.error = true;
                     return -1;
                 }
             } break;
@@ -479,10 +492,12 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                     }
                     if(!argx) {
                         arg_parse_errmsg_root_invalid_opt(stream, so_ll(&c, 1));
+                        arg->help.error = true;
                         return -1;
                     }
                     if(arg_parse_option(arg, stream, argx)) {
                         arg_parse_errmsg_unhandled_positional_error(stream);
+                        arg->help.error = true;
                         return -1;
                     }
                 }
@@ -688,7 +703,11 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     arg_parse_setref(arg);
 
 defer:
-    *quit_early = arg->builtin.quit_early;
+    if((arg->help.wanted || arg->help.error) && arg->help.last) {
+        printff("PRINTIG HELP: %.*s", SO_F(arg->help.last->opt));
+    }
+
+    *quit_early = arg->builtin.quit_early || arg->builtin.quit_when_all_valid;
     return status;
 }
 

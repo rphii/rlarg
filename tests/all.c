@@ -21,6 +21,7 @@ int main(const int argc, const char **argv) {
     ASSERT(g1 == g2, "should point to the same");
 
     argx_builtin_env_compgen(arg);
+    argx_builtin_opt_help(g1);
     argx_builtin_opt_source(g1, so("$HOME/.config/rphiic/colors.conf"));
 
     struct Argx *x, *e1, *e2, *e3;
