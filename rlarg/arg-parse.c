@@ -680,10 +680,30 @@ int arg_queue_post_parsing(Arg *arg) {
     return result;
 }
 
-void arg_help_fmt(So *out, Argx *argx) {
+void arg_parse_help_fmt_rec(So *out, Argx *argx) {
     if(!argx) return;
-    arg_help_fmt(out, argx->group_p ? argx->group_p->parent : 0);
+    arg_parse_help_fmt_rec(out, argx->group_p ? argx->group_p->parent : 0);
     argx_fmt_help(out, argx);
+}
+
+void arg_parse_help(Arg *arg) {
+    if(!((arg->help.wanted || arg->help.error) && arg->help.last)) return;
+
+    if(arg->help.last == arg->help.argx) {
+        arg_help(arg);
+    } else {
+        So out = SO;
+        Argx_So xso = {0};
+        Argx_Fmt fmt = {};
+
+        argx_so(&xso, &fmt, arg->help.last);
+        so_fmt(&out, "%.*s%.*s:\n", SO_F(xso.hierarchy), SO_F(xso.argx->opt));
+        argx_so_free(&xso);
+
+        arg_parse_help_fmt_rec(&out, arg->help.last);
+        so_println(out);
+        so_free(&out);
+    }
 }
 
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early) {
@@ -709,20 +729,8 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     arg_parse_setref(arg);
 
 defer:
-    if((arg->help.wanted || arg->help.error) && arg->help.last) {
-        printff("PRINTIG HELP: %.*s", SO_F(arg->help.last->opt));
-        So out = SO;
-        Argx_So xso = {0};
-        Argx_Fmt fmt = {};
 
-        argx_so(&xso, &fmt, arg->help.last);
-        so_fmt(&out, "%.*s%.*s:\n", SO_F(xso.hierarchy), SO_F(xso.argx->opt));
-        argx_so_free(&xso);
-
-        arg_help_fmt(&out, arg->help.last);
-        so_println(out);
-        so_free(&out);
-    }
+    arg_parse_help(arg);
 
     *quit_early = arg->builtin.quit_early || arg->builtin.quit_when_all_valid;
     return status;

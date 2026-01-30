@@ -101,6 +101,7 @@ int argx_callback_help(Argx *argx, void *user, So so) {
     arg_runtime_quit_when_all_valid(argx, true);
     Arg *arg = user;
     arg->help.wanted = true;
+    arg->help.argx = argx;
     return 0;
 }
 
