@@ -430,7 +430,7 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                 so_push(&xso->hint, hint[1]);
             } break;
             case ARGX_TYPE_ENUM: {
-                ABORT(ERR_UNREACHABLE("maybe-reachable in the future. currently however, this case is handled already"));
+                xso->have_hint = false;
             } break;
             case ARGX_TYPE_REST: {
                 ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));
