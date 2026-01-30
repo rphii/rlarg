@@ -33,6 +33,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     if(!stream->error_id && !arg->help.wanted) {
         stream->error_id = id;
         switch(id) {
+            case ARG_PARSE_ERROR_INVALID_TABLE_CONFIG: /* pseudo */
+            case ARG_PARSE_ERROR_INVALID_OPTION_CONFIG: /* pseudo */
+                break;
             case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_SHORTOPT: /* pseudo */
             case ARG_PARSE_ERROR_NO_REST_ALLOWED:
@@ -66,6 +69,12 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 } break;
                 case ARG_PARSE_ERROR_MISSING_SHORTOPT: { /* pseudo */
                     fprintf(stderr, F("Missing short options, only provided with: %.*s", FG_RD_B), SO_F(argx->opt));
+                } break;
+                case ARG_PARSE_ERROR_INVALID_TABLE_CONFIG: { /* pseudo */
+                    fprintf(stderr, F("Invalid hierarchy which has no option table: %.*s", FG_RD_B), SO_F(argx->opt));
+                } break;
+                case ARG_PARSE_ERROR_INVALID_OPTION_CONFIG: { /* pseudo */
+                    fprintf(stderr, F("Invalid hierarchy which has no argument: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
                     fprintf(stderr, F("Missing positional values, provided with %u/%zu valid", FG_RD_B), arg->i_pos, array_len(arg->pos.list));
@@ -510,12 +519,24 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         T_Argx *table = &arg->t_opt;
         Argx *argx = 0;
         for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
-            if(!table) ABORT("NO TABLE");
+            if(!table) {
+                Argx pseudo = { .opt = lhs };
+                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_INVALID_TABLE_CONFIG, &pseudo);
+                return -1;
+            }
             argx = t_argx_get(table, opt);
-            if(!argx) ABORT("NO ARGX");
+            if(!argx) {
+                Argx pseudo = { .opt = lhs };
+                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_INVALID_OPTION_CONFIG, &pseudo);
+                return -1;
+            }
             table = argx->group_s ? argx->group_s->table : 0;
         }
-        if(!argx) ABORT("NO ARGX 2");
+        if(!argx) {
+            Argx pseudo = { .opt = lhs };
+            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_INVALID_OPTION_CONFIG, &pseudo);
+            return -1;
+        }
         /* parse */
         stream_config.source.line_number = line_number;
         //printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
