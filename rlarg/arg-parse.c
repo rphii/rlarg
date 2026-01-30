@@ -441,6 +441,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
     printff("parse... argc %u", array_len(stream->vso));
     So carg = SO;
+    int status = 0;
     while(arg_stream_get_next(stream, &carg)) {
         printff(" carg: [%.*s]", SO_F(carg));
         /* determine kind of situation... */
@@ -461,10 +462,8 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                     printff("GOT POSITIONAL ARGX: %.*s", SO_F(pos->opt));
                     if(arg_parse_positional(arg, stream, pos)) {
                         arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNHANDLED_POSITIONAL, 0);
-                        //arg_parse_set_help_error(arg, pos);
-                        //arg->help.error = true;
-                        //arg_parse_set_help_error(arg, 
-                        return -1;
+                        status = -1;
+                        goto error_but_maybe_get_env_help;
                     }
                     ++arg->i_pos;
                     printff("POSITIONAL ARGX PARSED OK! -> i_pos %u", arg->i_pos);
@@ -474,8 +473,8 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                     Argx *rest = stream->rest;
                     if(!rest || (rest && !rest->val.vso)) {
                         arg_parse_error(arg, stream, ARG_PARSE_ERROR_NO_REST_ALLOWED, 0);
-                        //arg_parse_set_help_error(
-                        return -1;
+                        status = -1;
+                        goto error_but_maybe_get_env_help;
                     } else {
                         ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
                         vso_push(rest->val.vso, carg);
@@ -488,15 +487,13 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                 if(!argx) {
                     Argx pseudo = { .opt = opt };
                     arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_ROOT, &pseudo);
-                    //arg_parse_set_help_any(arg, arg->help.argx);
-                    //arg->help.error = true;
-                    return -1;
+                    status = -1;
+                    goto error_but_maybe_get_env_help;
                 }
                 if(arg_parse_option(arg, stream, argx)) {
                     arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNHANDLED_POSITIONAL, argx);
-                    //arg_parse_set_help_error(arg, argx);
-                    //arg->help.error = true;
-                    return -1;
+                    status = -1;
+                    goto error_but_maybe_get_env_help;
                 }
             } break;
             case ARG_STREAM_SHORTOPT: {
@@ -510,25 +507,27 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                     if(!argx) {
                         Argx pseudo = { .opt = so_ll(&c, 1) };
                         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_ROOT, &pseudo);
-                        //arg_parse_set_help_any(arg, arg->help.argx);
-                        //arg->help.error = true;
-                        return -1;
+                        status = -1;
+                        goto error_but_maybe_get_env_help;
                     }
                     if(arg_parse_option(arg, stream, argx)) {
                         arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNHANDLED_POSITIONAL, argx);
-                        //arg_parse_set_help_error(arg, argx);
-                        //arg->help.error = true;
-                        return -1;
+                        status = -1;
+                        goto error_but_maybe_get_env_help;
                     }
                 }
             } break;
         }
-        if(situation ) {
-        } else {
-            /* grab an option */
+error_but_maybe_get_env_help:
+        if(status && arg->help.wanted) {
+            Argx *argx = t_argx_get(&arg->t_env, carg);
+            if(argx) {
+                arg_parse_set_help_any(arg, argx);
+            }
         }
+        if(status) break;
     }
-    return 0;
+    return status;
 }
 
 /* main parsing section }}} */
