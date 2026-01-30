@@ -18,6 +18,7 @@ static void static_arg_compgen_argx(struct Arg *arg, struct Argx *argx, bool *an
     ASSERT_ARG(any_out);
     if(!argx) return;
     switch(argx->id) {
+        default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
         case ARGX_TYPE_NONE:
         case ARGX_TYPE_INT:
         case ARGX_TYPE_SIZE:

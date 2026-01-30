@@ -15,6 +15,7 @@ void argx_free(Argx *argx) {
     //printff("free argx: %.*s",SO_F(argx->opt));
     if(argx->is_array) {
         switch(argx->id) {
+            default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
             case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("array of FLAG unsupported (how did you reach this code?)"));
             case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("array of ENUM unsupported (how did you reach this code?)"));
             case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("array of GROUP unsupported (how did you reach this code?)"));
@@ -343,6 +344,7 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     if(!argx->is_hidden) {
         if(argx->is_array) {
             switch(argx->id) {
+                default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
                 case ARGX_TYPE_NONE: {
                     //xso->ref_visible = false;
                     xso->have_hint = false;
@@ -381,6 +383,7 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
             }
         } else {
             switch(argx->id) {
+                default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
                 case ARGX_TYPE_NONE: {
                     //xso->ref_visible = false;
                     xso->have_hint = false;
