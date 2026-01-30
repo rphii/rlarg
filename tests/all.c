@@ -1,6 +1,12 @@
 #include "../rlarg.h"
 #include <rlc.h>
 
+int cbtest(struct Argx *argx, void *user, So so) {
+    printff(F("HELLO WORLD [%.*s]", FG_GN_B), SO_F(so));
+    arg_runtime_quit_early(argx, true);
+    return 0;
+}
+
 int main(const int argc, const char **argv) {
     struct Arg *arg = arg_new();
     ASSERT(arg, "expect to have pointer");
@@ -110,6 +116,10 @@ int main(const int argc, const char **argv) {
           argx_type_so(x, &soe, 0);
 #endif
 
+    x=argx_opt(g1, 0, so("func"), so("function call"));
+      argx_type_int(x, 0, 0);
+      argx_callback(x, cbtest, 0, ARGX_PRIORITY_IMMEDIATELY);
+
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));
 //        x =argx_enum_unique(g2, so("default"), so("default option"));
@@ -117,7 +127,9 @@ int main(const int argc, const char **argv) {
 //           argx_enum_bind(x, e2);
 
     int status = 1;
-    if(arg_parse(arg, argc, argv)) goto clean;
+    bool quit_early;
+    if(arg_parse(arg, argc, argv, &quit_early)) goto clean;
+    if(quit_early) goto clean;
     status = 0;
     arg_help(arg);
     printff("::::::CONFIG:::::");

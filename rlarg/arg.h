@@ -22,9 +22,10 @@ typedef struct Arg {
     T_Argx t_env;       /* root of environment variables */
     T_Argx t_opt;       /* root of long options -> delve into groups */
 
-    Argx_Callback *queue;   /* any callback that we encountered */
+    Argx_Callback_Queue *queue;   /* any callback that we encountered */
 
     struct {
+        bool quit_early;
         bool compgen;
         Argx *sources_argx;
         So *sources_vso;
