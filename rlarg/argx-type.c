@@ -6,7 +6,7 @@
 /* can provide val=0 to override ability from being allowed to set rest to not */
 void argx_type_rest(struct Argx *argx, VSo *val) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
+    argx->val.vso = val;
     argx->id = ARGX_TYPE_REST;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -17,8 +17,8 @@ void argx_type_rest(struct Argx *argx, VSo *val) {
 
 void argx_type_so(struct Argx *argx, So *val, So *ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.so = val;
+    argx->ref.so = ref;
     argx->id = ARGX_TYPE_STRING;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -28,8 +28,8 @@ void argx_type_so(struct Argx *argx, So *val, So *ref) {
 
 void argx_type_uri(struct Argx *argx, So *val, So *ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.so = val;
+    argx->ref.so = ref;
     argx->id = ARGX_TYPE_STRING;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -39,8 +39,8 @@ void argx_type_uri(struct Argx *argx, So *val, So *ref) {
 
 void argx_type_bool(struct Argx *argx, bool *val, bool *ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.b = val;
+    argx->ref.b = ref;
     argx->id = ARGX_TYPE_BOOL;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -50,8 +50,8 @@ void argx_type_bool(struct Argx *argx, bool *val, bool *ref) {
 
 void argx_type_int(struct Argx *argx, int *val, int *ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.i = val;
+    argx->ref.i = ref;
     argx->id = ARGX_TYPE_INT;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -61,8 +61,8 @@ void argx_type_int(struct Argx *argx, int *val, int *ref) {
 
 void argx_type_size(struct Argx *argx, ssize_t *val, ssize_t *ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.z = val;
+    argx->ref.z = ref;
     argx->id = ARGX_TYPE_SIZE;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -80,8 +80,8 @@ void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Prior
 
 void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.vso = val;
+    argx->ref.vso = ref;
     argx->id = ARGX_TYPE_STRING;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -92,8 +92,8 @@ void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
 
 void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.vso = val;
+    argx->ref.vso = ref;
     argx->id = ARGX_TYPE_URI;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -104,8 +104,8 @@ void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref) {
 
 void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.vb = val;
+    argx->ref.vb = ref;
     argx->id = ARGX_TYPE_BOOL;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -116,8 +116,8 @@ void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref) {
 
 void argx_type_array_int(struct Argx *argx, int **val, int **ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.vi = val;
+    argx->ref.vi = ref;
     argx->id = ARGX_TYPE_INT;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -128,8 +128,8 @@ void argx_type_array_int(struct Argx *argx, int **val, int **ref) {
 
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.vz = val;
+    argx->ref.vz = ref;
     argx->id = ARGX_TYPE_SIZE;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
@@ -140,8 +140,8 @@ void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
 
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref) {
     ASSERT_ARG(argx);
-    argx->val = (Argx_Value_Union *)val;
-    argx->ref = (Argx_Value_Union *)ref;
+    argx->val.i = val;
+    argx->ref.i = ref;
     argx->id = ARGX_TYPE_GROUP;
     T_Argx *table;
     NEW(T_Argx, table);
