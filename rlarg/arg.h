@@ -43,10 +43,10 @@ typedef struct Arg {
     } builtin;
 
     struct {
-        Argx *last;
-        Argx *error;
-        bool wanted;
-        Argx *argx;
+        Argx *last;     /* generally the last argx encountered while parsing */
+        Argx *error;    /* argx to show in case of error */
+        bool wanted;    /* if we explicitly want help (e.g. --help) */
+        Argx *argx;     /* pointer to the --help argx */
     } help;
 
 } Arg;
