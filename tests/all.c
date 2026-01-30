@@ -100,7 +100,7 @@ int main(const int argc, const char **argv) {
       argx_type_so(x, &key_v, &key_r);
       argx_hide(x, true);
 
-#if 0
+#if 1
     bool posb = false;
     int pose;
     So soa = SO, sob = SO, soc = SO, sod = SO, soe = SO;

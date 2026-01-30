@@ -36,6 +36,8 @@ typedef struct Arg {
         bool quit_early;
         bool quit_when_all_valid;
         bool compgen;
+        bool compgen_flags;     /* only true has an effect. forces the generation of flags / options */
+        bool compgen_done;
         bool config;
         Argx *sources_argx;
         So *sources_vso;
