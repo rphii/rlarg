@@ -443,7 +443,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
     int result = -1;
-    arg_parse_set_help_any(arg, argx); /* set help BEFORE doing any furhter parsing */
+    arg_parse_set_help_any(arg, argx); /* set help BEFORE doing any further parsing */
     if(argx->is_array) {
         if(argx->id < ARGX_TYPE__COUNT) {
             Arg_Parse_Argx_Callback cb = static_parse_argx_vector_vals_cbs[argx->id];
@@ -480,6 +480,7 @@ int arg_parse_positional(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
+    if(arg->help.wanted) return 0;
     int result = arg_parse_argx(arg, stream, argx, stream->carg);
     return result;
 }
@@ -648,13 +649,9 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
 error_but_maybe_get_env_help:
         if(status && arg->help.wanted) {
             Argx *argx = t_argx_get(&arg->t_env, carg);
-            if(argx) {
-                arg_parse_set_help_any(arg, argx);
-            }
+            if(argx) arg_parse_set_help_any(arg, argx);
             argx = t_argx_get(&arg->t_pos, carg);
-            if(argx) {
-                arg_parse_set_help_any(arg, argx);
-            }
+            if(argx) arg_parse_set_help_any(arg, argx);
         }
         if(status) break;
     }
@@ -841,6 +838,7 @@ void arg_parse_help_fmt_rec(So *out, Argx *argx) {
 
 void arg_parse_help(Arg *arg) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
+    printff("WANTED?%u/LAST %.*s/ERR %p",arg->help.wanted,SO_F(arg->help.last->opt),arg->help.error);
 
     if(!help) {
         if(arg->builtin.compgen) {
