@@ -22,7 +22,8 @@ static void static_arg_compgen_argx(struct Arg *arg, struct Argx *argx, bool *an
         case ARGX_TYPE_NONE:
         case ARGX_TYPE_INT:
         case ARGX_TYPE_SIZE:
-        case ARGX_TYPE_STRING: break;
+        case ARGX_TYPE_COLOR:
+        case ARGX_TYPE_STRING: break; /* can not provide compgen */
         case ARGX_TYPE_BOOL: {
             if(*any_out) printf("%c", 0);
             printf("true%cfalse", 0);

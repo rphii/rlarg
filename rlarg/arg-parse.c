@@ -229,6 +229,21 @@ int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return result;
 }
 
+int arg_parse_argx_vcolor(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = -1;
+    Color v;
+    if(!so_as_color(so, &v)) {
+        if(!arg->help.wanted) {
+            if(argx->val.vc) array_push(*argx->val.vc, v);
+            arg_parse_add_source(argx, stream->source);
+        }
+        result = 0;
+    } else {
+        arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
+    }
+    return result;
+}
+
 /* parsers for vector - values }}} */
 
 /* parsers for regular - values {{{ */
@@ -270,6 +285,17 @@ int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     }
     return 0;
 }
+
+int arg_parse_argx_color(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    Color v;
+    int result = so_as_color(so, &v);
+    if(!arg->help.wanted) {
+        if(argx->val.z) *argx->val.c = v;
+        arg_parse_add_source(argx, stream->source);
+    }
+    return result;
+}
+
 
 int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(argx->group_p);
@@ -376,6 +402,7 @@ static Arg_Parse_Argx_Callback static_parse_argx_single_cbs[ARGX_TYPE__COUNT] = 
     [ARGX_TYPE_GROUP] = arg_parse_argx_group,
     [ARGX_TYPE_URI] = arg_parse_argx_so,
     [ARGX_TYPE_STRING] = arg_parse_argx_so,
+    [ARGX_TYPE_COLOR] = arg_parse_argx_color,
     [ARGX_TYPE_REST] = 0,
 };
 
@@ -385,6 +412,7 @@ static Arg_Parse_Argx_Callback static_parse_argx_vector_vals_cbs[ARGX_TYPE__COUN
     [ARGX_TYPE_BOOL] = arg_parse_argx_vso,
     [ARGX_TYPE_URI] = arg_parse_argx_vso,
     [ARGX_TYPE_STRING] = arg_parse_argx_vso,
+    [ARGX_TYPE_COLOR] = arg_parse_argx_vcolor,
     [ARGX_TYPE_REST] = 0,
     [ARGX_TYPE_NONE] = 0,
     [ARGX_TYPE_ENUM] = 0,
@@ -398,6 +426,7 @@ static Arg_Parse_Argx_Vector_Callback static_parse_argx_vector_cbs[ARGX_TYPE__CO
     [ARGX_TYPE_BOOL] = arg_parse_argx_vector,
     [ARGX_TYPE_URI] = arg_parse_argx_vector,
     [ARGX_TYPE_STRING] = arg_parse_argx_vector,
+    [ARGX_TYPE_COLOR] = arg_parse_argx_vector,
     [ARGX_TYPE_NONE] = arg_parse_argx_vector_none,
     [ARGX_TYPE_REST] = arg_parse_argx_vector_rest,
     [ARGX_TYPE_ENUM] = 0,
@@ -650,29 +679,20 @@ void arg_parse_setref_argx(Argx *argx) {
             switch(argx->id) {
                 default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
                 case ARGX_TYPE_BOOL: {
-                    if(argx->val.vb) {
-                        array_extend(*argx->val.vb, *argx->ref.vb);
-                        arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->ref.vb));
-                    }
+                    if(argx->val.vb) array_extend(*argx->val.vb, *argx->ref.vb);
+                } break;
+                case ARGX_TYPE_COLOR: {
+                    if(argx->val.vc) array_extend(*argx->val.vc, *argx->ref.vc);
                 } break;
                 case ARGX_TYPE_URI:
                 case ARGX_TYPE_STRING: {
-                    if(argx->val.vso) {
-                        array_extend(*argx->val.vso, *argx->ref.vso);
-                        arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->ref.vso));
-                    }
+                    if(argx->val.vso) array_extend(*argx->val.vso, *argx->ref.vso);
                 } break;
                 case ARGX_TYPE_INT: {
-                    if(argx->val.vi) {
-                        array_extend(*argx->val.vi, *argx->ref.vi);
-                        arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->ref.vi));
-                    }
+                    if(argx->val.vi) array_extend(*argx->val.vi, *argx->ref.vi);
                 } break;
                 case ARGX_TYPE_SIZE: {
-                    if(argx->val.vz) {
-                        array_extend(*argx->val.vz, *argx->ref.vz);
-                        arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->ref.vz));
-                    }
+                    if(argx->val.vz) array_extend(*argx->val.vz, *argx->ref.vz);
                 } break;
                 case ARGX_TYPE_NONE: break;
                 case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
@@ -680,6 +700,7 @@ void arg_parse_setref_argx(Argx *argx) {
                 case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("case is handled separately"));
                 case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
+            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->ref.vb));
         } else {
             //printff(" v %p = r %p id %u [%.*s]",argx->val,argx->ref,argx->id,SO_F(argx->opt));
             arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (int)(bool)(argx->ref.any));
@@ -696,6 +717,9 @@ void arg_parse_setref_argx(Argx *argx) {
                     //if(!parent->sources) {
                         if(argx->val.b) *argx->val.b = *argx->ref.b;
                     //}
+                } break;
+                case ARGX_TYPE_COLOR: {
+                    if(argx->val.c) *argx->val.c = *argx->ref.c;
                 } break;
                 case ARGX_TYPE_BOOL: {
                     if(argx->val.b) *argx->val.b = *argx->ref.b;
