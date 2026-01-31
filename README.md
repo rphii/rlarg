@@ -17,6 +17,8 @@ Argument parser for C.
     - `arg_parse_setref_argx`
 5. [`arg-compgen.c`](rlarg/arg-compgen.c) add compgen support: (expand switch)
     - `static_arg_compgen_argx`
+6. [`arg-type.c`](rlarg/arg-type.c) add the actual code to specify your type: (create your function)
+    - `argx_type_???`
 
 You can alternatively view places you need to patch via:
 
