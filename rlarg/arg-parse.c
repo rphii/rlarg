@@ -77,10 +77,10 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     fprintf(stderr, F("Hierarchy reveals no option: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
-                    fprintf(stderr, F("Missing positional values, provided with %u/%zu valid", FG_RD_B), arg->i_pos, array_len(arg->pos.list));
+                    fprintf(stderr, F("Missing positional values: %.*s %.*s", FG_RD_B), SO_F(argx->opt), SO_F(xso.hint));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_VALUE: {
-                    fprintf(stderr, F("Missing value for argument: %.*s %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint));
+                    fprintf(stderr, F("Missing value for argument: %.*s %.*s", FG_RD_B), SO_F(argx->opt), SO_F(xso.hint));
                 } break;
                 case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL: {
                     fprintf(stderr, F("Unknown error occured while parsing: ", FG_RD_B));
