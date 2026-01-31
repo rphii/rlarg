@@ -42,7 +42,7 @@ static void static_arg_compgen_argx(struct Arg *arg, struct Argx *argx) {
 void arg_compgen_global(struct Arg *arg) {
     if(arg->builtin.compgen_done) return;
     arg->builtin.compgen_done = true;
-    printff("GLOBAL COMPGEN");
+    //printff("GLOBAL COMPGEN");
     bool any_out = true;
     ASSERT_ARG(arg);
     for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
