@@ -138,6 +138,21 @@ void argx_builtin_opt_source(struct Argx_Group *group, So uri) {
     vso_push(argx->val.vso, uri);
 }
 
+void argx_builtin_opt_so_fx(struct Argx *x, So opt, So_Fx *fmt, So_Fx *ref) {
+    struct Argx_Group *g = 0;
+    g=argx_group_options(x);
+      x=argx_opt(g, 0, so("fg"), so("foreground"));
+        argx_type_color(x, &fmt->fg, ref ? &ref->fg : 0);
+      x=argx_opt(g, 0, so("bg"), so("background"));
+        argx_type_color(x, &fmt->bg, ref ? &ref->bg : 0);
+      x=argx_opt(g, 0, so("bold"), so("bold"));
+        argx_type_bool(x, &fmt->bold, ref ? &ref->bold : 0);
+      x=argx_opt(g, 0, so("it"), so("italic"));
+        argx_type_bool(x, &fmt->italic, ref ? &ref->italic : 0);
+      x=argx_opt(g, 0, so("ul"), so("underline"));
+        argx_type_bool(x, &fmt->underline, ref ? &ref->underline : 0);
+}
+
 void argx_so_free(Argx_So *xso) {
     if(!xso) return;
     if(!xso->argx) return;
