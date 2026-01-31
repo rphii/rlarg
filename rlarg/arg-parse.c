@@ -566,9 +566,11 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     //printff("parse... argc %u", array_len(stream->vso));
     So carg = SO;
     int status = 0;
+    bool get_env_help = false;
     while(arg_stream_get_next(stream, &carg, &arg->builtin.compgen_flags)) {
         //printff(" carg: [%.*s]", SO_F(carg));
         /* determine kind of situation... */
+        if(get_env_help) goto error_but_maybe_get_env_help;
         Arg_Stream_List situation = ARG_STREAM_DONE;
         if(stream->i < array_len(stream->vso)) situation = ARG_STREAM_REST;
         if(!stream->skip_flag_check) {
@@ -647,13 +649,36 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
             } break;
         }
 error_but_maybe_get_env_help:
-        if(status && arg->help.wanted) {
-            Argx *argx = t_argx_get(&arg->t_env, carg);
-            if(argx) arg_parse_set_help_any(arg, argx);
-            argx = t_argx_get(&arg->t_pos, carg);
-            if(argx) arg_parse_set_help_any(arg, argx);
+        if(!status) continue;
+        if(arg->help.wanted) {
+            if(get_env_help) {
+                Argx *argx = arg->help.last;
+                if(argx->id == ARGX_TYPE_GROUP) {
+                    ASSERT_ARG(argx->group_s);
+                    argx = t_argx_get(argx->group_s->table, carg);
+                    if(argx) {
+                        arg_parse_set_help_any(arg, argx);
+                        get_env_help = true;
+                    }
+                } else {
+                    break;
+                }
+            } else {
+                Argx *argx = t_argx_get(&arg->t_env, carg);
+                if(argx) {
+                    arg_parse_set_help_any(arg, argx);
+                    get_env_help = true;
+                }
+                argx = t_argx_get(&arg->t_pos, carg);
+                if(argx) {
+                    arg_parse_set_help_any(arg, argx);
+                    get_env_help = true;
+                }
+            }
         }
-        if(status) break;
+        if(!get_env_help) {
+            break;
+        }
     }
     return status;
 }
