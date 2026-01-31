@@ -22,6 +22,7 @@ typedef enum {
     ARGX_TYPE_GROUP,
     ARGX_TYPE_ENUM,
     ARGX_TYPE_FLAG,
+    ARGX_TYPE_COLOR,
     /* keep above */
     ARGX_TYPE__COUNT,
 } Argx_Type_List;
@@ -36,6 +37,8 @@ typedef union Argx_Value_Union {
     bool **vb;
     So *so;
     VSo *vso;
+    Color *c;
+    Color **vc;
 } Argx_Value_Union;
 
 typedef struct Argx_Callback {

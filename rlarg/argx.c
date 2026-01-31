@@ -38,6 +38,10 @@ void argx_free(Argx *argx) {
                 if(argx->val.vb) array_free(*argx->val.vb);
                 if(argx->ref.vb) array_free(*argx->ref.vb);
             } break;
+            case ARGX_TYPE_COLOR: {
+                if(argx->val.vc) array_free(*argx->val.vc);
+                if(argx->ref.vc) array_free(*argx->ref.vc);
+            } break;
         }
     } else {
         if(argx->id == ARGX_TYPE_GROUP) {
@@ -174,6 +178,12 @@ void argx_so_type_bool(So *out, Argx_Value_Union *val) {
     if(val->b) so_extend(out, *val->b ? so("true") : so("false"));
 }
 
+void argx_so_type_color(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    //printff("FORMAT COLOR %x",(*val->c).rgba);
+    if(val->c) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
+}
+
 /* non vector types }}} */
 
 /* vector types {{{ */
@@ -230,6 +240,20 @@ void argx_so_type_array_bool(So *out, Argx_Value_Union *val) {
         bool *vE = array_itE(*val->vb);
         for(bool *v = *val->vb; v < vE; ++v) {
             so_extend(out, *v ? so("true") : so("false"));
+            if(v + 1 < vE) so_extend(out, so(", "));
+        }
+        so_push(out, ']');
+    }
+}
+
+void argx_so_type_array_color(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    ASSERT_ARG(val);
+    if(val->vc) {
+        so_push(out, '[');
+        Color *vE = array_itE(*val->vc);
+        for(Color *v = *val->vc; v < vE; ++v) {
+            so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
             if(v + 1 < vE) so_extend(out, so(", "));
         }
         so_push(out, ']');
@@ -349,6 +373,11 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                     //xso->ref_visible = false;
                     xso->have_hint = false;
                 } break;
+                case ARGX_TYPE_COLOR: {
+                    argx_so_type_array_color(&xso->set_val, &argx->val);
+                    argx_so_type_array_color(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
                 case ARGX_TYPE_BOOL: {
                     argx_so_type_array_bool(&xso->set_val, &argx->val);
                     argx_so_type_array_bool(&xso->set_ref, &argx->ref);
@@ -387,6 +416,11 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                 case ARGX_TYPE_NONE: {
                     //xso->ref_visible = false;
                     xso->have_hint = false;
+                } break;
+                case ARGX_TYPE_COLOR: {
+                    argx_so_type_color(&xso->set_val, &argx->val);
+                    argx_so_type_color(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
                 } break;
                 case ARGX_TYPE_FLAG:
                 case ARGX_TYPE_BOOL: {

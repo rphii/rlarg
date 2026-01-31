@@ -48,12 +48,14 @@ void argx_type_uri(struct Argx *argx, So *val, So *ref);
 void argx_type_bool(struct Argx *argx, bool *val, bool *ref);
 void argx_type_int(struct Argx *argx, int *val, int *ref);
 void argx_type_size(struct Argx *argx, ssize_t *val, ssize_t *ref);
+void argx_type_color(struct Argx *argx, Color *val, Color *ref);
 
 void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref);
 void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref);
 void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref);
 void argx_type_array_int(struct Argx *argx, int **val, int **ref);
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref);
+void argx_type_array_color(struct Argx *argx, Color **val, Color **ref);
 
 void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority);
 void argx_hide(struct Argx *argx, bool hide);

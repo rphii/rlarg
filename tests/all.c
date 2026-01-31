@@ -83,6 +83,10 @@ int main(const int argc, const char **argv) {
         e2=argx_flag(g2, &f2, &(bool){false}, so("nsfw"), so("not safe for work"));
         e2=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));
 
+    Color col = COLOR_AQUA;
+    x=argx_opt(g1, 0, so("color"), so("color support"));
+      argx_type_color(x, &col, 0);
+
     So subopt = SO, subopt2 = SO;
     x=argx_opt(g1, 0, so("subopt4"), so("some options"));
       g2=argx_group_options(x);

@@ -70,6 +70,17 @@ void argx_type_size(struct Argx *argx, ssize_t *val, ssize_t *ref) {
     };
 }
 
+void argx_type_color(struct Argx *argx, Color *val, Color *ref) {
+    ASSERT_ARG(argx);
+    argx->val.c = val;
+    argx->ref.c = ref;
+    argx->id = ARGX_TYPE_COLOR;
+    argx->hint = (Argx_Hint){
+        .id = ARGX_HINT_REQUIRED,
+        .so = so("color"),
+    };
+}
+
 void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority) {
     ASSERT_ARG(argx);
     ASSERT_ARG(func);
@@ -139,6 +150,18 @@ void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
         .so = so("size-array"),
+    };
+    argx->is_array = true;
+}
+
+void argx_type_array_color(struct Argx *argx, Color **val, Color **ref) {
+    ASSERT_ARG(argx);
+    argx->val.vc = val;
+    argx->ref.vc = ref;
+    argx->id = ARGX_TYPE_COLOR;
+    argx->hint = (Argx_Hint){
+        .id = ARGX_HINT_REQUIRED,
+        .so = so("color-array"),
     };
     argx->is_array = true;
 }

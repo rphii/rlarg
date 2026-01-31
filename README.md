@@ -4,8 +4,9 @@ Argument parser for C.
 
 ## Adding an internal type
 
-1. [`argx.h`](rlarg/argx.h) extend enum:
+1. [`argx.h`](rlarg/argx.h) extend enum and union:
     - `Argx_Type_List`
+    - `Argx_Value_Union`
 2. [`argx.c`](rlarg/argx.c) extend core: (expand switches)
     - `argx_free`
     - `argx_so`
