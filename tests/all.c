@@ -87,11 +87,13 @@ int main(const int argc, const char **argv) {
     x=argx_opt(g1, 0, so("color"), so("color support"));
       argx_type_color(x, &col, 0);
 
-    So_Fx fx = {0};
+    So_Fx fx = {0}, fx2 = {0};
     x=argx_opt(g1, 0, so("rice"), so("ricing support"));
       g2=argx_group_options(x);
         x=argx_opt(g2, 0, so("test"), so("test rice"));
           argx_builtin_opt_so_fx(x, so("lmao"), &fx, 0);
+        x=argx_opt(g2, 0, so("other"), so("other test rice"));
+          argx_builtin_opt_so_fx(x, so("lmao"), &fx2, 0);
 
     So subopt = SO, subopt2 = SO;
     x=argx_opt(g1, 0, so("subopt4"), so("some options"));
