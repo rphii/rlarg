@@ -838,7 +838,6 @@ void arg_parse_help_fmt_rec(So *out, Argx *argx) {
 
 void arg_parse_help(Arg *arg) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
-    printff("WANTED?%u/LAST %.*s/ERR %p",arg->help.wanted,SO_F(arg->help.last->opt),arg->help.error);
 
     if(!help) {
         if(arg->builtin.compgen) {
