@@ -480,7 +480,7 @@ int arg_parse_positional(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
-    if(arg->help.wanted) return 0;
+    if(arg->help.wanted) return -1;
     int result = arg_parse_argx(arg, stream, argx, stream->carg);
     return result;
 }

@@ -50,9 +50,11 @@ void arg_compgen_global(struct Arg *arg) {
     }
     arg_compgen_group(&arg->env);
     arg_compgen_group(&arg->pos);
-    /* also print the argx information about the next positional in line */
-    Argx *argx = arg->i_pos < array_len(arg->pos.list) ? array_at(arg->pos.list, arg->i_pos) : 0;
-    static_arg_compgen_argx(arg, argx);
+    /* also print the argx information about the next positional in line BUT only if the current help is not the --help argx */
+    if(arg->help.last != arg->help.argx) {
+        Argx *argx = arg->i_pos < array_len(arg->pos.list) ? array_at(arg->pos.list, arg->i_pos) : 0;
+        static_arg_compgen_argx(arg, argx);
+    }
     printf("\n");
 }
 
