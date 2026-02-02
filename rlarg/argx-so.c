@@ -248,6 +248,7 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
     Arg_Rice *rice = &argx->group_p->arg->rice;
+    bool nc = argx->group_p->arg->builtin.nocolor;
 
     argx_so_clear(xso);
     /* remember the hint */
@@ -285,8 +286,8 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
                 xso->have_hint = false;
             } break;
             case ARGX_TYPE_COLOR: {
-                argx_so_type_array_color(&xso->set_val, fx, &argx->val);
-                argx_so_type_array_color(&xso->set_ref, fx, &argx->ref);
+                argx_so_type_array_color(&xso->set_val, !nc, &argx->val);
+                argx_so_type_array_color(&xso->set_ref, !nc, &argx->ref);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_BOOL: {
@@ -329,8 +330,8 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
                 xso->have_hint = false;
             } break;
             case ARGX_TYPE_COLOR: {
-                argx_so_type_color(&xso->set_val, fx, &argx->val);
-                argx_so_type_color(&xso->set_ref, fx, &argx->ref);
+                argx_so_type_color(&xso->set_val, !nc, &argx->val);
+                argx_so_type_color(&xso->set_ref, !nc, &argx->ref);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_FLAG:

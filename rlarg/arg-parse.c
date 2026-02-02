@@ -1,6 +1,7 @@
 #include "arg-parse.h"
 #include "arg.h"
 #include "arg-compgen.h"
+#include <unistd.h>
 
 /* error messages {{{ */
 
@@ -22,10 +23,13 @@ void arg_parse_set_help_error(struct Arg *arg, Argx *argx) {
     arg_parse_set_help_any(arg, argx);
 }
 
+#define FF(n,x,f)     n ? x : F(x, f)
+
 void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx *argx) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(id);
+    bool nc = arg->builtin.nocolor;
     Argx_So xso = {0};
     if(arg->builtin.config_print_selected) return;
     //if(argx) { printff(F("ERROR %u, set %u [%.*s]", FG_RD_B), id, stream->error_id, SO_F(argx->opt)); }
@@ -56,43 +60,43 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
         }
         if(!arg->builtin.compgen) {
             if(stream->source.line_number) {
-                fprintf(stderr, F("%.*s:%u: ", FG_MG), SO_F(stream->source.path), stream->source.line_number);
+                fprintf(stderr, FF(nc, "%.*s:%u: ", FS_BEG FG_MG), SO_F(stream->source.path), stream->source.line_number);
             } else {
-                fprintf(stderr, F("%.*s: ", FG_MG), SO_F(stream->source.path));
+                fprintf(stderr, FF(nc, "%.*s: ", FS_BEG FG_MG), SO_F(stream->source.path));
             }
             switch(id) {
                 case ARG_PARSE_ERROR_UNCONFIGURABLE: {
-                    fprintf(stderr, F("Cannot configure: '%.*s', tried setting to: '%.*s'", FG_RD_B), SO_F(xso.argx->opt), SO_F(stream->carg));
+                    fprintf(stderr, FF(nc, "Cannot configure: '%.*s', tried setting to: '%.*s'", FG_RD_B), SO_F(xso.argx->opt), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_CONVERSION: {
-                    fprintf(stderr, F("Invalid conversion for '%.*s' %.*s: %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+                    fprintf(stderr, FF(nc, "Invalid conversion for '%.*s' %.*s: %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_GROUP: {
-                    fprintf(stderr, F("Option not found in '%.*s' %.*s: %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+                    fprintf(stderr, FF(nc, "Option not found in '%.*s' %.*s: %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: { /* pseudo */
-                    fprintf(stderr, F("Option not found in root groups: '%.*s'", FG_RD_B), SO_F(argx->opt));
+                    fprintf(stderr, FF(nc, "Option not found in root groups: '%.*s'", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_SHORTOPT: { /* pseudo */
-                    fprintf(stderr, F("Missing short options, only provided with: %.*s", FG_RD_B), SO_F(argx->opt));
+                    fprintf(stderr, FF(nc, "Missing short options, only provided with: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG: { /* pseudo */
-                    fprintf(stderr, F("Hierarchy reveals no such option table: %.*s", FG_RD_B), SO_F(argx->opt));
+                    fprintf(stderr, FF(nc, "Hierarchy reveals no such option table: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG: { /* pseudo */
-                    fprintf(stderr, F("Hierarchy reveals no root: %.*s", FG_RD_B), SO_F(argx->opt));
+                    fprintf(stderr, FF(nc, "Hierarchy reveals no root: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG: { /* pseudo */
-                    fprintf(stderr, F("Hierarchy reveals no such option: %.*s", FG_RD_B), SO_F(argx->opt));
+                    fprintf(stderr, FF(nc, "Hierarchy reveals no such option: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
-                    fprintf(stderr, F("Missing positional values: %.*s %.*s", FG_RD_B), SO_F(argx->opt), SO_F(xso.hint));
+                    fprintf(stderr, FF(nc, "Missing positional values: %.*s %.*s", FG_RD_B), SO_F(argx->opt), SO_F(xso.hint));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_VALUE: {
-                    fprintf(stderr, F("Missing value for argument: %.*s %.*s", FG_RD_B), SO_F(argx->opt), SO_F(xso.hint));
+                    fprintf(stderr, FF(nc, "Missing value for argument: %.*s %.*s", FG_RD_B), SO_F(argx->opt), SO_F(xso.hint));
                 } break;
                 case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL: {
-                    fprintf(stderr, F("Unknown error occured while parsing: ", FG_RD_B));
+                    fprintf(stderr, FF(nc, "Unknown error occured while parsing: ", FG_RD_B));
                     while(stream->i < array_len(stream->vso)) {
                         So carg = array_at(stream->vso, stream->i);
                         fprintf(stderr, "%.*s ", SO_F(carg));
@@ -100,7 +104,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     }
                 } break;
                 case ARG_PARSE_ERROR_NO_REST_ALLOWED: {
-                    fprintf(stderr, F("Not allowed to set rest of values: ", FG_RD_B));
+                    fprintf(stderr, FF(nc, "Not allowed to set rest of values: ", FG_RD_B));
                     while(stream->i < array_len(stream->vso)) {
                         So carg = array_at(stream->vso, stream->i);
                         fprintf(stderr, "%.*s ", SO_F(carg));
@@ -992,6 +996,8 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
 
     /* check if we want config generation support */
     arg_parse_enable_config_print(arg);
+
+    if(!isatty(STDOUT_FILENO)) arg->builtin.nocolor = true;
 
     /* now actually parse */
 

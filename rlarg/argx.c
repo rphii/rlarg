@@ -101,10 +101,16 @@ void argx_builtin_env_compgen(struct Arg *arg) {
     argx_type_bool(x, &arg->builtin.compgen, 0);
 }
 
+void argx_builtin_env_nocolor(struct Arg *arg) {
+    Argx *x = argx_env(arg, so("NOCOLOR"), so("disable colors"));
+    argx_type_bool(x, &arg->builtin.nocolor, 0);
+}
+
 int argx_callback_config(Argx *argx, void *user, So so) {
     arg_runtime_quit_when_all_valid(argx, true);
     Arg *arg = user;
     arg->builtin.config_print_selected = true;
+    //arg->builtin.nocolor = true;
     return 0;
 }
 

@@ -64,6 +64,7 @@ typedef struct Arg {
         bool compgen_done;          /* helps us only printin one single compgen instance */
         bool config_print_selected; // TODO: should probably rename to config_print; or smth. env_config_print?
         bool config_use_builtin;    /* instruct to generate groups of all options right before arg_parse ... */
+        bool nocolor;               /* disable colors */
         Argx *sources_argx;
         VSo sources_vso;        /* visible vso sources */
         VSo sources_content;    /* content of sources */

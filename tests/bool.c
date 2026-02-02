@@ -9,6 +9,7 @@ int main(const int argc, const char **argv) {
     struct Argx_Group *g1 = argx_group(arg, so("default"));
     struct Argx *x=argx_opt(g1, 'b', so("bool"), so("a boolean value"));
     argx_type_bool(x, &val, 0);
+    argx_builtin_env_nocolor(arg);
 
     bool quit_early = false;
     if(arg_parse(arg, argc, argv, &quit_early)) goto defer;
