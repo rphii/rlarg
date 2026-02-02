@@ -110,7 +110,6 @@ int argx_callback_config(Argx *argx, void *user, So so) {
     arg_runtime_quit_when_all_valid(argx, true);
     Arg *arg = user;
     arg->builtin.config_print_selected = true;
-    //arg->builtin.nocolor = true;
     return 0;
 }
 
