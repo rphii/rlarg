@@ -113,9 +113,9 @@ void argx_builtin_env_config(struct Arg *arg) {
     argx_callback(x, argx_callback_config, arg, ARGX_PRIORITY_IMMEDIATELY);
     Argx_Group *g = argx_group_flags(x);
 
-    Argx_Group *itE = array_itE(arg->opts);
-    for(Argx_Group *it = arg->opts; it < itE; ++it) {
-        argx_flag(g, &it->config_print, 0, it->name, SO);
+    Argx_Group **itE = array_itE(arg->opts);
+    for(Argx_Group **it = arg->opts; it < itE; ++it) {
+        argx_flag(g, &(*it)->config_print, 0, (*it)->name, SO);
     }
 }
 
@@ -144,7 +144,7 @@ void argx_builtin_opt_source(struct Argx_Group *group, So uri) {
     vso_push(argx->val.vso, uri);
 }
 
-void argx_builtin_opt_so_fx(struct Argx *x, So opt, So_Fx *fmt, So_Fx *ref) {
+void argx_builtin_opt_so_fx(struct Argx *x, So_Fx *fmt, So_Fx *ref) {
     struct Argx_Group *g = 0;
     g=argx_group_options(x);
       x=argx_opt(g, 0, so("fg"), so("foreground"));
@@ -157,6 +157,55 @@ void argx_builtin_opt_so_fx(struct Argx *x, So opt, So_Fx *fmt, So_Fx *ref) {
         argx_type_bool(x, &fmt->italic, ref ? &ref->italic : 0);
       x=argx_opt(g, 0, so("ul"), so("underline"));
         argx_type_bool(x, &fmt->underline, ref ? &ref->underline : 0);
+}
+
+struct Argx_Group *argx_builtin_rice(struct Arg *arg) {
+    struct Argx_Group *g = 0, *h = 0;
+    Argx *x = 0;
+    g=argx_group(arg, so("rice"));
+      x=argx_opt(g, 0, so("arg"), so("look & feel of the argument parser"));
+        h=argx_group_options(x);
+          x=argx_opt(h, 0, so("program"), so("program name formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.program, 0);
+          x=argx_opt(h, 0, so("group"), so("group name formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.group, 0);
+          x=argx_opt(h, 0, so("group-delim"), so("group delimiter formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.group_delim, 0);
+          x=argx_opt(h, 0, so("pos"), so("positional formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.pos, 0);
+          x=argx_opt(h, 0, so("short"), so("short options formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.c, 0);
+          x=argx_opt(h, 0, so("long"), so("long options formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.opt, 0);
+          x=argx_opt(h, 0, so("env"), so("environment formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.env, 0);
+          x=argx_opt(h, 0, so("desc"), so("description formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.desc, 0);
+          x=argx_opt(h, 0, so("subopt"), so("suboption formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.subopt, 0);
+          x=argx_opt(h, 0, so("subopt-delim"), so("suboption delimiter formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.subopt_delim, 0);
+          x=argx_opt(h, 0, so("enum"), so("enum formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.enum_unset, 0);
+          x=argx_opt(h, 0, so("enum-set"), so("enum set formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.enum_set, 0);
+          x=argx_opt(h, 0, so("enum-delim"), so("enum delimiter formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.enum_delim, 0);
+          x=argx_opt(h, 0, so("flag"), so("flag formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.flag_unset, 0);
+          x=argx_opt(h, 0, so("flag-set"), so("flag set formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.flag_set, 0);
+          x=argx_opt(h, 0, so("flag-delim"), so("flag delimiter formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.flag_delim, 0);
+          x=argx_opt(h, 0, so("hint"), so("hint formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.hint, 0);
+          x=argx_opt(h, 0, so("hint-delim"), so("hint delimiter formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.hint_delim, 0);
+          x=argx_opt(h, 0, so("val"), so("value formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.val, 0);
+          x=argx_opt(h, 0, so("val-delim"), so("value formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.val_delim, 0);
+    return g;
 }
 
 #define ARG_SPACING_HINT_WRAP               40
@@ -263,18 +312,16 @@ void argx_fmt_config(So *out, Argx *argx) {
             argx_fmt_config(out, *it);
         }
     } else {
-        So hierarchy;
-        so_split_ch(xso.hierarchy, '.', &hierarchy);
         if(xso.val_config) {
-            so_fmt(out, "%.*s%.*s = %.*s", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
+            so_fmt(out, "%.*s%.*s = %.*s", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
             if(xso.have_hint) {
                 so_fmt(out, " # %.*s", SO_F(xso.hint));
             }
         } else {
             if(xso.have_hint) {
-                so_fmt(out, "# %.*s%.*s = %.*s", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.hint));
+                so_fmt(out, "# %.*s%.*s = %.*s", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.hint));
             } else {
-                so_fmt(out, "# %.*s%.*s", SO_F(hierarchy), SO_F(argx->opt));
+                so_fmt(out, "# %.*s%.*s", SO_F(xso.hierarchy), SO_F(argx->opt));
             }
         }
         //so_fmt(out, " ### %.*s\n", SO_F(argx->desc));

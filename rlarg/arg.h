@@ -25,6 +25,8 @@ typedef struct Arg_Rice {
     So_Fx opt;
     So_Fx env;
     So_Fx desc;
+    So_Fx subopt;
+    So_Fx subopt_delim;
     So_Fx enum_unset;
     So_Fx enum_set;
     So_Fx enum_delim;

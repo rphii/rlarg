@@ -45,8 +45,8 @@ void arg_compgen_global(struct Arg *arg) {
     //printff("GLOBAL COMPGEN");
     bool any_out = true;
     ASSERT_ARG(arg);
-    for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
-        arg_compgen_group(group);
+    for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
+        arg_compgen_group(*group);
     }
     arg_compgen_group(&arg->env);
     arg_compgen_group(&arg->pos);
