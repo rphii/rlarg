@@ -56,8 +56,8 @@ void argx_so_type_bool(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
 void argx_so_type_color(So *out, bool fx, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     if(val->c) {
-        if(fx) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
-        else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_DEC|SO_COLOR_NOFX);
+        if(fx) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX|SO_COLOR_PAREN);
+        else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX|SO_COLOR_PAREN|SO_COLOR_NOFX);
     }
 }
 
@@ -130,8 +130,8 @@ void argx_so_type_array_color(So *out, bool fx, Argx_Value_Union *val) {
         so_push(out, '[');
         Color *vE = array_itE(*val->vc);
         for(Color *v = *val->vc; v < vE; ++v) {
-            if(fx) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
-            else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_DEC|SO_COLOR_NOFX);
+            if(fx) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX|SO_COLOR_PAREN);
+            else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX|SO_COLOR_PAREN|SO_COLOR_NOFX);
             if(v + 1 < vE) so_extend(out, so(", "));
         }
         so_push(out, ']');
