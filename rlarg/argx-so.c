@@ -1,0 +1,353 @@
+#include "argx-so.h"
+#include "argx.h"
+#include "argx-group.h"
+
+void argx_so_free(Argx_So *xso) {
+    if(!xso) return;
+    if(!xso->argx) return;
+    so_free(&xso->set_val);
+    so_free(&xso->set_ref);
+    so_free(&xso->hint);
+    so_free(&xso->hierarchy);
+}
+
+void argx_so_clear(Argx_So *xso) {
+    if(!xso) return;
+    if(!xso->argx) return;
+    so_clear(&xso->set_val);
+    so_clear(&xso->set_ref);
+    so_clear(&xso->hint);
+    so_clear(&xso->hierarchy);
+}
+
+/* non vector types {{{ */
+
+void argx_so_like_string(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    if(val->so) so_fmt(out, "'%.*s'", SO_F(*val->so));
+}
+
+void argx_so_type_int(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    if(val->i) so_fmt(out, "%d", *val->i);
+}
+
+void argx_so_type_size(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    if(val->z) so_fmt(out, "%zi", *val->z);
+}
+
+void argx_so_type_bool(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    if(val->b) so_extend(out, *val->b ? so("true") : so("false"));
+}
+
+void argx_so_type_color(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    //printff("FORMAT COLOR %x",(*val->c).rgba);
+    if(val->c) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
+}
+
+/* non vector types }}} */
+
+/* vector types {{{ */
+
+void argx_so_like_array_string(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    ASSERT_ARG(val);
+    if(val->vso) {
+        so_push(out, '[');
+        So *vE = array_itE(*val->vso);
+        for(So *v = *val->vso; v < vE; ++v) {
+            so_push(out, '\'');
+            so_extend(out, *v);
+            so_push(out, '\'');
+            if(v + 1 < vE) so_extend(out, so(", "));
+        }
+        so_push(out, ']');
+    }
+}
+
+void argx_so_type_array_int(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    ASSERT_ARG(val);
+    if(val->vi) {
+        so_push(out, '[');
+        int *vE = array_itE(*val->vi);
+        for(int *v = *val->vi; v < vE; ++v) {
+            so_fmt(out, "%d", *v);
+            if(v + 1 < vE) so_extend(out, so(", "));
+        }
+        so_push(out, ']');
+    }
+}
+
+void argx_so_type_array_size(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    ASSERT_ARG(val);
+    if(val->vz) {
+        so_push(out, '[');
+        ssize_t *vE = array_itE(*val->vz);
+        for(ssize_t *v = *val->vz; v < vE; ++v) {
+            so_fmt(out, "%d", *v);
+            if(v + 1 < vE) so_extend(out, so(", "));
+        }
+        so_push(out, ']');
+    }
+}
+
+void argx_so_type_array_bool(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    ASSERT_ARG(val);
+    if(val->vb) {
+        so_push(out, '[');
+        bool *vE = array_itE(*val->vb);
+        for(bool *v = *val->vb; v < vE; ++v) {
+            so_extend(out, *v ? so("true") : so("false"));
+            if(v + 1 < vE) so_extend(out, so(", "));
+        }
+        so_push(out, ']');
+    }
+}
+
+void argx_so_type_array_color(So *out, Argx_Value_Union *val) {
+    ASSERT_ARG(out);
+    ASSERT_ARG(val);
+    if(val->vc) {
+        so_push(out, '[');
+        Color *vE = array_itE(*val->vc);
+        for(Color *v = *val->vc; v < vE; ++v) {
+            so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
+            if(v + 1 < vE) so_extend(out, so(", "));
+        }
+        so_push(out, ']');
+    }
+}
+
+/* vector types }}} */
+
+/* types relying on subgroup {{{ */
+
+void argx_so_enum(Argx_So *xso, Argx_Fmt *fmt,  Argx *argx) {
+    Argx **itE = array_itE(argx->group_s->list);
+    for(Argx **it = argx->group_s->list; it < itE; ++it) {
+        bool current_is_selected = false;
+        /* check if iterator matches selected value */
+        if(argx->val.i && *argx->val.i == (*it)->val_enum) {
+            so_extend(&xso->set_val, (*it)->opt);
+            current_is_selected = true;
+        }
+        if(argx->ref.i && *argx->ref.i == (*it)->val_enum) {
+            so_extend(&xso->set_ref, (*it)->opt);
+        }
+        /* format hint */
+        if(current_is_selected && fmt) {
+            so_fmt(&xso->hint, F("%.*s", UL), SO_F((*it)->opt));
+        } else {
+            so_fmt(&xso->hint, "%.*s", SO_F((*it)->opt));
+        }
+        if(it + 1 < itE) so_push(&xso->hint, '|');
+    }
+}
+
+void argx_so_flags(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
+    Argx **itE = array_itE(argx->group_s->list);
+    size_t iv = 0, ir = 0;
+    for(Argx **it = argx->group_s->list; it < itE; ++it) {
+        bool current_is_selected = false;
+        /* check if iterator matches selected value */
+        if((*it)->val.b && *(*it)->val.b) {
+            if(iv++) so_push(&xso->set_val, ',');
+            so_extend(&xso->set_val, (*it)->opt);
+            current_is_selected = true;
+        }
+        if((*it)->ref.b && *(*it)->ref.b) {
+            if(ir++) so_push(&xso->set_ref, ',');
+            so_extend(&xso->set_ref, (*it)->opt);
+        }
+        /* format hint */
+        if(current_is_selected && fmt) {
+            so_fmt(&xso->hint, F("%.*s", UL), SO_F((*it)->opt));
+        } else {
+            so_fmt(&xso->hint, "%.*s", SO_F((*it)->opt));
+        }
+        if(it + 1 < itE) so_push(&xso->hint, '|');
+    }
+}
+
+void argx_so_options(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
+    Argx **itE = array_itE(argx->group_s->list);
+    size_t iv = 0, ir = 0;
+    for(Argx **it = argx->group_s->list; it < itE; ++it) {
+        /* check if iterator matches selected value */
+        if((*it)->val.b && *(*it)->val.b) {
+            if(iv++) so_push(&xso->set_val, ',');
+            so_extend(&xso->set_val, (*it)->opt);
+        }
+        if((*it)->ref.b && *(*it)->ref.b) {
+            if(ir++) so_push(&xso->set_ref, ',');
+            so_extend(&xso->set_ref, (*it)->opt);
+        }
+        /* format hint */
+        so_fmt(&xso->hint, "%.*s", SO_F((*it)->opt));
+        if(it + 1 < itE) so_push(&xso->hint, '|');
+    }
+}
+
+/* types relying on subgroup }}} */
+
+void argx_so_hierarchy(So *hierarchy, Argx_Group *group) {
+    if(!group) return;
+    if(group->parent) argx_so_hierarchy(hierarchy, group->parent->group_p);
+    so_fmt(hierarchy, "%.*s.", SO_F(group->name));
+}
+
+void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
+    //printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
+    ASSERT_ARG(xso);
+    ASSERT_ARG(argx);
+    argx_so_clear(xso);
+    /* remember the hint */
+    char hint[2] = {0};
+    switch(argx->hint.id) {
+        case ARGX_HINT_FLAGS: {
+            hint[0] = '[';
+            hint[1] = ']';
+        } break;
+        case ARGX_HINT_OPTION: {
+            hint[0] = '{';
+            hint[1] = '}';
+        } break;
+        case ARGX_HINT_OPTIONAL: {
+            hint[0] = '(';
+            hint[1] = ')';
+        } break;
+        case ARGX_HINT_REQUIRED: {
+            hint[0] = '<';
+            hint[1] = '>';
+        } break;
+    }
+    /* format the value */
+    //xso->ref_visible = (bool)(argx->ref);
+    xso->val_visible = (bool)(argx->val.any);
+    xso->val_config = xso->val_visible;
+    xso->have_hint = true;
+    argx_so_hierarchy(&xso->hierarchy, argx->group_p);
+    if(!argx->is_hidden) {
+        if(argx->is_array) {
+            switch(argx->id) {
+                default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
+                case ARGX_TYPE_NONE: {
+                    //xso->ref_visible = false;
+                    xso->have_hint = false;
+                } break;
+                case ARGX_TYPE_COLOR: {
+                    argx_so_type_array_color(&xso->set_val, &argx->val);
+                    argx_so_type_array_color(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_BOOL: {
+                    argx_so_type_array_bool(&xso->set_val, &argx->val);
+                    argx_so_type_array_bool(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_INT: {
+                    argx_so_type_array_int(&xso->set_val, &argx->val);
+                    argx_so_type_array_int(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_SIZE: {
+                    argx_so_type_array_size(&xso->set_val, &argx->val);
+                    argx_so_type_array_size(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_REST:
+                case ARGX_TYPE_URI:
+                case ARGX_TYPE_STRING: {
+                    argx_so_like_array_string(&xso->set_val, &argx->val);
+                    argx_so_like_array_string(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_GROUP: {
+                    ABORT(ERR_UNREACHABLE("vector of GROUP is not supported, and thus you should never see this message"));
+                } break;
+                case ARGX_TYPE_ENUM: {
+                    ABORT(ERR_UNREACHABLE("vector of ENUM is not supported, and thus you should never see this message"));
+                } break;
+                case ARGX_TYPE_FLAG: {
+                    ABORT(ERR_UNREACHABLE("vector of FLAG is not supported, and thus you should never see this message"));
+                } break;
+            }
+        } else {
+            switch(argx->id) {
+                default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
+                case ARGX_TYPE_NONE: {
+                    //xso->ref_visible = false;
+                    xso->have_hint = false;
+                } break;
+                case ARGX_TYPE_COLOR: {
+                    argx_so_type_color(&xso->set_val, &argx->val);
+                    argx_so_type_color(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_FLAG:
+                case ARGX_TYPE_BOOL: {
+                    argx_so_type_bool(&xso->set_val, &argx->val);
+                    argx_so_type_bool(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_INT: {
+                    argx_so_type_int(&xso->set_val, &argx->val);
+                    argx_so_type_int(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_SIZE: {
+                    argx_so_type_size(&xso->set_val, &argx->val);
+                    argx_so_type_size(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_URI:
+                case ARGX_TYPE_STRING: {
+                    argx_so_like_string(&xso->set_val, &argx->val);
+                    argx_so_like_string(&xso->set_ref, &argx->ref);
+                    so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
+                } break;
+                case ARGX_TYPE_GROUP: {
+                    xso->have_hint = false;
+                    so_push(&xso->hint, hint[0]);
+                    //printff("SUBGROUP %p,id %u,table %p,list %p,%.*s",argx->group_s,argx->group_s->id,argx->group_s->table,argx->group_s->list,SO_F(argx->opt));
+                    if(argx->group_s) {
+                        xso->have_hint = true;
+                        switch(argx->group_s->id) {
+                            case ARGX_GROUP_ENUM: {
+                                argx_so_enum(xso, fmt, argx);
+                                xso->val_config = (bool)(xso->set_val.len);
+                            } break;
+                            case ARGX_GROUP_FLAGS: {
+                                argx_so_flags(xso, fmt, argx);
+                                xso->val_config = (bool)(xso->set_val.len);
+                            } break;
+                            case ARGX_GROUP_OPTIONS: {
+                                argx_so_options(xso, fmt, argx);
+                                xso->val_group = true;
+                            } break;
+                            case ARGX_GROUP_ROOT: ABORT(ERR_UNREACHABLE("case has to be handled from the outside"));
+                        }
+                    }
+                    so_push(&xso->hint, hint[1]);
+                } break;
+                case ARGX_TYPE_ENUM: {
+                    xso->have_hint = false;
+                } break;
+                case ARGX_TYPE_REST: {
+                    ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));
+                } break;
+            }
+        }
+    } else {
+        xso->val_visible = false;
+    }
+    xso->argx = argx;
+}
+
+

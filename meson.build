@@ -8,6 +8,7 @@ sources = [
   'rlarg/arg-stream.c',
   'rlarg/argx-group.c',
   'rlarg/argx-hint.c',
+  'rlarg/argx-so.c',
   'rlarg/argx-type.c',
   'rlarg/argx.c',
   ]
