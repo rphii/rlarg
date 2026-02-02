@@ -193,7 +193,7 @@ void argx_fmt_help(So *out, Argx *argx) {
     //int spacing_
 
     ASSERT_ARG(argx->group_p);
-    bool treat_as_options = (argx->group_p == argx->group_p->arg->opts);
+    bool treat_as_options = (argx->group_p->table == &argx->group_p->arg->t_opt);
     bool treat_short_spacing = (
             argx->group_p == &argx->group_p->arg->env
          || argx->group_p == &argx->group_p->arg->pos);
