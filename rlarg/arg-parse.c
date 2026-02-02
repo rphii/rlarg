@@ -33,6 +33,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     if(!stream->error_id && !arg->help.wanted) {
         stream->error_id = id;
         switch(id) {
+            case ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG: /* pseudo */
             case ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG: /* pseudo */
             case ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG: /* pseudo */
                 break;
@@ -40,6 +41,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_MISSING_SHORTOPT: /* pseudo */
             case ARG_PARSE_ERROR_NO_REST_ALLOWED:
                 arg_parse_set_help_error(arg, arg->help.argx);
+                argx_so(&xso, 0, argx);
                 break;
             case ARG_PARSE_ERROR_UNCONFIGURABLE:
             case ARG_PARSE_ERROR_INVALID_CONVERSION:
@@ -48,11 +50,11 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_MISSING_VALUE:
             case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL:
                 arg_parse_set_help_error(arg, argx);
+                argx_so(&xso, 0, argx);
                 break;
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
         }
         if(!arg->builtin.compgen) {
-            if(argx) argx_so(&xso, 0, argx);
             if(stream->source.line_number) {
                 fprintf(stderr, F("%.*s:%u: ", FG_MG), SO_F(stream->source.path), stream->source.line_number);
             } else {
@@ -75,10 +77,13 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     fprintf(stderr, F("Missing short options, only provided with: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG: { /* pseudo */
-                    fprintf(stderr, F("Hierarchy reveals no option table: %.*s", FG_RD_B), SO_F(argx->opt));
+                    fprintf(stderr, F("Hierarchy reveals no such option table: %.*s", FG_RD_B), SO_F(argx->opt));
+                } break;
+                case ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG: { /* pseudo */
+                    fprintf(stderr, F("Hierarchy reveals no root: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG: { /* pseudo */
-                    fprintf(stderr, F("Hierarchy reveals no option: %.*s", FG_RD_B), SO_F(argx->opt));
+                    fprintf(stderr, F("Hierarchy reveals no such option: %.*s", FG_RD_B), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
                     fprintf(stderr, F("Missing positional values: %.*s %.*s", FG_RD_B), SO_F(argx->opt), SO_F(xso.hint));
@@ -543,6 +548,22 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         rhs = so_trim(rhs);
         T_Argx *table = &arg->t_opt;
         Argx *argx = 0;
+        So root = so_trim(so_split_ch(lhs, '.', &lhs));
+        /* verify that the root group exists */
+        bool exist = false;
+        Argx_Groups groupE = array_itE(arg->opts);
+        for(Argx_Groups group = arg->opts; group < groupE; ++group) {
+            if(so_cmp((*group)->name, root)) continue;
+            exist = true;
+            break;
+        }
+        if(!exist) {
+            Argx pseudo = { .opt = root };
+            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG, &pseudo);
+            status = -1;
+            goto skip_try_next;
+        }
+        /* now search for sub option */
         for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
             if(!table) {
                 Argx pseudo = { .opt = lhs };
@@ -803,8 +824,8 @@ void arg_parse_setref_group(Argx_Group *group) {
 
 void arg_parse_setref(struct Arg *arg) {
     /* apply values from references */
-    for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
-        arg_parse_setref_group(group);
+    for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
+        arg_parse_setref_group(*group);
     }
     arg_parse_setref_group(&arg->env);
 }
@@ -976,7 +997,9 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
 
     int status = 0;
 
-    arg_parse_setup_sources_group(arg->opts);
+    for(Argx_Group **it = arg->opts; it < array_itE(arg->opts); ++it) {
+        arg_parse_setup_sources_group(*it);
+    }
     arg_parse_setup_sources_group(&arg->env);
     arg_parse_setup_sources_group(&arg->pos);
 

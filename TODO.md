@@ -1,5 +1,6 @@
 # priority
 
+- in positional, enum does not select a value by default (as it does now appear to do in help view)... what about flags?
 - codify usage examples
 - move attributes (e.g. configurable to custom file)
 - formatting of arrays to multiple lines
@@ -15,6 +16,7 @@
 # later
 
 - better compgen for flags, e.g: +flag,-flag2 and show combinations..
+- move all so_fmt_fx to one file..... (they all over the place)
 
 # later later
 

@@ -33,7 +33,8 @@ struct Argx *argx_env(struct Arg *arg, So name, So desc);
 void argx_builtin_env_compgen(struct Arg *arg);
 void argx_builtin_opt_help(struct Argx_Group *group);
 void argx_builtin_opt_source(struct Argx_Group *group, So uri);
-void argx_builtin_opt_so_fx(struct Argx *x, So opt, So_Fx *fmt, So_Fx *ref);
+void argx_builtin_opt_so_fx(struct Argx *x, So_Fx *fmt, So_Fx *ref);
+struct Argx_Group *argx_builtin_rice(struct Arg *arg);
 
 typedef int (*Argx_Function)(struct Argx *argx, void *user, So so);
 

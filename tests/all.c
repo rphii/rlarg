@@ -93,9 +93,9 @@ int main(const int argc, const char **argv) {
     x=argx_opt(g1, 0, so("rice"), so("ricing support"));
       g2=argx_group_options(x);
         x=argx_opt(g2, 0, so("test"), so("test rice"));
-          argx_builtin_opt_so_fx(x, so("lmao"), &fx, 0);
+          argx_builtin_opt_so_fx(x, &fx, 0);
         x=argx_opt(g2, 0, so("other"), so("other test rice"));
-          argx_builtin_opt_so_fx(x, so("lmao"), &fx2, 0);
+          argx_builtin_opt_so_fx(x, &fx2, 0);
 
     So subopt = SO, subopt2 = SO;
     x=argx_opt(g1, 0, so("subopt4"), so("some options"));
@@ -150,6 +150,8 @@ int main(const int argc, const char **argv) {
 //        x =argx_enum_unique(g2, so("default"), so("default option"));
 //           argx_enum_bind(x, e1);
 //           argx_enum_bind(x, e2);
+
+    argx_builtin_rice(arg);
 
     So content = SO;
 #if 0

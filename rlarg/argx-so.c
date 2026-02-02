@@ -206,24 +206,24 @@ void argx_so_options(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
     ASSERT_ARG(rice);
     ASSERT_ARG(hints);
     ASSERT_ARG(argx);
-    so_fmt_fx(&xso->hint, rice->enum_delim, 0, "%c", hints[0]);
+    so_fmt_fx(&xso->hint, rice->subopt_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         /* check if iterator matches selected value */
         if((*it)->val.b && *(*it)->val.b) {
             if(iv++) so_push(&xso->set_val, ',');
-            so_fmt_fx(&xso->set_val, rice->opt, 0, "%.*s", SO_F((*it)->opt));
+            so_fmt_fx(&xso->set_val, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
         }
         if((*it)->ref.b && *(*it)->ref.b) {
             if(ir++) so_push(&xso->set_ref, ',');
-            so_fmt_fx(&xso->set_ref, rice->opt, 0, "%.*s", SO_F((*it)->opt));
+            so_fmt_fx(&xso->set_ref, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
         }
         /* format hint */
-        so_fmt_fx(&xso->hint, rice->opt, 0, "%.*s", SO_F((*it)->opt));
-        if(it + 1 < itE) so_fmt_fx(&xso->hint, rice->enum_delim, 0, "|");
+        so_fmt_fx(&xso->hint, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
+        if(it + 1 < itE) so_fmt_fx(&xso->hint, rice->subopt_delim, 0, "|");
     }
-    so_fmt_fx(&xso->hint, rice->enum_delim, 0, "%c", hints[1]);
+    so_fmt_fx(&xso->hint, rice->subopt_delim, 0, "%c", hints[1]);
 }
 
 /* types relying on subgroup }}} */

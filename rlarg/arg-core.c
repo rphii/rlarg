@@ -3,7 +3,7 @@
 
 void arg_free(struct Arg **arg) {
     if(!arg) return;
-    array_free_ext((*arg)->opts, argx_group_free);
+    array_free_ext((*arg)->opts, argx_groups_free);
     argx_group_free(&(*arg)->pos);
     argx_group_free(&(*arg)->env);
     array_free((*arg)->queue);
@@ -28,6 +28,8 @@ struct Arg *arg_new(void) {
     result->rice.opt =          (So_Fx){ .nocolor = nofx, .fg = COLOR_AQUA };
     result->rice.env =          (So_Fx){ .nocolor = nofx, .fg = COLOR_WHITE };
     result->rice.desc =         (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
+    result->rice.subopt =       (So_Fx){ .nocolor = nofx, .fg = COLOR_BLUE };
+    result->rice.subopt_delim = (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
     result->rice.enum_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_OLIVE };
     result->rice.enum_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_YELLOW, .bold = true, .underline = true };
     result->rice.enum_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
@@ -46,8 +48,8 @@ void arg_help(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
     argx_group_fmt_help(&out, &arg->pos);
-    for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
-        argx_group_fmt_help(&out, group);
+    for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
+        argx_group_fmt_help(&out, *group);
     }
     argx_group_fmt_help(&out, &arg->env);
     so_print(out);
@@ -76,6 +78,13 @@ void arg_help_argx(struct Argx *help) {
     argx_so_free(&xso);
 
     arg_help_argx_rec(&out, help);
+    if(help->id == ARGX_TYPE_GROUP) {
+        ASSERT_ARG(help->group_s);
+        Argx **itE = array_itE(help->group_s->list);
+        for(Argx **it = help->group_s->list; it < itE; ++it) {
+            argx_fmt_help(&out, *it);
+        }
+    }
 
     size_t len = array_len(help->sources);
     if(len) {
@@ -103,9 +112,9 @@ void arg_enable_config_print(struct Arg *arg, bool enable) {
 void arg_config(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
-    for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
-        if(!group->config_print) continue;
-        argx_group_fmt_config(&out, group);
+    for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
+        if(!(*group)->config_print) continue;
+        argx_group_fmt_config(&out, *group);
     }
     so_print(out);
     so_free(&out);

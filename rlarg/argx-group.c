@@ -1,5 +1,10 @@
 #include "arg.h"
 
+void argx_groups_free(Argx_Groups group) {
+    argx_group_free(*group);
+    free(*group);
+}
+
 void argx_group_free(Argx_Group *group) {
     t_argx_free(group->table);
     v_argx_free(group->list);
@@ -24,15 +29,17 @@ Argx_Group argx_group_init(struct Arg *arg, T_Argx *table, So name, Argx_Group_L
 struct Argx_Group *argx_group(struct Arg *arg, So name) {
     ASSERT_ARG(arg);
     /* check if the group already exists */
-    for(Argx_Group *g = arg->opts; g < array_itE(arg->opts); ++g) {
-        if(!so_cmp(g->name, name)) {
-            return g;
+    for(Argx_Group **g = arg->opts; g < array_itE(arg->opts); ++g) {
+        if(!so_cmp((*g)->name, name)) {
+            return *g;
         }
     }
     /* create new group */
-    Argx_Group result = argx_group_init(arg, &arg->t_opt, name, ARGX_GROUP_ROOT, 0);
+    Argx_Group *result;
+    NEW(Argx_Group, result);
+    *result = argx_group_init(arg, &arg->t_opt, name, ARGX_GROUP_ROOT, 0);
     array_push(arg->opts, result);
-    return array_itL(arg->opts);
+    return result;
 }
 
 void argx_group_fmt_help(So *out, Argx_Group *group) {
