@@ -87,6 +87,8 @@ void argx_fmt_config(So *out, Argx *argx);
 bool argx_flag_is_any_source_set(Argx *argx);
 bool argx_is_configurable(Argx *argx);
 
+void argx_builtin_env_config(struct Arg *arg);
+
 #define RLARG_ARG_X_H
 #endif /* RLARG_ARG_X_H */
 

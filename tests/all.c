@@ -13,6 +13,7 @@ int cbtest(struct Argx *argx, void *user, So so) {
 int main(const int argc, const char **argv) {
     struct Arg *arg = arg_new();
     ASSERT(arg, "expect to have pointer");
+    arg_enable_config_print(arg, true);
 
     struct Argx_Group *g1 = argx_group(arg, so("default"));
     struct Argx_Group *g2 = argx_group(arg, so("default"));
@@ -22,7 +23,6 @@ int main(const int argc, const char **argv) {
     ASSERT(g1 == g2, "should point to the same");
 
     argx_builtin_env_compgen(arg);
-    argx_builtin_env_config(arg);
     argx_builtin_opt_help(g1);
     //argx_builtin_opt_source(g1, so("$HOME/.config/rphiic/colors.conf"));
     argx_builtin_opt_source(g1, so("all.conf"));
@@ -82,6 +82,8 @@ int main(const int argc, const char **argv) {
         e1=argx_flag(g2, &f1, &(bool){true}, so("sfw"), so("safe for work"));
         e2=argx_flag(g2, &f2, &(bool){false}, so("nsfw"), so("not safe for work"));
         e2=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));
+
+    g1=argx_group(arg, so("other"));
 
     Color col = COLOR_AQUA;
     x=argx_opt(g1, 0, so("color"), so("color support"));

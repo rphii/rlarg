@@ -12,6 +12,8 @@ void arg_help_argx(struct Argx *help);
 void arg_config(struct Arg *arg);
 void arg_free(struct Arg **arg);
 
+void arg_enable_config_print(struct Arg *arg, bool enable);
+
 /* rlarg/arg-runtime.c */
 void arg_runtime_quit_early(struct Argx *argx, bool val);
 void arg_runtime_quit_when_all_valid(struct Argx *argx, bool val);
@@ -29,7 +31,6 @@ struct Argx *argx_pos(struct Arg *arg, So name, So desc);
 struct Argx *argx_env(struct Arg *arg, So name, So desc);
 
 void argx_builtin_env_compgen(struct Arg *arg);
-void argx_builtin_env_config(struct Arg *arg);
 void argx_builtin_opt_help(struct Argx_Group *group);
 void argx_builtin_opt_source(struct Argx_Group *group, So uri);
 void argx_builtin_opt_so_fx(struct Argx *x, So opt, So_Fx *fmt, So_Fx *ref);
