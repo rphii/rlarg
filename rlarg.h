@@ -60,6 +60,7 @@ void argx_type_array_color(struct Argx *argx, Color **val, Color **ref);
 
 void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority);
 void argx_hide(struct Argx *argx, bool hide);
+void argx_configurable(struct Argx *argx, bool configurable);
 
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref);
 struct Argx_Group *argx_group_options(struct Argx *argx);

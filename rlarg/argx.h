@@ -70,6 +70,7 @@ typedef struct Argx {
     bool is_array;
     bool is_env;
     bool is_hidden;
+    bool is_unconfigurable;
     int val_enum;
     So desc;
     So opt;
@@ -84,6 +85,7 @@ void argx_fmt_help(So *out, Argx *argx);
 void argx_fmt_config(So *out, Argx *argx);
 
 bool argx_flag_is_any_source_set(Argx *argx);
+bool argx_is_configurable(Argx *argx);
 
 #define RLARG_ARG_X_H
 #endif /* RLARG_ARG_X_H */

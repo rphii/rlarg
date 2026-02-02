@@ -126,6 +126,7 @@ void argx_builtin_opt_help(struct Argx_Group *group) {
     Argx *x = argx_opt(group, 'h', so("help"), so("print this help"));
     argx_callback(x, argx_callback_help, group->arg, ARGX_PRIORITY_IMMEDIATELY);
     group->arg->help.argx = x;
+    argx_configurable(x, false);
 }
 
 void argx_builtin_opt_source(struct Argx_Group *group, So uri) {
@@ -221,6 +222,10 @@ void argx_fmt_config(So *out, Argx *argx) {
     ASSERT_ARG(out);
     ASSERT_ARG(argx);
 
+    /* pre-check if the type has no value */
+    if(!argx_is_configurable(argx)) return;
+
+    /* now format */
     Argx_So xso = {0};
     argx_so(&xso, 0, argx);
 
@@ -238,14 +243,15 @@ void argx_fmt_config(So *out, Argx *argx) {
             if(xso.have_hint) {
                 so_fmt(out, " # %.*s", SO_F(xso.hint));
             }
-            so_push(out, '\n');
         } else {
             if(xso.have_hint) {
-                so_fmt(out, "# %.*s%.*s = %.*s\n", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.hint));
+                so_fmt(out, "# %.*s%.*s = %.*s", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.hint));
             } else {
-                so_fmt(out, "# %.*s%.*s\n", SO_F(hierarchy), SO_F(argx->opt));
+                so_fmt(out, "# %.*s%.*s", SO_F(hierarchy), SO_F(argx->opt));
             }
         }
+        //so_fmt(out, " ### %.*s\n", SO_F(argx->desc));
+        so_push(out, '\n');
     }
 
     argx_so_free(&xso);
@@ -267,5 +273,13 @@ bool argx_flag_is_any_source_set(Argx *argx) {
         break;
     }
     return have_sources;
+}
+
+bool argx_is_configurable(Argx *argx) {
+    if(!argx) return false;
+    if(argx->is_unconfigurable) return false;
+    if(argx->callback.func) return true;
+    if(argx->id == ARGX_TYPE_NONE) return false;
+    return true;
 }
 
