@@ -1010,6 +1010,7 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     arg_parse_setup_sources_group(&arg->pos);
 
     if(!status) status = arg_parse_environment(arg);
+    if(arg->builtin.config_print_selected) arg->builtin.nocolor = true;
     if(arg->builtin.quit_early) goto defer;
 
     arg_parse_configs(arg);
