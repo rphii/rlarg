@@ -37,6 +37,7 @@ int main(const int argc, const char **argv) {
     x = argx_opt(g1, 'x', so("boolr"), so("a required boolean value"));
         //printff("p %p", x);
         argx_type_bool(x, &p1, &d);
+    argx_hide(x, true);
 
     x = argx_opt(g1, 'X', so("boolo"), so("a optional boolean value"));
         //printff("p %p", x);

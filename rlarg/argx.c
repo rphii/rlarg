@@ -300,6 +300,7 @@ void argx_fmt_config(So *out, Argx *argx) {
 
     /* pre-check if the type has no value */
     if(!argx_is_configurable(argx)) return;
+    if(argx->is_hidden) return;
 
     /* now format */
     Argx_So xso = {0};
