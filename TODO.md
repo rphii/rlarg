@@ -9,4 +9,5 @@
     - proper parsing of strings in configs
     - proper parsing of multiline arrays in configs
     - allow parsing of +value or -value for arrays...?
+    - --help --kljasernla does not notify of unknown option
 

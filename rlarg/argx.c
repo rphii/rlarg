@@ -101,24 +101,21 @@ void argx_builtin_env_compgen(struct Arg *arg) {
     argx_type_bool(x, &arg->builtin.compgen, 0);
 }
 
-#if 1
 int argx_callback_config(Argx *argx, void *user, So so) {
     arg_runtime_quit_when_all_valid(argx, true);
     Arg *arg = user;
     arg->builtin.config_print_selected = true;
     return 0;
 }
-#endif
 
 void argx_builtin_env_config(struct Arg *arg) {
-    Argx *x = argx_env(arg, so("CONFIG_PRINT"), so("generate config if parser is left in a valid state"));
-    argx_configurable(x, false);
+    Argx *x = argx_env(arg, so("CONFIG_PRINT"), so("generate config of certain group"));
     argx_callback(x, argx_callback_config, arg, ARGX_PRIORITY_IMMEDIATELY);
     Argx_Group *g = argx_group_flags(x);
 
     Argx_Group *itE = array_itE(arg->opts);
     for(Argx_Group *it = arg->opts; it < itE; ++it) {
-        Argx *xx = argx_flag(g, &it->config_print, 0, it->name, SO);
+        argx_flag(g, &it->config_print, 0, it->name, SO);
     }
 }
 
