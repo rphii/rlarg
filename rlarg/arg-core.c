@@ -39,25 +39,27 @@ struct Arg *arg_new(void) {
         So_Fx val;
         So_Fx val_delim;
 #endif
-    result->rice.c =            (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_BLUE };
-    result->rice.opt =          (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_AQUA };
-    result->rice.hint =         (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_GREEN };
-    result->rice.enum_set =     (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_YELLOW, .bold = true, .underline = true };
-    result->rice.enum_unset =   (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_OLIVE };
-    result->rice.enum_delim =   (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_GRAY };
-    result->rice.flag_set =     (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_FUCHSIA, .bold = true, .underline = true };
-    result->rice.flag_unset =   (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_PURPLE };
-    result->rice.flag_delim =   (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_GRAY };
-    result->rice.hint =         (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_LIME };
-    result->rice.hint_delim =   (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_GRAY };
-    result->rice.env =          (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_WHITE };
-    result->rice.pos =          (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_GREEN };
-    result->rice.desc =         (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_TEAL };
-    result->rice.group =        (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_RED };
-    result->rice.group_delim =  (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_MAROON };
-    result->rice.desc =         (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_GRAY };
-    result->rice.val =          (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_TEAL };
-    result->rice.val_delim =    (So_Fx){ .nocolor = &result->builtin.config_print_selected, .fg = COLOR_NAVY };
+
+    bool *nofx = &result->builtin.config_print_selected;
+    result->rice.c =            (So_Fx){ .nocolor = nofx, .fg = COLOR_BLUE };
+    result->rice.opt =          (So_Fx){ .nocolor = nofx, .fg = COLOR_AQUA };
+    result->rice.hint =         (So_Fx){ .nocolor = nofx, .fg = COLOR_GREEN };
+    result->rice.enum_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_YELLOW, .bold = true, .underline = true };
+    result->rice.enum_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_OLIVE };
+    result->rice.enum_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
+    result->rice.flag_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_FUCHSIA, .bold = true, .underline = true };
+    result->rice.flag_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_PURPLE };
+    result->rice.flag_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
+    result->rice.hint =         (So_Fx){ .nocolor = nofx, .fg = COLOR_LIME };
+    result->rice.hint_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
+    result->rice.env =          (So_Fx){ .nocolor = nofx, .fg = COLOR_WHITE };
+    result->rice.pos =          (So_Fx){ .nocolor = nofx, .fg = COLOR_GREEN };
+    result->rice.desc =         (So_Fx){ .nocolor = nofx, .fg = COLOR_TEAL };
+    result->rice.group =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RED };
+    result->rice.group_delim =  (So_Fx){ .nocolor = nofx, .fg = COLOR_MAROON };
+    result->rice.desc =         (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
+    result->rice.val =          (So_Fx){ .nocolor = nofx, .fg = COLOR_TEAL };
+    result->rice.val_delim =    (So_Fx){ .nocolor = nofx, .fg = COLOR_NAVY };
 
     return result;
 }
