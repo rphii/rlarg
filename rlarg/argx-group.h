@@ -16,6 +16,7 @@ typedef struct Argx_Group {
     So name;
     Argx_Group_List id;
     struct Argx *parent;
+    bool config_print;
 } Argx_Group, *Argx_Groups;
 
 Argx_Group argx_group_init(struct Arg *arg, T_Argx *table, So name, Argx_Group_List id, Argx *parent);

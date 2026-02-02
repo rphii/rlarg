@@ -38,7 +38,8 @@ typedef struct Arg {
         bool compgen;               /* main trigger for compgen */
         bool compgen_flags;         /* only true has an effect. forces the generation of flags / options */
         bool compgen_done;          /* helps us only printin one single compgen instance */
-        bool config; // TODO: should probably rename to config_print; or smth. env_config_print?
+        bool config_print_selected; // TODO: should probably rename to config_print; or smth. env_config_print?
+        bool config_use_builtin;    /* instruct to generate groups of all options right before arg_parse ... */
         Argx *sources_argx;
         VSo sources_vso;        /* visible vso sources */
         VSo sources_content;    /* content of sources */

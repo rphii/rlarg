@@ -7,14 +7,14 @@
 void arg_parse_set_help_any(struct Arg *arg, Argx *argx) {
     ASSERT_ARG(arg);
     ASSERT_ARG(argx);
-    if(arg->builtin.config) return;
+    if(arg->builtin.config_print_selected) return;
     arg->help.last = argx;
 }
 
 void arg_parse_set_help_error(struct Arg *arg, Argx *argx) {
     ASSERT_ARG(arg);
     if(!argx) return;
-    if(arg->builtin.config) return;
+    if(arg->builtin.config_print_selected) return;
     //printff("SET ERROR if !%zu: %.*s",arg->help.error.i,SO_F(argx->opt));
     if(!arg->help.error) {
         arg->help.error = argx;
@@ -27,7 +27,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     ASSERT_ARG(stream);
     ASSERT_ARG(id);
     Argx_So xso = {0};
-    if(arg->builtin.config) return;
+    if(arg->builtin.config_print_selected) return;
     //if(argx) { printff(F("ERROR %u, set %u [%.*s]", FG_RD_B), id, stream->error_id, SO_F(argx->opt)); }
     //else printff(F("ERROR %u, set %u", FG_RD_B), id, stream->error_id);
     if(!stream->error_id && !arg->help.wanted) {
@@ -875,7 +875,7 @@ void arg_parse_help(Arg *arg) {
     if(!help) {
         if(arg->builtin.compgen) {
             arg_compgen_global(arg);
-        } else if(arg->builtin.config) {
+        } else if(arg->builtin.config_print_selected) {
             arg_config(arg);
         }
     } else if(help == arg->help.argx) {
@@ -959,9 +959,20 @@ void arg_parse_setup_sources_group(Argx_Group *group) {
     }
 }
 
+void arg_parse_enable_config_print(Arg *arg) {
+    ASSERT_ARG(arg);
+    if(!arg->builtin.config_use_builtin) return;
+    argx_builtin_env_config(arg);
+}
+
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early) {
     ASSERT_ARG(arg);
     ASSERT_ARG(quit_early);
+
+    /* check if we want config generation support */
+    arg_parse_enable_config_print(arg);
+
+    /* now actually parse */
 
     int status = 0;
 

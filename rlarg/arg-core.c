@@ -67,10 +67,15 @@ void arg_help_argx(struct Argx *help) {
     so_free(&out);
 }
 
+void arg_enable_config_print(struct Arg *arg, bool enable) {
+    arg->builtin.config_use_builtin = enable;
+}
+
 void arg_config(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
     for(Argx_Group *group = arg->opts; group < array_itE(arg->opts); ++group) {
+        if(!group->config_print) continue;
         argx_group_fmt_config(&out, group);
     }
     so_print(out);
