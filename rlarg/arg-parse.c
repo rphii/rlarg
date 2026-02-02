@@ -31,6 +31,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     ASSERT_ARG(id);
     bool nc = arg->builtin.nocolor;
     Argx_So xso = {0};
+    bool newline = false;
     if(arg->builtin.config_print_selected) return;
     //if(argx) { printff(F("ERROR %u, set %u [%.*s]", FG_RD_B), id, stream->error_id, SO_F(argx->opt)); }
     //else printff(F("ERROR %u, set %u", FG_RD_B), id, stream->error_id);
@@ -46,6 +47,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_NO_REST_ALLOWED:
                 arg_parse_set_help_error(arg, arg->help.argx);
                 argx_so(&xso, 0, arg->help.argx);
+                newline = true;
                 break;
             case ARG_PARSE_ERROR_UNCONFIGURABLE:
             case ARG_PARSE_ERROR_INVALID_CONVERSION:
@@ -55,6 +57,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL:
                 arg_parse_set_help_error(arg, argx);
                 argx_so(&xso, 0, argx);
+                newline = true;
                 break;
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
         }
@@ -114,6 +117,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 default: ABORT(ERR_UNREACHABLE("unhandled error: %u"), id);
             }
             fprintf(stderr, "\n");
+            if(newline) fprintf(stderr, "\n");
         }
     }
     argx_so_free(&xso);
