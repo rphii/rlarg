@@ -18,6 +18,39 @@ struct Arg *arg_new(void) {
     NEW(Arg, result);
     result->pos = argx_group_init(result, &result->t_pos, so("positional"), ARGX_GROUP_ROOT, 0);
     result->env = argx_group_init(result, &result->t_env, so("environment"), ARGX_GROUP_ROOT, 0);
+
+#if 0
+        So_Fx program;
+        So_Fx group;
+        So_Fx group_delim;
+        So_Fx pos;
+        So_Fx c;
+        So_Fx opt;
+        So_Fx env;
+        So_Fx desc;
+        So_Fx enum_unset;
+        So_Fx enum_set;
+        So_Fx enum_delim;
+        So_Fx flag_unset;
+        So_Fx flag_set;
+        So_Fx flag_delim;
+        So_Fx hint;
+        So_Fx hint_delim;
+        So_Fx val;
+        So_Fx val_delim;
+#endif
+    result->rice.c = (So_Fx){ .fg = COLOR_BLUE };
+    result->rice.opt = (So_Fx){ .fg = COLOR_AQUA };
+    result->rice.hint = (So_Fx){ .fg = COLOR_GREEN };
+    result->rice.enum_set = (So_Fx){ .fg = COLOR_YELLOW, .bold = true, .underline = true };
+    result->rice.enum_unset = (So_Fx){ .fg = COLOR_OLIVE };
+    result->rice.enum_delim = (So_Fx){ .fg = COLOR_GRAY };
+    result->rice.flag_set = (So_Fx){ .fg = COLOR_FUCHSIA, .bold = true, .underline = true };
+    result->rice.flag_unset = (So_Fx){ .fg = COLOR_PURPLE };
+    result->rice.flag_delim = (So_Fx){ .fg = COLOR_GRAY };
+    result->rice.hint = (So_Fx){ .fg = COLOR_LIME };
+    result->rice.hint_delim = (So_Fx){ .fg = COLOR_GRAY };
+
     return result;
 }
 
