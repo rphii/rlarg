@@ -50,6 +50,14 @@ struct Arg *arg_new(void) {
     result->rice.flag_delim = (So_Fx){ .fg = COLOR_GRAY };
     result->rice.hint = (So_Fx){ .fg = COLOR_LIME };
     result->rice.hint_delim = (So_Fx){ .fg = COLOR_GRAY };
+    result->rice.env = (So_Fx){ .fg = COLOR_WHITE };
+    result->rice.pos = (So_Fx){ .fg = COLOR_GREEN };
+    result->rice.desc = (So_Fx){ .fg = COLOR_TEAL };
+    result->rice.group = (So_Fx){ .fg = COLOR_RED };
+    result->rice.group_delim = (So_Fx){ .fg = COLOR_MAROON };
+    result->rice.desc = (So_Fx){ .fg = COLOR_GRAY };
+    result->rice.val = (So_Fx){ .fg = COLOR_TEAL };
+    result->rice.val_delim = (So_Fx){ .fg = COLOR_NAVY };
 
     return result;
 }
@@ -76,6 +84,10 @@ void arg_help_argx_rec(So *out, Argx *argx) {
 void arg_help_argx(struct Argx *help) {
     So out = SO;
     Argx_So xso = {0};
+    ASSERT_ARG(help->group_p);
+    Arg *arg = help->group_p->arg;
+    ASSERT_ARG(arg);
+    Arg_Rice *rice = &arg->rice;
 
     argx_so(&xso, true, help);
     so_fmt(&out, "%.*s%.*s:\n", SO_F(xso.hierarchy), SO_F(xso.argx->opt));

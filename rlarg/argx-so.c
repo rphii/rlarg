@@ -23,24 +23,34 @@ void argx_so_clear(Argx_So *xso) {
 
 /* non vector types {{{ */
 
-void argx_so_like_string(So *out, Argx_Value_Union *val) {
+void argx_so_like_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val->so) so_fmt(out, "'%.*s'", SO_F(*val->so));
+    if(val->so) {
+        so_fmt_fx(out, rice->val_delim, 0, "'");
+        so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(*val->so));
+        so_fmt_fx(out, rice->val_delim, 0, "'");
+    }
 }
 
-void argx_so_type_int(So *out, Argx_Value_Union *val) {
+void argx_so_type_int(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val->i) so_fmt(out, "%d", *val->i);
+    if(val->i) {
+        so_fmt_fx(out, rice->val, 0, "%d", *val->i);
+    }
 }
 
-void argx_so_type_size(So *out, Argx_Value_Union *val) {
+void argx_so_type_size(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val->z) so_fmt(out, "%zi", *val->z);
+    if(val->z) {
+        so_fmt_fx(out, rice->val, 0, "%zi", *val->z);
+    }
 }
 
-void argx_so_type_bool(So *out, Argx_Value_Union *val) {
+void argx_so_type_bool(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    if(val->b) so_extend(out, *val->b ? so("true") : so("false"));
+    if(val->b) {
+        so_fmt_fx(out, rice->val, 0, "%s", *val->b ? "true" : "false");
+    }
 }
 
 void argx_so_type_color(So *out, bool fx, Argx_Value_Union *val) {
@@ -56,72 +66,73 @@ void argx_so_type_color(So *out, bool fx, Argx_Value_Union *val) {
 
 /* vector types {{{ */
 
-void argx_so_like_array_string(So *out, Argx_Value_Union *val) {
+void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vso) {
-        so_push(out, '[');
+        so_fmt_fx(out, rice->val_delim, 0, "[");
         So *vE = array_itE(*val->vso);
         for(So *v = *val->vso; v < vE; ++v) {
-            so_push(out, '\'');
-            so_extend(out, *v);
-            so_push(out, '\'');
-            if(v + 1 < vE) so_extend(out, so(", "));
+            so_fmt_fx(out, rice->val_delim, 0, "'");
+            so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(*v));
+            so_fmt_fx(out, rice->val_delim, 0, "'");
+            if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
-        so_push(out, ']');
+        so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
 
-void argx_so_type_array_int(So *out, Argx_Value_Union *val) {
+void argx_so_type_array_int(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vi) {
-        so_push(out, '[');
+        so_fmt_fx(out, rice->val_delim, 0, "[");
         int *vE = array_itE(*val->vi);
         for(int *v = *val->vi; v < vE; ++v) {
-            so_fmt(out, "%d", *v);
-            if(v + 1 < vE) so_extend(out, so(", "));
+            so_fmt_fx(out, rice->val, 0, "%d", *v);
+            if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
-        so_push(out, ']');
+        so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
 
-void argx_so_type_array_size(So *out, Argx_Value_Union *val) {
+void argx_so_type_array_size(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vz) {
-        so_push(out, '[');
+        so_fmt_fx(out, rice->val_delim, 0, "[");
         ssize_t *vE = array_itE(*val->vz);
         for(ssize_t *v = *val->vz; v < vE; ++v) {
-            so_fmt(out, "%d", *v);
-            if(v + 1 < vE) so_extend(out, so(", "));
+            so_fmt_fx(out, rice->val, 0, "%zi", *v);
+            if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
-        so_push(out, ']');
+        so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
 
-void argx_so_type_array_bool(So *out, Argx_Value_Union *val) {
+void argx_so_type_array_bool(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vb) {
-        so_push(out, '[');
+        so_fmt_fx(out, rice->val_delim, 0, "[");
         bool *vE = array_itE(*val->vb);
         for(bool *v = *val->vb; v < vE; ++v) {
-            so_extend(out, *v ? so("true") : so("false"));
-            if(v + 1 < vE) so_extend(out, so(", "));
+            so_fmt_fx(out, rice->val, 0, "%s", *v ? "true" : "false");
+            if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
-        so_push(out, ']');
+        so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
 
-void argx_so_type_array_color(So *out, Argx_Value_Union *val) {
+void argx_so_type_array_color(So *out, bool fx, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vc) {
         so_push(out, '[');
         Color *vE = array_itE(*val->vc);
         for(Color *v = *val->vc; v < vE; ++v) {
-            so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
+            if(fx) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
+            else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_DEC|SO_COLOR_NOFX);
             if(v + 1 < vE) so_extend(out, so(", "));
         }
         so_push(out, ']');
@@ -235,8 +246,9 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
     ASSERT_ARG(xso);
     ASSERT_ARG(argx);
     ASSERT_ARG(argx->group_p);
-    Arg *arg = argx->group_p->arg;
-    Arg_Rice *rice = &arg->rice;
+    ASSERT_ARG(argx->group_p->arg);
+    Arg_Rice *rice = &argx->group_p->arg->rice;
+
     argx_so_clear(xso);
     /* remember the hint */
     char hint[2] = {0};
@@ -273,30 +285,30 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
                     xso->have_hint = false;
                 } break;
                 case ARGX_TYPE_COLOR: {
-                    argx_so_type_array_color(&xso->set_val, &argx->val);
-                    argx_so_type_array_color(&xso->set_ref, &argx->ref);
+                    argx_so_type_array_color(&xso->set_val, fx, &argx->val);
+                    argx_so_type_array_color(&xso->set_ref, fx, &argx->ref);
                     argx_so_hint_generic(xso, rice, hint, argx->hint.so);
                 } break;
                 case ARGX_TYPE_BOOL: {
-                    argx_so_type_array_bool(&xso->set_val, &argx->val);
-                    argx_so_type_array_bool(&xso->set_ref, &argx->ref);
+                    argx_so_type_array_bool(&xso->set_val, rice, &argx->val);
+                    argx_so_type_array_bool(&xso->set_ref, rice, &argx->ref);
                     argx_so_hint_generic(xso, rice, hint, argx->hint.so);
                 } break;
                 case ARGX_TYPE_INT: {
-                    argx_so_type_array_int(&xso->set_val, &argx->val);
-                    argx_so_type_array_int(&xso->set_ref, &argx->ref);
+                    argx_so_type_array_int(&xso->set_val, rice, &argx->val);
+                    argx_so_type_array_int(&xso->set_ref, rice, &argx->ref);
                     argx_so_hint_generic(xso, rice, hint, argx->hint.so);
                 } break;
                 case ARGX_TYPE_SIZE: {
-                    argx_so_type_array_size(&xso->set_val, &argx->val);
-                    argx_so_type_array_size(&xso->set_ref, &argx->ref);
+                    argx_so_type_array_size(&xso->set_val, rice, &argx->val);
+                    argx_so_type_array_size(&xso->set_ref, rice, &argx->ref);
                     argx_so_hint_generic(xso, rice, hint, argx->hint.so);
                 } break;
                 case ARGX_TYPE_REST:
                 case ARGX_TYPE_URI:
                 case ARGX_TYPE_STRING: {
-                    argx_so_like_array_string(&xso->set_val, &argx->val);
-                    argx_so_like_array_string(&xso->set_ref, &argx->ref);
+                    argx_so_like_array_string(&xso->set_val, rice, &argx->val);
+                    argx_so_like_array_string(&xso->set_ref, rice, &argx->ref);
                     argx_so_hint_generic(xso, rice, hint, argx->hint.so);
                 } break;
                 case ARGX_TYPE_GROUP: {
@@ -323,24 +335,24 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
                 } break;
                 case ARGX_TYPE_FLAG:
                 case ARGX_TYPE_BOOL: {
-                    argx_so_type_bool(&xso->set_val, &argx->val);
-                    argx_so_type_bool(&xso->set_ref, &argx->ref);
+                    argx_so_type_bool(&xso->set_val, rice, &argx->val);
+                    argx_so_type_bool(&xso->set_ref, rice, &argx->ref);
                     argx_so_hint_generic(xso, rice, hint, argx->hint.so);
                 } break;
                 case ARGX_TYPE_INT: {
-                    argx_so_type_int(&xso->set_val, &argx->val);
-                    argx_so_type_int(&xso->set_ref, &argx->ref);
+                    argx_so_type_int(&xso->set_val, rice, &argx->val);
+                    argx_so_type_int(&xso->set_ref, rice, &argx->ref);
                     argx_so_hint_generic(xso, rice, hint, argx->hint.so);
                 } break;
                 case ARGX_TYPE_SIZE: {
-                    argx_so_type_size(&xso->set_val, &argx->val);
-                    argx_so_type_size(&xso->set_ref, &argx->ref);
+                    argx_so_type_size(&xso->set_val, rice, &argx->val);
+                    argx_so_type_size(&xso->set_ref, rice, &argx->ref);
                     argx_so_hint_generic(xso, rice, hint, argx->hint.so);
                 } break;
                 case ARGX_TYPE_URI:
                 case ARGX_TYPE_STRING: {
-                    argx_so_like_string(&xso->set_val, &argx->val);
-                    argx_so_like_string(&xso->set_ref, &argx->ref);
+                    argx_so_like_string(&xso->set_val, rice, &argx->val);
+                    argx_so_like_string(&xso->set_ref, rice, &argx->ref);
                     argx_so_hint_generic(xso, rice, hint, argx->hint.so);
                 } break;
                 case ARGX_TYPE_GROUP: {
