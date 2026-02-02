@@ -16,6 +16,28 @@ typedef struct Arg_Help_Source {
     Argx *last;
 } Arg_Help_Source;
 
+typedef struct Arg_Rice {
+    So_Fx program;
+    So_Fx group;
+    So_Fx group_delim;
+    So_Fx pos;
+    So_Fx c;
+    So_Fx opt;
+    So_Fx env;
+    So_Fx desc;
+    So_Fx enum_unset;
+    So_Fx enum_set;
+    So_Fx enum_delim;
+    So_Fx flag_unset;
+    So_Fx flag_set;
+    So_Fx flag_delim;
+    So_Fx hint;
+    So_Fx hint_delim;
+    So_Fx val;
+    So_Fx val_delim;
+} Arg_Rice;
+
+
 typedef struct Arg {
     Argx *c[ARGX_SHORT_COUNT]; /* short options */
 
@@ -52,6 +74,8 @@ typedef struct Arg {
         bool wanted;    /* if we explicitly want help (e.g. --help) */
         Argx *argx;     /* pointer to the --help argx */
     } help;
+
+    Arg_Rice rice;
 
 } Arg;
 

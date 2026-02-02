@@ -9,5 +9,7 @@
     - proper parsing of strings in configs
     - proper parsing of multiline arrays in configs
     - allow parsing of +value or -value for arrays...?
+    - compact help for if flag not found? (this here: stdin: Option not found in root groups: 'ow3efo')
     - --help --kljasernla does not notify of unknown option
+- move attributes (e.g. configurable to custom file)
 
