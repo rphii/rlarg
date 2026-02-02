@@ -13,5 +13,4 @@
     - proper parsing of multiline arrays in configs
     - allow parsing of +value or -value for arrays...?
     - allow something like this: CONFIG_PRINT=hierarchy ./program -> only prints the config for that hierarchy/group!
-    - do not print colored colors to config (when Arg_Format * == 0)
 

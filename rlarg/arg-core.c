@@ -43,9 +43,8 @@ void arg_help_argx_rec(So *out, Argx *argx) {
 void arg_help_argx(struct Argx *help) {
     So out = SO;
     Argx_So xso = {0};
-    Argx_Fmt fmt = {};
 
-    argx_so(&xso, &fmt, help);
+    argx_so(&xso, true, help);
     so_fmt(&out, "%.*s%.*s:\n", SO_F(xso.hierarchy), SO_F(xso.argx->opt));
     argx_so_free(&xso);
 

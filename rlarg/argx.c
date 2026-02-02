@@ -165,8 +165,7 @@ void argx_fmt_help(So *out, Argx *argx) {
     ASSERT_ARG(argx);
 
     Argx_So xso = {0};
-    Argx_Fmt fmt = {};
-    argx_so(&xso, &fmt, argx);
+    argx_so(&xso, true, argx);
 
     /* aligning... gather lengths and spacing (( +1 because of spaces between things )) */
     size_t len_end_opt = 8 + so_len(argx->opt); /* 8 because of this: '  -x  --' */
