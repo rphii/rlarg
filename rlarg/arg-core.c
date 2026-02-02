@@ -79,6 +79,7 @@ void arg_help_argx(struct Argx *help) {
 
     arg_help_argx_rec(&out, help);
     if(help->id == ARGX_TYPE_GROUP) {
+        so_push(&out, '\n');
         ASSERT_ARG(help->group_s);
         Argx **itE = array_itE(help->group_s->list);
         for(Argx **it = help->group_s->list; it < itE; ++it) {
@@ -88,7 +89,7 @@ void arg_help_argx(struct Argx *help) {
 
     size_t len = array_len(help->sources);
     if(len) {
-        so_fmt(&out, "sources:\n");
+        so_fmt(&out, "\nsources:\n");
         for(size_t i = 0; i < len; ++i) {
             Arg_Stream_Source src = array_at(help->sources, i);
             if(src.line_number) {
