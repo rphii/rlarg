@@ -2,6 +2,7 @@
 
 int main(const int argc, const char **argv) {
     struct Arg *arg = arg_new();
+    int status = 0;
     ASSERT(arg, "expect to have pointer");
 
     bool val = 0;
@@ -9,9 +10,12 @@ int main(const int argc, const char **argv) {
     struct Argx *x=argx_opt(g1, 'b', so("bool"), so("a boolean value"));
     argx_type_bool(x, &val, 0);
 
-    arg_parse(arg, argc, argv);
+    bool quit_early = false;
+    if(arg_parse(arg, argc, argv, &quit_early)) goto defer;
+    if(quit_early) goto defer;
 
+defer:
     arg_free(&arg);
-    return 0;
+    return status;
 }
 

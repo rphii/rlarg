@@ -243,8 +243,8 @@ void argx_so_hint_generic(Argx_So *xso, Arg_Rice *rice, char *hint, So so) {
 
 void argx_so(Argx_So *xso, bool fx, Argx *argx) {
     //printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
+    if(!argx) return;
     ASSERT_ARG(xso);
-    ASSERT_ARG(argx);
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
     Arg_Rice *rice = &argx->group_p->arg->rice;
