@@ -42,10 +42,13 @@ void argx_so_type_bool(So *out, Argx_Value_Union *val) {
     if(val->b) so_extend(out, *val->b ? so("true") : so("false"));
 }
 
-void argx_so_type_color(So *out, Argx_Value_Union *val) {
+void argx_so_type_color(So *out, bool fx, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     //printff("FORMAT COLOR %x",(*val->c).rgba);
-    if(val->c) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
+    if(val->c) {
+        if(fx) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
+        else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_DEC|SO_COLOR_NOFX);
+    }
 }
 
 /* non vector types }}} */
@@ -128,7 +131,7 @@ void argx_so_type_array_color(So *out, Argx_Value_Union *val) {
 
 /* types relying on subgroup {{{ */
 
-void argx_so_enum(Argx_So *xso, Argx_Fmt *fmt,  Argx *argx) {
+void argx_so_enum(Argx_So *xso, bool fx,  Argx *argx) {
     Argx **itE = array_itE(argx->group_s->list);
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
@@ -141,7 +144,7 @@ void argx_so_enum(Argx_So *xso, Argx_Fmt *fmt,  Argx *argx) {
             so_extend(&xso->set_ref, (*it)->opt);
         }
         /* format hint */
-        if(current_is_selected && fmt) {
+        if(current_is_selected && fx) {
             so_fmt(&xso->hint, F("%.*s", UL), SO_F((*it)->opt));
         } else {
             so_fmt(&xso->hint, "%.*s", SO_F((*it)->opt));
@@ -150,7 +153,7 @@ void argx_so_enum(Argx_So *xso, Argx_Fmt *fmt,  Argx *argx) {
     }
 }
 
-void argx_so_flags(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
+void argx_so_flags(Argx_So *xso, bool fx, Argx *argx) {
     Argx **itE = array_itE(argx->group_s->list);
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
@@ -166,7 +169,7 @@ void argx_so_flags(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
             so_extend(&xso->set_ref, (*it)->opt);
         }
         /* format hint */
-        if(current_is_selected && fmt) {
+        if(current_is_selected && fx) {
             so_fmt(&xso->hint, F("%.*s", UL), SO_F((*it)->opt));
         } else {
             so_fmt(&xso->hint, "%.*s", SO_F((*it)->opt));
@@ -175,7 +178,7 @@ void argx_so_flags(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
     }
 }
 
-void argx_so_options(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
+void argx_so_options(Argx_So *xso, bool fx, Argx *argx) {
     Argx **itE = array_itE(argx->group_s->list);
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
@@ -202,7 +205,7 @@ void argx_so_hierarchy(So *hierarchy, Argx_Group *group) {
     so_fmt(hierarchy, "%.*s.", SO_F(group->name));
 }
 
-void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
+void argx_so(Argx_So *xso, bool fx, Argx *argx) {
     //printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
     ASSERT_ARG(xso);
     ASSERT_ARG(argx);
@@ -286,8 +289,8 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                     xso->have_hint = false;
                 } break;
                 case ARGX_TYPE_COLOR: {
-                    argx_so_type_color(&xso->set_val, &argx->val);
-                    argx_so_type_color(&xso->set_ref, &argx->ref);
+                    argx_so_type_color(&xso->set_val, fx, &argx->val);
+                    argx_so_type_color(&xso->set_ref, fx, &argx->ref);
                     so_fmt(&xso->hint, "%c%.*s%c", hint[0], SO_F(argx->hint.so), hint[1]);
                 } break;
                 case ARGX_TYPE_FLAG:
@@ -320,15 +323,15 @@ void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx) {
                         xso->have_hint = true;
                         switch(argx->group_s->id) {
                             case ARGX_GROUP_ENUM: {
-                                argx_so_enum(xso, fmt, argx);
+                                argx_so_enum(xso, fx, argx);
                                 xso->val_config = (bool)(xso->set_val.len);
                             } break;
                             case ARGX_GROUP_FLAGS: {
-                                argx_so_flags(xso, fmt, argx);
+                                argx_so_flags(xso, fx, argx);
                                 xso->val_config = (bool)(xso->set_val.len);
                             } break;
                             case ARGX_GROUP_OPTIONS: {
-                                argx_so_options(xso, fmt, argx);
+                                argx_so_options(xso, fx, argx);
                                 xso->val_group = true;
                             } break;
                             case ARGX_GROUP_ROOT: ABORT(ERR_UNREACHABLE("case has to be handled from the outside"));
