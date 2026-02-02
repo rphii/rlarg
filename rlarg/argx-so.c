@@ -229,10 +229,11 @@ void argx_so_options(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
 
 /* types relying on subgroup }}} */
 
-void argx_so_hierarchy(So *hierarchy, Argx_Group *group) {
+void argx_so_hierarchy(So *hierarchy, Arg_Rice *rice, Argx_Group *group) {
     if(!group) return;
-    if(group->parent) argx_so_hierarchy(hierarchy, group->parent->group_p);
-    so_fmt(hierarchy, "%.*s.", SO_F(group->name));
+    if(group->parent) argx_so_hierarchy(hierarchy, rice, group->parent->group_p);
+    so_fmt_fx(hierarchy, rice->group, 0, "%.*s", SO_F(group->name));
+    so_fmt_fx(hierarchy, rice->group_delim, 0, ".");
 }
 
 void argx_so_hint_generic(Argx_So *xso, Arg_Rice *rice, char *hint, So so) {
@@ -275,7 +276,7 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
     xso->val_visible = (bool)(argx->val.any);
     xso->val_config = xso->val_visible;
     xso->have_hint = true;
-    argx_so_hierarchy(&xso->hierarchy, argx->group_p);
+    argx_so_hierarchy(&xso->hierarchy, rice, argx->group_p);
     if(!argx->is_hidden) {
         if(argx->is_array) {
             switch(argx->id) {

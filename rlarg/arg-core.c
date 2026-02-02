@@ -19,45 +19,23 @@ struct Arg *arg_new(void) {
     result->pos = argx_group_init(result, &result->t_pos, so("positional"), ARGX_GROUP_ROOT, 0);
     result->env = argx_group_init(result, &result->t_env, so("environment"), ARGX_GROUP_ROOT, 0);
 
-#if 0
-        So_Fx program;
-        So_Fx group;
-        So_Fx group_delim;
-        So_Fx pos;
-        So_Fx c;
-        So_Fx opt;
-        So_Fx env;
-        So_Fx desc;
-        So_Fx enum_unset;
-        So_Fx enum_set;
-        So_Fx enum_delim;
-        So_Fx flag_unset;
-        So_Fx flag_set;
-        So_Fx flag_delim;
-        So_Fx hint;
-        So_Fx hint_delim;
-        So_Fx val;
-        So_Fx val_delim;
-#endif
-
     bool *nofx = &result->builtin.config_print_selected;
-    result->rice.c =            (So_Fx){ .nocolor = nofx, .fg = COLOR_BLUE };
-    result->rice.opt =          (So_Fx){ .nocolor = nofx, .fg = COLOR_AQUA };
-    result->rice.hint =         (So_Fx){ .nocolor = nofx, .fg = COLOR_GREEN };
-    result->rice.enum_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_YELLOW, .bold = true, .underline = true };
-    result->rice.enum_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_OLIVE };
-    result->rice.enum_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
-    result->rice.flag_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_FUCHSIA, .bold = true, .underline = true };
-    result->rice.flag_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_PURPLE };
-    result->rice.flag_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
-    result->rice.hint =         (So_Fx){ .nocolor = nofx, .fg = COLOR_LIME };
-    result->rice.hint_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
-    result->rice.env =          (So_Fx){ .nocolor = nofx, .fg = COLOR_WHITE };
-    result->rice.pos =          (So_Fx){ .nocolor = nofx, .fg = COLOR_GREEN };
-    result->rice.desc =         (So_Fx){ .nocolor = nofx, .fg = COLOR_TEAL };
+    result->rice.program =      (So_Fx){ .nocolor = nofx };
     result->rice.group =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RED };
     result->rice.group_delim =  (So_Fx){ .nocolor = nofx, .fg = COLOR_MAROON };
+    result->rice.pos =          (So_Fx){ .nocolor = nofx, .fg = COLOR_GREEN };
+    result->rice.c =            (So_Fx){ .nocolor = nofx, .fg = COLOR_BLUE };
+    result->rice.opt =          (So_Fx){ .nocolor = nofx, .fg = COLOR_AQUA };
+    result->rice.env =          (So_Fx){ .nocolor = nofx, .fg = COLOR_WHITE };
     result->rice.desc =         (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
+    result->rice.enum_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_OLIVE };
+    result->rice.enum_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_YELLOW, .bold = true, .underline = true };
+    result->rice.enum_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
+    result->rice.flag_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_PURPLE };
+    result->rice.flag_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_FUCHSIA, .bold = true, .underline = true };
+    result->rice.flag_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
+    result->rice.hint =         (So_Fx){ .nocolor = nofx, .fg = COLOR_TEAL };
+    result->rice.hint_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
     result->rice.val =          (So_Fx){ .nocolor = nofx, .fg = COLOR_TEAL };
     result->rice.val_delim =    (So_Fx){ .nocolor = nofx, .fg = COLOR_NAVY };
 
@@ -87,12 +65,14 @@ void arg_help_argx(struct Argx *help) {
     So out = SO;
     Argx_So xso = {0};
     ASSERT_ARG(help->group_p);
-    Arg *arg = help->group_p->arg;
-    ASSERT_ARG(arg);
-    Arg_Rice *rice = &arg->rice;
+    ASSERT_ARG(help->group_p->arg);
+    Arg_Rice *rice = &help->group_p->arg->rice;
 
     argx_so(&xso, true, help);
-    so_fmt(&out, "%.*s%.*s:\n", SO_F(xso.hierarchy), SO_F(xso.argx->opt));
+    so_fmt(&out, "%.*s", SO_F(xso.hierarchy));
+    so_fmt_fx(&out, rice->group, 0, "%.*s", SO_F(xso.argx->opt));
+    so_fmt_fx(&out, rice->group_delim, 0, ":");
+    so_push(&out, '\n');
     argx_so_free(&xso);
 
     arg_help_argx_rec(&out, help);
