@@ -4,6 +4,7 @@
 #include <rlc.h>
 #include "../rlarg.h"
 #include "argx-hint.h"
+#include "argx-so.h"
 
 #define ARGX_SHORT_MIN      ('!')
 #define ARGX_SHORT_MAX      ('~')
@@ -78,25 +79,6 @@ typedef struct Argx {
 LUT_INCLUDE(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL);
 
 void v_argx_free(V_Argx *vargs);
-
-typedef struct Argx_So {
-    Argx *argx;
-    So set_val;
-    So set_ref;
-    So hint;
-    So hierarchy;
-    bool val_visible;
-    bool val_config;
-    bool val_group;     /* if the set_val and set_ref are part of a group = require further expanding for a config */
-    bool have_hint;
-} Argx_So;
-
-typedef struct Argx_Fmt {
-} Argx_Fmt;
-
-void argx_so_free(Argx_So *xso);
-void argx_so_clear(Argx_So *xso);
-void argx_so(Argx_So *xso, Argx_Fmt *fmt, Argx *argx);
 
 void argx_fmt_help(So *out, Argx *argx);
 void argx_fmt_config(So *out, Argx *argx);
