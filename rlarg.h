@@ -31,6 +31,7 @@ struct Argx *argx_pos(struct Arg *arg, So name, So desc);
 struct Argx *argx_env(struct Arg *arg, So name, So desc);
 
 void argx_builtin_env_compgen(struct Arg *arg);
+void argx_builtin_env_nocolor(struct Arg *arg);
 void argx_builtin_opt_help(struct Argx_Group *group);
 void argx_builtin_opt_source(struct Argx_Group *group, So uri);
 void argx_builtin_opt_so_fx(struct Argx *x, So_Fx *fmt, So_Fx *ref);

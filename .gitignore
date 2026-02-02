@@ -1,6 +1,7 @@
 .cache
 *.vim
 *.out
+*.log
 *valgrind*
 subprojects/*
 !subprojects/*.wrap

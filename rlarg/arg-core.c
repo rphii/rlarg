@@ -19,7 +19,7 @@ struct Arg *arg_new(void) {
     result->pos = argx_group_init(result, &result->t_pos, so("positional"), ARGX_GROUP_ROOT, 0);
     result->env = argx_group_init(result, &result->t_env, so("environment"), ARGX_GROUP_ROOT, 0);
 
-    bool *nofx = &result->builtin.config_print_selected;
+    bool *nofx = &result->builtin.nocolor;
     result->rice.program =      (So_Fx){ .nocolor = nofx };
     result->rice.group =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RED };
     result->rice.group_delim =  (So_Fx){ .nocolor = nofx, .fg = COLOR_MAROON };

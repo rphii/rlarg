@@ -21,5 +21,4 @@
 # later later
 
 - add ability to hide groups in help?
-- do not color if redirect?
 
