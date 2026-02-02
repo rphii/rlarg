@@ -3,7 +3,7 @@
 
 void arg_compgen_group(Argx_Group *group) {
     if(!group) return;
-    bool treat_as_options = (group == group->arg->opts);
+    bool treat_as_options = (group->table == &group->arg->t_opt);
     Argx **itE = array_itE(group->list);
     for(Argx **it = group->list; it < itE; ++it) {
         printf("%c", 0);
