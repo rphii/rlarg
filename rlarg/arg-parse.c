@@ -41,6 +41,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_NO_REST_ALLOWED:
                 arg_parse_set_help_error(arg, arg->help.argx);
                 break;
+            case ARG_PARSE_ERROR_UNCONFIGURABLE:
             case ARG_PARSE_ERROR_INVALID_CONVERSION:
             case ARG_PARSE_ERROR_INVALID_OPTION_GROUP:
             case ARG_PARSE_ERROR_MISSING_POSITIONAL:
@@ -58,6 +59,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 fprintf(stderr, F("%.*s: ", FG_MG), SO_F(stream->source.path));
             }
             switch(id) {
+                case ARG_PARSE_ERROR_UNCONFIGURABLE: {
+                    fprintf(stderr, F("Cannot configure: '%.*s', tried setting to: '%.*s'", FG_RD_B), SO_F(xso.argx->opt), SO_F(stream->carg));
+                } break;
                 case ARG_PARSE_ERROR_INVALID_CONVERSION: {
                     fprintf(stderr, F("Invalid conversion for '%.*s' %.*s: %.*s", FG_RD_B), SO_F(xso.argx->opt), SO_F(xso.hint), SO_F(stream->carg));
                 } break;
@@ -444,7 +448,10 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(argx);
     int result = -1;
     arg_parse_set_help_any(arg, argx); /* set help BEFORE doing any further parsing */
-    if(argx->is_array) {
+    if(stream->is_config && !argx_is_configurable(argx)) {
+        result = -1;
+        arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNCONFIGURABLE, argx);
+    } else if(argx->is_array) {
         if(argx->id < ARGX_TYPE__COUNT) {
             Arg_Parse_Argx_Callback cb = static_parse_argx_vector_vals_cbs[argx->id];
             Arg_Parse_Argx_Vector_Callback vcb = static_parse_argx_vector_cbs[argx->id];
@@ -516,7 +523,8 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     arg->help.last = 0;
     arg->help.wanted = false;
     Arg_Stream stream_config = {
-        .source.path = path
+        .source.path = path,
+        .is_config = true,
     };
     int line_number = 1;
     int status = 0;
@@ -556,7 +564,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         //printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
         stream_config.carg = rhs;
         arg_parse_argx(arg, &stream_config, argx, rhs);
-skip_try_next:
+skip_try_next:;
     }
     return status;
 }

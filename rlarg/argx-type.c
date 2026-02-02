@@ -94,6 +94,11 @@ void argx_hide(struct Argx *argx, bool hide) {
     argx->is_hidden = hide;
 }
 
+void argx_configurable(struct Argx *argx, bool configurable) {
+    ASSERT_ARG(argx);
+    argx->is_unconfigurable = !configurable;
+}
+
 void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
     argx->val.vso = val;
