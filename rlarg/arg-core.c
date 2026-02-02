@@ -88,6 +88,8 @@ void arg_help_argx(struct Argx *help) {
                 so_fmt(&out, "  %.*s%s\n", SO_F(src.path), i + 1 < len ? "," : "");
             }
         }
+    } else {
+        so_fmt(&out, "not set anywhere\n");
     }
 
     so_print(out);

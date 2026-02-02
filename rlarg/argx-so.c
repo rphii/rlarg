@@ -55,7 +55,6 @@ void argx_so_type_bool(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
 
 void argx_so_type_color(So *out, bool fx, Argx_Value_Union *val) {
     ASSERT_ARG(out);
-    //printff("FORMAT COLOR %x",(*val->c).rgba);
     if(val->c) {
         if(fx) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX);
         else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_DEC|SO_COLOR_NOFX);
