@@ -38,7 +38,10 @@ struct Argx_Group *argx_group(struct Arg *arg, So name) {
 void argx_group_fmt_help(So *out, Argx_Group *group) {
     ASSERT_ARG(out);
     ASSERT_ARG(group);
-    so_fmt(out, "%.*s:\n", SO_F(group->name));
+    ASSERT_ARG(group->arg);
+    so_fmt_fx(out, group->arg->rice.group, 0, "%.*s", SO_F(group->name));
+    so_fmt_fx(out, group->arg->rice.group_delim, 0, ":");
+    so_push(out, '\n');
     for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
         argx_fmt_help(out, *argx);
     }

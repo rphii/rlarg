@@ -169,6 +169,9 @@ void argx_builtin_opt_so_fx(struct Argx *x, So opt, So_Fx *fmt, So_Fx *ref) {
 void argx_fmt_help(So *out, Argx *argx) {
     ASSERT_ARG(out);
     ASSERT_ARG(argx);
+    ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(argx->group_p->arg);
+    Arg_Rice *rice = &argx->group_p->arg->rice;
 
     Argx_So xso = {0};
     argx_so(&xso, true, argx);
@@ -197,11 +200,27 @@ void argx_fmt_help(So *out, Argx *argx) {
 
     /* format the name */
     if(treat_short_spacing) {
-        so_fmt(out, "  %.*s", SO_F(argx->opt));
+        so_extend(out, so("  "));
+        if(argx->group_p == &argx->group_p->arg->env) {
+            so_fmt_fx(out, rice->env, 0, "%.*s", SO_F(argx->opt));
+        } else {
+            so_fmt_fx(out, rice->pos, 0, "%.*s", SO_F(argx->opt));
+        }
     } else {
-        char c = argx->c ? argx->c : ' ';
-        so_fmt(out, "  %c%c", argx->c ? '-' : ' ', c);
-        so_fmt(out, "  %s%.*s", treat_as_options ? "--" : "  ", SO_F(argx->opt));
+        /* format the short opt */
+        if(argx->c) {
+            so_extend(out, so("  "));
+            so_fmt_fx(out, rice->c, 0, "-%c", argx->c);
+        } else {
+            so_extend(out, so("    ")); 
+        }
+        if(treat_as_options) {
+            so_extend(out, so("  ")); 
+            so_fmt_fx(out, rice->opt, 0, "--%.*s", SO_F(argx->opt));
+        } else {
+            so_extend(out, so("    ")); 
+            so_fmt_fx(out, rice->opt, 0, "%.*s", SO_F(argx->opt));
+        }
     }
 
     if(xso.have_hint) {
@@ -211,10 +230,13 @@ void argx_fmt_help(So *out, Argx *argx) {
 
     if(!compact_desc) so_push(out, '\n');
     
-    so_fmt(out, "%*s%.*s", spacing_desc, "", SO_F(argx->desc));
+    so_fmt(out, "%*s", spacing_desc, "");
+    so_fmt_fx(out, rice->desc, 0, "%.*s", SO_F(argx->desc));
 
     if(xso.val_visible) {
-        so_fmt(out, " =%.*s", SO_F(xso.set_val));
+        so_push(out, ' ');
+        so_fmt_fx(out, rice->val_delim, 0, "=");
+        so_fmt(out, "%.*s", SO_F(xso.set_val));
     }
 
     so_fmt(out, "\n");
