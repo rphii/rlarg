@@ -99,7 +99,7 @@ void arg_help_argx(struct Argx *help) {
             }
         }
     } else {
-        so_fmt(&out, "not set anywhere\n");
+        so_fmt(&out, "\nnot set anywhere\n");
     }
 
     so_print(out);

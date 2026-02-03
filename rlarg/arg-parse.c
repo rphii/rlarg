@@ -47,7 +47,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_NO_REST_ALLOWED:
                 arg_parse_set_help_error(arg, arg->help.argx);
                 argx_so(&xso, 0, arg->help.argx);
-                newline = true;
+                newline = (bool)(arg->help.argx);
                 break;
             case ARG_PARSE_ERROR_UNCONFIGURABLE:
             case ARG_PARSE_ERROR_INVALID_CONVERSION:
@@ -57,7 +57,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL:
                 arg_parse_set_help_error(arg, argx);
                 argx_so(&xso, 0, argx);
-                newline = true;
+                newline = (bool)(argx);
                 break;
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
         }
