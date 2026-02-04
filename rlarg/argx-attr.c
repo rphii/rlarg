@@ -11,13 +11,5 @@ void argx_attr_configurable(struct Argx *argx, bool configurable) {
     argx->attr.is_unconfigurable = !configurable;
 }
 
-/* TODO maybe not an attribute... cuz not in attr... */
-void argx_attr_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority) {
-    ASSERT_ARG(argx);
-    ASSERT_ARG(func);
-    argx->callback.func = func;
-    argx->callback.user = user;
-    argx->callback.priority = priority;
-}
 
 

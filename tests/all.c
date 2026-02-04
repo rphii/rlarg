@@ -145,7 +145,7 @@ int main(const int argc, const char **argv) {
 
     x=argx_opt(g1, 0, so("func"), so("function call"));
       argx_type_int(x, 0, 0);
-      argx_attr_callback(x, cbtest, 0, ARGX_PRIORITY_WHEN_ALL_VALID);
+      argx_callback(x, cbtest, 0, ARGX_PRIORITY_WHEN_ALL_VALID);
 
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));

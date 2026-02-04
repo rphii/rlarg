@@ -115,7 +115,7 @@ int argx_callback_config(Argx *argx, void *user, So so) {
 
 void argx_builtin_env_config(struct Arg *arg) {
     Argx *x = argx_env(arg, so("CONFIG_PRINT"), so("generate config of certain group"));
-    argx_attr_callback(x, argx_callback_config, arg, ARGX_PRIORITY_IMMEDIATELY);
+    argx_callback(x, argx_callback_config, arg, ARGX_PRIORITY_IMMEDIATELY);
     Argx_Group *g = argx_group_flags(x);
 
     Argx_Group **itE = array_itE(arg->opts);
@@ -134,7 +134,7 @@ int argx_callback_help(Argx *argx, void *user, So so) {
 
 void argx_builtin_opt_help(struct Argx_Group *group) {
     Argx *x = argx_opt(group, 'h', so("help"), so("print this help"));
-    argx_attr_callback(x, argx_callback_help, group->arg, ARGX_PRIORITY_IMMEDIATELY);
+    argx_callback(x, argx_callback_help, group->arg, ARGX_PRIORITY_IMMEDIATELY);
     group->arg->help.argx = x;
     argx_attr_configurable(x, false);
 }
