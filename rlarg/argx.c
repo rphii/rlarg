@@ -363,3 +363,16 @@ bool argx_is_configurable(Argx *argx) {
     return true;
 }
 
+bool argx_is_subgroup_of_root(Argx *argx, struct Argx_Group *group) {
+    ASSERT_ARG(argx);
+    ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(group);
+    Argx_Group *g = argx->group_p;
+    for(;;) {
+        if(!g->parent) break;
+        if(!g->parent->group_p) break;
+        g = g->parent->group_p;
+    }
+    return (bool)(g == group);
+}
+

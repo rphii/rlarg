@@ -86,6 +86,7 @@ void argx_fmt_config(So *out, Argx *argx);
 
 bool argx_flag_is_any_source_set(Argx *argx);
 bool argx_is_configurable(Argx *argx);
+bool argx_is_subgroup_of_root(Argx *argx, struct Argx_Group *group);
 
 void argx_builtin_env_config(struct Arg *arg);
 

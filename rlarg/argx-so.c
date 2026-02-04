@@ -147,6 +147,9 @@ void argx_so_enum(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
     ASSERT_ARG(rice);
     ASSERT_ARG(hints);
     ASSERT_ARG(argx);
+    ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(argx->group_p->arg);
+    bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
     so_fmt_fx(&xso->hint, rice->enum_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
@@ -154,7 +157,7 @@ void argx_so_enum(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
         /* check if iterator matches selected value */
         if(argx->val.i && *argx->val.i == (*it)->val_enum) {
             so_fmt_fx(&xso->set_val, rice->val, 0, "%.*s", SO_F((*it)->opt));
-            current_is_selected = true;
+            current_is_selected = !is_pos;
         }
         if(argx->ref.i && *argx->ref.i == (*it)->val_enum) {
             so_fmt_fx(&xso->set_ref, rice->val, 0, "%.*s", SO_F((*it)->opt));
@@ -175,6 +178,9 @@ void argx_so_flags(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
     ASSERT_ARG(rice);
     ASSERT_ARG(hints);
     ASSERT_ARG(argx);
+    ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(argx->group_p->arg);
+    bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
     so_fmt_fx(&xso->hint, rice->flag_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
     size_t iv = 0, ir = 0;
@@ -184,7 +190,7 @@ void argx_so_flags(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
         if((*it)->val.b && *(*it)->val.b) {
             if(iv++) so_push(&xso->set_val, ',');
             so_extend(&xso->set_val, (*it)->opt);
-            current_is_selected = true;
+            current_is_selected = !is_pos;
         }
         if((*it)->ref.b && *(*it)->ref.b) {
             if(ir++) so_push(&xso->set_ref, ',');
@@ -277,6 +283,9 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
     xso->val_config = xso->val_visible;
     xso->have_hint = true;
     argx_so_hierarchy(&xso->hierarchy, rice, argx->group_p);
+
+    bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
+    if(is_pos) xso->val_visible = false;
 
     if(argx->is_array) {
         switch(argx->id) {
