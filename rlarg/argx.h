@@ -6,6 +6,7 @@
 #include "argx-hint.h"
 #include "argx-so.h"
 #include "argx-attr.h"
+#include "argx-callback.h"
 
 #define ARGX_SHORT_MIN      ('!')
 #define ARGX_SHORT_MAX      ('~')
@@ -43,21 +44,10 @@ typedef union Argx_Value_Union {
     Color **vc;
 } Argx_Value_Union;
 
-typedef struct Argx_Callback {
-    Argx_Priority_List priority;
-    Argx_Function func;
-    void *user;
-} Argx_Callback;
-
 #define ARGX_SOURCE_REFVAL  so("refval")
 #define ARGX_SOURCE_STDIN   so("stdin")
 #define ARGX_SOURCE_ENVVARS so("envvars")
 
-
-typedef struct Argx_Callback_Queue {
-    struct Argx *argx;
-    So so;
-} Argx_Callback_Queue;
 
 typedef struct Argx {
     Argx_Value_Union val;  /* parsed value */

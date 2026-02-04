@@ -7,6 +7,7 @@ sources = [
   'rlarg/arg-runtime.c',
   'rlarg/arg-stream.c',
   'rlarg/argx-attr.c',
+  'rlarg/argx-callback.c',
   'rlarg/argx-group.c',
   'rlarg/argx-hint.c',
   'rlarg/argx-so.c',

@@ -71,9 +71,12 @@ struct Argx *argx_flag(struct Argx_Group *group, bool *val, bool *ref, So name, 
 void argx_hint_kind(struct Argx *argx, Argx_Hint_List id);
 void argx_hint_text(struct Argx *argx, So text);
 
+/* rlarg/argx-callback.h */
+
+void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority);
+
 /* rlarg/argx-attr.c */
 
-void argx_attr_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority);
 void argx_attr_hide(struct Argx *argx, bool hide);
 void argx_attr_configurable(struct Argx *argx, bool configurable);
 
