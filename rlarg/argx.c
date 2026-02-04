@@ -13,7 +13,7 @@ void argx_free_v(Argx argx) {
 
 void argx_free(Argx *argx) {
     //printff("free argx: %.*s",SO_F(argx->opt));
-    if(argx->is_array) {
+    if(argx->attr.is_array) {
         switch(argx->id) {
             default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
             case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("array of FLAG unsupported (how did you reach this code?)"));
@@ -115,7 +115,7 @@ int argx_callback_config(Argx *argx, void *user, So so) {
 
 void argx_builtin_env_config(struct Arg *arg) {
     Argx *x = argx_env(arg, so("CONFIG_PRINT"), so("generate config of certain group"));
-    argx_callback(x, argx_callback_config, arg, ARGX_PRIORITY_IMMEDIATELY);
+    argx_attr_callback(x, argx_callback_config, arg, ARGX_PRIORITY_IMMEDIATELY);
     Argx_Group *g = argx_group_flags(x);
 
     Argx_Group **itE = array_itE(arg->opts);
@@ -134,9 +134,9 @@ int argx_callback_help(Argx *argx, void *user, So so) {
 
 void argx_builtin_opt_help(struct Argx_Group *group) {
     Argx *x = argx_opt(group, 'h', so("help"), so("print this help"));
-    argx_callback(x, argx_callback_help, group->arg, ARGX_PRIORITY_IMMEDIATELY);
+    argx_attr_callback(x, argx_callback_help, group->arg, ARGX_PRIORITY_IMMEDIATELY);
     group->arg->help.argx = x;
-    argx_configurable(x, false);
+    argx_attr_configurable(x, false);
 }
 
 void argx_builtin_opt_source(struct Argx_Group *group, So uri) {
@@ -305,7 +305,7 @@ void argx_fmt_config(So *out, Argx *argx) {
 
     /* pre-check if the type has no value */
     if(!argx_is_configurable(argx)) return;
-    if(argx->is_hidden) return;
+    if(argx->attr.is_hidden) return;
 
     /* now format */
     Argx_So xso = {0};
@@ -357,7 +357,7 @@ bool argx_flag_is_any_source_set(Argx *argx) {
 
 bool argx_is_configurable(Argx *argx) {
     if(!argx) return false;
-    if(argx->is_unconfigurable) return false;
+    if(argx->attr.is_unconfigurable) return false;
     if(argx->callback.func) return true;
     if(argx->id == ARGX_TYPE_NONE) return false;
     return true;

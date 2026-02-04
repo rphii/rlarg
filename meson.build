@@ -6,6 +6,7 @@ sources = [
   'rlarg/arg-parse.c',
   'rlarg/arg-runtime.c',
   'rlarg/arg-stream.c',
+  'rlarg/argx-attr.c',
   'rlarg/argx-group.c',
   'rlarg/argx-hint.c',
   'rlarg/argx-so.c',

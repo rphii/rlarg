@@ -61,10 +61,6 @@ void argx_type_array_int(struct Argx *argx, int **val, int **ref);
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref);
 void argx_type_array_color(struct Argx *argx, Color **val, Color **ref);
 
-void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority);
-void argx_hide(struct Argx *argx, bool hide);
-void argx_configurable(struct Argx *argx, bool configurable);
-
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref);
 struct Argx_Group *argx_group_options(struct Argx *argx);
 struct Argx_Group *argx_group_flags(struct Argx *argx);
@@ -74,6 +70,12 @@ struct Argx *argx_flag(struct Argx_Group *group, bool *val, bool *ref, So name, 
 
 void argx_hint_kind(struct Argx *argx, Argx_Hint_List id);
 void argx_hint_text(struct Argx *argx, So text);
+
+/* rlarg/argx-attr.c */
+
+void argx_attr_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority);
+void argx_attr_hide(struct Argx *argx, bool hide);
+void argx_attr_configurable(struct Argx *argx, bool configurable);
 
 #define RLARG_H
 #endif /* RLARG_H */

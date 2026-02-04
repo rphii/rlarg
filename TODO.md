@@ -1,7 +1,6 @@
 # priority
 
 - codify usage examples
-- move attributes (e.g. configurable to custom file)
 - formatting of arrays to multiple lines
 
 - config things:

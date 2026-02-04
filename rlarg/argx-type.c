@@ -12,7 +12,7 @@ void argx_type_rest(struct Argx *argx, VSo *val) {
         .id = ARGX_HINT_REQUIRED,
         .so = so("string"),
     };
-    argx->is_array = true;
+    argx->attr.is_array = true;
 }
 
 void argx_type_so(struct Argx *argx, So *val, So *ref) {
@@ -81,24 +81,6 @@ void argx_type_color(struct Argx *argx, Color *val, Color *ref) {
     };
 }
 
-void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Priority_List priority) {
-    ASSERT_ARG(argx);
-    ASSERT_ARG(func);
-    argx->callback.func = func;
-    argx->callback.user = user;
-    argx->callback.priority = priority;
-}
-
-void argx_hide(struct Argx *argx, bool hide) {
-    ASSERT_ARG(argx);
-    argx->is_hidden = hide;
-}
-
-void argx_configurable(struct Argx *argx, bool configurable) {
-    ASSERT_ARG(argx);
-    argx->is_unconfigurable = !configurable;
-}
-
 void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
     argx->val.vso = val;
@@ -108,7 +90,7 @@ void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
         .id = ARGX_HINT_REQUIRED,
         .so = so("string-array"),
     };
-    argx->is_array = true;
+    argx->attr.is_array = true;
 }
 
 void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref) {
@@ -120,7 +102,7 @@ void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref) {
         .id = ARGX_HINT_REQUIRED,
         .so = so("uri-array"),
     };
-    argx->is_array = true;
+    argx->attr.is_array = true;
 }
 
 void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref) {
@@ -132,7 +114,7 @@ void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref) {
         .id = ARGX_HINT_REQUIRED,
         .so = so("bool-array"),
     };
-    argx->is_array = true;
+    argx->attr.is_array = true;
 }
 
 void argx_type_array_int(struct Argx *argx, int **val, int **ref) {
@@ -144,7 +126,7 @@ void argx_type_array_int(struct Argx *argx, int **val, int **ref) {
         .id = ARGX_HINT_REQUIRED,
         .so = so("int-array"),
     };
-    argx->is_array = true;
+    argx->attr.is_array = true;
 }
 
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
@@ -156,7 +138,7 @@ void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
         .id = ARGX_HINT_REQUIRED,
         .so = so("size-array"),
     };
-    argx->is_array = true;
+    argx->attr.is_array = true;
 }
 
 void argx_type_array_color(struct Argx *argx, Color **val, Color **ref) {
@@ -168,7 +150,7 @@ void argx_type_array_color(struct Argx *argx, Color **val, Color **ref) {
         .id = ARGX_HINT_REQUIRED,
         .so = so("color-array"),
     };
-    argx->is_array = true;
+    argx->attr.is_array = true;
 }
 
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref) {
@@ -212,7 +194,7 @@ struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc)
     struct Argx *x = argx_opt(group, 0, name, desc);
     //printff("created '%.*s' on table %p",SO_F(name),group->table);
     x->id = ARGX_TYPE_ENUM;
-    x->val_enum = val;
+    x->attr.val_enum = val;
     return x;
 }
 

@@ -5,6 +5,7 @@
 #include "../rlarg.h"
 #include "argx-hint.h"
 #include "argx-so.h"
+#include "argx-attr.h"
 
 #define ARGX_SHORT_MIN      ('!')
 #define ARGX_SHORT_MAX      ('~')
@@ -67,11 +68,7 @@ typedef struct Argx {
     struct Argx_Group *group_p; /* always set to parent group */
     struct Argx_Group *group_s; /* only set if id == ARGX_GROUP */
     Argx_Callback callback;
-    bool is_array;
-    bool is_env;
-    bool is_hidden;
-    bool is_unconfigurable;
-    int val_enum;
+    Argx_Attr attr;
     So desc;
     So opt;
     char c;
