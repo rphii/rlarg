@@ -38,7 +38,7 @@ int main(const int argc, const char **argv) {
     x = argx_opt(g1, 'x', so("boolr"), so("a required boolean value"));
         //printff("p %p", x);
         argx_type_bool(x, &p1, &d);
-    argx_hide(x, true);
+    argx_attr_hide(x, true);
 
     x = argx_opt(g1, 'X', so("boolo"), so("a optional boolean value"));
         //printff("p %p", x);
@@ -116,7 +116,7 @@ int main(const int argc, const char **argv) {
     So key_v, key_r = so("invisible api key here");
     x=argx_env(arg, so("APIKEY"), so("test to hide api key visibility"));
       argx_type_so(x, &key_v, &key_r);
-      argx_hide(x, true);
+      argx_attr_hide(x, true);
 
 #if 1
     bool posb = false;
@@ -145,7 +145,7 @@ int main(const int argc, const char **argv) {
 
     x=argx_opt(g1, 0, so("func"), so("function call"));
       argx_type_int(x, 0, 0);
-      argx_callback(x, cbtest, 0, ARGX_PRIORITY_WHEN_ALL_VALID);
+      argx_attr_callback(x, cbtest, 0, ARGX_PRIORITY_WHEN_ALL_VALID);
 
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));

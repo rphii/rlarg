@@ -155,11 +155,11 @@ void argx_so_enum(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
         /* check if iterator matches selected value */
-        if(argx->val.i && *argx->val.i == (*it)->val_enum) {
+        if(argx->val.i && *argx->val.i == (*it)->attr.val_enum) {
             so_fmt_fx(&xso->set_val, rice->val, 0, "%.*s", SO_F((*it)->opt));
             current_is_selected = !is_pos;
         }
-        if(argx->ref.i && *argx->ref.i == (*it)->val_enum) {
+        if(argx->ref.i && *argx->ref.i == (*it)->attr.val_enum) {
             so_fmt_fx(&xso->set_ref, rice->val, 0, "%.*s", SO_F((*it)->opt));
         }
         /* format hint */
@@ -287,7 +287,7 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
     bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
     if(is_pos) xso->val_visible = false;
 
-    if(argx->is_array) {
+    if(argx->attr.is_array) {
         switch(argx->id) {
             default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
             case ARGX_TYPE_NONE: {
@@ -398,7 +398,7 @@ void argx_so(Argx_So *xso, bool fx, Argx *argx) {
         }
     }
 
-    if(argx->is_hidden) {
+    if(argx->attr.is_hidden) {
         xso->val_visible = false;
     }
     xso->argx = argx;

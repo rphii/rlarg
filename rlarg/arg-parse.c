@@ -321,7 +321,7 @@ int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(parent);
     ASSERT_ARG(parent->val.i);
     if(!arg->help.wanted) {
-        if(parent->val.i) *parent->val.i = argx->val_enum;
+        if(parent->val.i) *parent->val.i = argx->attr.val_enum;
         arg_parse_add_source(argx, stream->source);
         arg_parse_add_source(parent, stream->source);
     }
@@ -464,7 +464,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(stream->is_config && !argx_is_configurable(argx)) {
         result = -1;
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNCONFIGURABLE, argx);
-    } else if(argx->is_array) {
+    } else if(argx->attr.is_array) {
         if(argx->id < ARGX_TYPE__COUNT) {
             Arg_Parse_Argx_Callback cb = static_parse_argx_vector_vals_cbs[argx->id];
             Arg_Parse_Argx_Vector_Callback vcb = static_parse_argx_vector_cbs[argx->id];
@@ -734,7 +734,7 @@ void arg_parse_setref_sources_mono(Argx *argx, So src, size_t n) {
 void arg_parse_setref_argx(Argx *argx) {
     if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
     if(argx->ref.any) {
-        if(argx->is_array) {
+        if(argx->attr.is_array) {
             switch(argx->id) {
                 default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
                 case ARGX_TYPE_BOOL: {
@@ -964,7 +964,7 @@ void arg_parse_configs(Arg *arg) {
 void arg_parse_setup_sources_argx(Argx *argx) {
     if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
     if(!argx->ref.any) {
-        if(argx->is_array) {
+        if(argx->attr.is_array) {
             arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->val.vb));
         } else {
             arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, 1);
