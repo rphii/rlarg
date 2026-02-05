@@ -17,4 +17,5 @@
 
 - better compgen for flags, e.g: +flag,-flag2 and show combinations..
 - organize so_fmt_fx better..... (they all over the place)
+- add option to set parser error... in arg_runtime?
 
