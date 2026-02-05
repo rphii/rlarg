@@ -2,6 +2,11 @@
 
 Argument parser for C.
 
+## Dependencies
+
+- [rphii/rlc](https://github.com/rphii/rlc) - core helpers
+- [rphii/rlso](https://github.com/rphii/rlso) - string object
+
 ## Features
 
 **Core**
