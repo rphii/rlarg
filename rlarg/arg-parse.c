@@ -578,7 +578,7 @@ Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Grou
             return 0;
         }
         table = result->group_s ? result->group_s->table : 0;
-        if(table) *root_group = result->group_s;
+        if(table && root_group) *root_group = result->group_s;
     }
 
     return result;
