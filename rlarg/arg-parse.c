@@ -979,7 +979,7 @@ void arg_parse_help_fmt_rec(So *out, Argx *argx) {
 
 
 void arg_parse_help(Arg *arg) {
-    Argx *help = arg->help.last ? arg->help.last : arg->help.error;
+    Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
 
     size_t help_len = array_len(arg->help.sub);
     bool help_compgen = (arg->help.wanted && help == arg->help.argx && arg->builtin.compgen);
