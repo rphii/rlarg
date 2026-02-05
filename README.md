@@ -34,6 +34,13 @@ Argument parser for C.
 - `argx_attr_hide`: hides a value in help listing (e.g. API key)
 - `argx_attr_configurable`: control if value can be configured via config file
 
+**Runtime**
+
+Used from within a callback (`argx_callback`):
+
+- `arg_runtime_quit_early` quit the parser immediately (once control regained)
+- `arg_runtime_quit_when_all_valid` quit the parser early after full validation
+
 ## Adding an internal type
 
 1. [`argx.h`](rlarg/argx.h) extend enum and union:
