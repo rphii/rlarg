@@ -13,7 +13,7 @@ Argument parser for C.
 **Builtin**
 
 - `arg_builtin_opt_help`: expansive help
-- `arg_builtin_env_compgen`: auto completion support (see also [`bash/rlc`](bash/rcl))
+- `arg_builtin_env_compgen`: auto completion support (see also [`bash/rlc`](bash/rlc))
 - `arg_builtin_env_nocolor`: explicit `NOCOLOR` support (disables colors when not `isatty()`)
 - `arg_builtin_opt_source`: config loading support 
 - `arg_enable_config_print`: config generation support
