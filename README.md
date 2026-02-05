@@ -11,7 +11,7 @@ Argument parser for C.
 
 **Core**
 
-- directly assign parsed values to your variables
+- directly assign parsed values to your variables (no need to do a lookup on the argument parser)
 - positional values, optional values and environmental values
 - supports `bool`, `int`, `ssize_t`, `So` (string), `Color`, `enum`, `flags` (toggle), `group` (sub-options)
 - supports vectors: `bool`, `int`, `ssize_t`, `So`, `Color`
