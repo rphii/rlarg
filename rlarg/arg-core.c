@@ -62,6 +62,13 @@ void arg_help_argx_rec(So *out, Argx *argx) {
     argx_fmt_help(out, argx);
 }
 
+void arg_help_argx_group(struct Argx_Group *group) {
+    ASSERT_ARG(group);
+    So out = SO;
+    argx_group_fmt_help(&out, group);
+    so_print(out);
+    so_free(&out);
+}
 
 void arg_help_argx(struct Argx *help) {
     So out = SO;

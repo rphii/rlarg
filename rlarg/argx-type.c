@@ -10,7 +10,7 @@ void argx_type_rest(struct Argx *argx, VSo *val) {
     argx->id = ARGX_TYPE_REST;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_REQUIRED,
-        .so = so("string"),
+        .so = so("rest"),
     };
     argx->attr.is_array = true;
 }

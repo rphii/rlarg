@@ -110,6 +110,8 @@ int argx_callback_config(Argx *argx, void *user, So so) {
     arg_runtime_quit_when_all_valid(argx, true);
     Arg *arg = user;
     arg->builtin.config_print_selected = true;
+    arg->help.last = 0;
+    arg->help.error = 0;
     return 0;
 }
 
@@ -135,6 +137,7 @@ int argx_callback_help(Argx *argx, void *user, So so) {
 void argx_builtin_opt_help(struct Argx_Group *group) {
     Argx *x = argx_opt(group, 'h', so("help"), so("print this help"));
     argx_callback(x, argx_callback_help, group->arg, ARGX_PRIORITY_IMMEDIATELY);
+    argx_type_rest(x, &group->arg->help.sub);
     group->arg->help.argx = x;
     argx_attr_configurable(x, false);
 }

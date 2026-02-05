@@ -11,6 +11,9 @@
     - allow parsing of +value or -value for arrays...?
     - add option to disable/enable function execution during compgen (why would I want/not want this...?)
 
+- min/max for numbers and...
+- float/double
+
 # later
 
 - better compgen for flags, e.g: +flag,-flag2 and show combinations..

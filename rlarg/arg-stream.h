@@ -25,6 +25,7 @@ typedef struct Arg_Stream {
     bool skip_flag_check;   /* set true once we encounter '--' */
     bool not_consumed;
     bool is_config;
+    bool is_help_lookup;
     struct Argx *rest;      /* pointer to an argx of type ARGX_TYPE_REST */
     So carg;
     Arg_Stream_Source source;
