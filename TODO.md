@@ -1,5 +1,6 @@
 # priority
 
+- use REALPATH of config file.
 - codify usage examples
 - formatting of arrays to multiple lines
 
