@@ -22,6 +22,7 @@ typedef enum Arg_Parse_Error_List {
 struct Arg;
 struct Arg_Stream;
 struct Argx;
+struct Argx_Group;
 
 int arg_parse_argx(struct Arg *arg, struct Arg_Stream *stream, struct Argx *argx, So so);
 

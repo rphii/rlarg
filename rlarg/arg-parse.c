@@ -578,6 +578,7 @@ Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Grou
             return 0;
         }
         table = result->group_s ? result->group_s->table : 0;
+        if(table) *root_group = result->group_s;
     }
 
     return result;
@@ -981,27 +982,46 @@ void arg_parse_help(Arg *arg) {
     Argx *help = arg->help.last ? arg->help.last : arg->help.error;
 
     size_t help_len = array_len(arg->help.sub);
+    bool help_compgen = (arg->help.wanted && help == arg->help.argx && arg->builtin.compgen);
+    size_t help_depth = 1;
 
-    if(help_len) {
+    if(help_compgen) {
+        arg->builtin.nocolor = true;
+        //printff("COMPGEN!!!");
+    }
+
+    if(help_len || help_compgen) {
 
         Arg_Stream stream_help = {
             .source = { .path = so("help") },
             .is_help_lookup = true,
         };
 
-        for(size_t i = 0; i < help_len; ++i) {
-            So search = array_at(arg->help.sub, i);
-            //printff("SEARCH: %.*s",SO_F(search));
+        for(size_t i = 0; i < help_len || help_compgen; ++i) {
+            help_compgen = false;
+            So search = i < help_len ? array_at(arg->help.sub, i) : SO;
             stream_help.error_id = 0;
             Argx_Group *group = 0;
             Argx *help = arg_parse_hierarchy(arg, &stream_help, search, &group);
             if(help) {
-                arg_help_argx(help);
+                if(arg->builtin.compgen) {
+                    arg_compgen_help_argx(arg, help);
+                } else {
+                    arg_help_argx(help);
+                }
             } else if(group) {
-                arg_help_argx_group(group);
+                if(arg->builtin.compgen) {
+                    arg_compgen_help_group(arg, group);
+                } else {
+                    arg_help_argx_group(group);
+                }
             } else {
-                Argx pseudo = { .opt = search };
-                arg_parse_error(arg, &stream_help, ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG, &pseudo);
+                if(arg->builtin.compgen) {
+                    arg_compgen_help_groups(arg);
+                } else {
+                    Argx pseudo = { .opt = search };
+                    arg_parse_error(arg, &stream_help, ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG, &pseudo);
+                }
                 continue;
             }
         }
@@ -1016,7 +1036,7 @@ void arg_parse_help(Arg *arg) {
             }
         } else if(help == arg->help.argx) {
             if(arg->builtin.compgen) {
-                arg_compgen_global(arg);
+                arg_compgen_global(arg); /* TODO never reached */
             } else {
                 arg_help(arg);
             }

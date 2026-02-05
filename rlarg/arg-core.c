@@ -9,6 +9,7 @@ void arg_free(struct Arg **arg) {
     array_free((*arg)->queue);
     vso_free(&(*arg)->builtin.sources_paths);
     vso_free(&(*arg)->builtin.sources_content);
+    vso_free(&(*arg)->help.sub);
     free(*arg);
     *arg = 0;
 }
