@@ -31,7 +31,7 @@ Argument parser for C.
 **Miscellaneous**
 
 - `argx_callback`: provides support for custom callback (e.g. custom parser)
-- `argx_attr_hide`: hides a value in help listing (e.g. API key)
+- `argx_attr_hide`: hides a value in help listing or config generation (e.g. API key)
 - `argx_attr_configurable`: control if value can be configured via config file
 
 **Runtime**
