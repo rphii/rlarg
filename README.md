@@ -8,7 +8,9 @@ Argument parser for C.
 
 - directly assign parsed values to your variables
 - positional values, optional values and environmental values
-- supports `bool`, `int`, `ssize_t`, `So` (string), `Color`, `enum`, `flags` (toggle), `group` (sub-options), `rest` (catch-all)
+- supports `bool`, `int`, `ssize_t`, `So` (string), `Color`, `enum`, `flags` (toggle), `group` (sub-options)
+- supports vectors: `bool`, `int`, `ssize_t`, `So`, `Color`
+- supports catching-all via: `rest` (vector of `So`)
 - disables all colors when piping (`isatty() == 0`)
 
 **Builtin**
