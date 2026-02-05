@@ -76,6 +76,7 @@ typedef struct Arg {
         Argx *error;    /* argx to show in case of error */
         bool wanted;    /* if we explicitly want help (e.g. --help) */
         Argx *argx;     /* pointer to the --help argx */
+        VSo sub;
     } help;
 
     Arg_Rice rice;

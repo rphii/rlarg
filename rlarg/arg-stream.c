@@ -40,10 +40,14 @@ bool arg_stream_get_next(Arg_Stream *stream, So *val, bool *compgen_flags) {
     ASSERT_ARG(val);
     if(!arg_stream_advance(stream)) return false;
     So carg = array_at(stream->vso, stream->i);
-    if(stream->i_split) {
-        stream->carg = so_i0(carg, stream->i_split);
+    if(!stream->skip_flag_check) {
+        if(stream->i_split) {
+            stream->carg = so_i0(carg, stream->i_split);
+        } else {
+            stream->carg = so_split_ch(carg, '=', 0);
+        }
     } else {
-        stream->carg = so_split_ch(carg, '=', 0);
+        stream->carg = carg;
     }
     if(!stream->skip_flag_check && !so_cmp(stream->carg, so("--"))) {
         if(compgen_flags) *compgen_flags = true;

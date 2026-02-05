@@ -4,10 +4,12 @@
 #include "rlarg/argx-hint.h"
 
 struct Argx;
+struct Argx_Group;
 
 /* rlarg/arg-core.c */
 struct Arg *arg_new(void);
 void arg_help(struct Arg *arg);
+void arg_help_argx_group(struct Argx_Group *group);
 void arg_help_argx(struct Argx *help);
 void arg_config(struct Arg *arg);
 void arg_free(struct Arg **arg);
