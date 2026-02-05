@@ -982,15 +982,10 @@ void arg_parse_help(Arg *arg) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
 
     size_t help_len = array_len(arg->help.sub);
-    bool help_compgen = (arg->help.wanted && help == arg->help.argx && arg->builtin.compgen);
-    size_t help_depth = 1;
+    bool help_compgen = (help_len || (arg->help.wanted && help == arg->help.argx && arg->builtin.compgen)) && !arg->builtin.config_print_selected;
 
     if(help_compgen) {
         arg->builtin.nocolor = true;
-        //printff("COMPGEN!!!");
-    }
-
-    if(help_len || help_compgen) {
 
         Arg_Stream stream_help = {
             .source = { .path = so("help") },

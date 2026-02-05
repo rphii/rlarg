@@ -2,6 +2,28 @@
 
 Argument parser for C.
 
+## Features
+
+**Core**
+
+- directly assign parsed values to your variables
+- positional values, optional values and environmental values
+- supports `bool`, `int`, `ssize_t`, `So` (string), `Color`, `enum`, `flags` (toggle), `group` (sub-options)
+
+**Builtin**
+
+- `arg_builtin_opt_help`: expansive help
+- `arg_builtin_env_compgen`: auto completion support (see also [`bash/rlc`](bash/rcl))
+- `arg_builtin_env_nocolor`: explicit `NOCOLOR` support (disables colors when not `isatty()`)
+- `arg_builtin_opt_source`: config loading support 
+- `arg_enable_config_print`: config generation support
+
+**Miscellaneous**
+
+- `argx_callback`: provides support for custom callback (e.g. custom parser)
+- `argx_attr_hide`: hides a value in help listing (e.g. API key)
+- `argx_attr_configurable`: control if value can be configured via config file
+
 ## Adding an internal type
 
 1. [`argx.h`](rlarg/argx.h) extend enum and union:
