@@ -9,14 +9,16 @@ Argument parser for C.
 - directly assign parsed values to your variables
 - positional values, optional values and environmental values
 - supports `bool`, `int`, `ssize_t`, `So` (string), `Color`, `enum`, `flags` (toggle), `group` (sub-options)
+- disables all colors when piping (`isatty() == 0`)
 
 **Builtin**
 
 - `arg_builtin_opt_help`: expansive help
 - `arg_builtin_env_compgen`: auto completion support (see also [`bash/rlc`](bash/rlc))
-- `arg_builtin_env_nocolor`: explicit `NOCOLOR` support (disables colors when not `isatty()`)
+- `arg_builtin_env_nocolor`: explicit `NOCOLOR` support 
 - `arg_builtin_opt_source`: config loading support 
 - `arg_enable_config_print`: config generation support
+- `argx_builtin_rice`: enable colors
 
 **Miscellaneous**
 
