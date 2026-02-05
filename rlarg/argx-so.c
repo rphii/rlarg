@@ -19,6 +19,7 @@ void argx_so_clear(Argx_So *xso) {
     so_clear(&xso->set_ref);
     so_clear(&xso->hint);
     so_clear(&xso->hierarchy);
+    xso->argx = 0;
 }
 
 /* non vector types {{{ */
@@ -216,12 +217,13 @@ void argx_so_options(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
     Argx **itE = array_itE(argx->group_s->list);
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
+        //printff("IT VAL %p %.*s",(*it)->val.b, SO_F((*it)->opt));
         /* check if iterator matches selected value */
-        if((*it)->val.b && *(*it)->val.b) {
+        if((*it)->val.any) {
             if(iv++) so_push(&xso->set_val, ',');
             so_fmt_fx(&xso->set_val, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
         }
-        if((*it)->ref.b && *(*it)->ref.b) {
+        if((*it)->ref.any) {
             if(ir++) so_push(&xso->set_ref, ',');
             so_fmt_fx(&xso->set_ref, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
         }

@@ -60,7 +60,7 @@ typedef struct Arg {
         bool quit_early;
         bool quit_when_all_valid;
         bool compgen;               /* main trigger for compgen */
-        bool compgen_flags;         /* only true has an effect. forces the generation of flags / options */
+        bool compgen_flags;         /* only true has an effect. forces the generation of flags / options TODO I think is unused... */
         bool compgen_done;          /* helps us only printin one single compgen instance */
         bool config_print_selected; // TODO: should probably rename to config_print; or smth. env_config_print?
         bool config_use_builtin;    /* instruct to generate groups of all options right before arg_parse ... */

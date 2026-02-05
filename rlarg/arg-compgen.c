@@ -1,5 +1,6 @@
 #include "arg-compgen.h"
 #include "arg.h"
+#include "argx-so.h"
 
 void arg_compgen_group(Argx_Group *group) {
     if(!group) return;
@@ -63,11 +64,64 @@ void arg_compgen_argx(struct Arg *arg, struct Argx *argx) {
         arg_compgen_global(arg);
         return;
     }
-    bool any_out = true;
     if(arg->builtin.compgen_done) return;
     arg->builtin.compgen_done = true;
     static_arg_compgen_argx(arg, argx);
     printf("\n");
+}
+
+void arg_compgen_help_argx(struct Arg *arg, struct Argx *argx) {
+    Argx_So xso = {0};
+
+
+    if(argx->id == ARGX_TYPE_GROUP) {
+        arg_compgen_help_group(arg, argx->group_s);
+        //if(d2) {
+            //arg_compgen_help_group(arg, argx->group_s);
+        //}
+        //printf(".");
+    } else {
+        argx_so(&xso, false, argx);
+        printf("%c%.*s%.*s", 0, SO_F(xso.hierarchy), SO_F(argx->opt));
+    }
+
+    //printff("-> %.*s%.*s", SO_F(xso.hierarchy), SO_F(argx->opt));
+
+    argx_so_free(&xso);
+}
+
+void arg_compgen_help_group(struct Arg *arg, struct Argx_Group *group) {
+    Argx_So xso = {0};
+    Argx **itE = array_itE(group->list);
+
+    for(Argx **it = group->list; it < itE; ++it) {
+        //printff("-> %.*s id %u", SO_F((*it)->opt), (*it)->id);
+        argx_so_clear(&xso);
+        argx_so(&xso, false, *it);
+        printf("%c%.*s%.*s", 0, SO_F(xso.hierarchy), SO_F((*it)->opt));
+        if((*it)->id == ARGX_TYPE_GROUP) {
+            printf(".");
+        }
+        //printff("");
+
+        //printff("-> %.*s%.*s", SO_F(xso.hierarchy), SO_F((*it)->opt));
+        //printff("COMPGEN %.*s",SO_F((*it)->opt));
+        //arg_compgen_help_argx(arg, *it);
+    }
+
+    argx_so_free(&xso);
+}
+
+void arg_compgen_help_groups(struct Arg *arg) {
+    Argx_Group **itE = array_itE(arg->opts);
+    for(Argx_Group **it = arg->opts; it < itE; ++it) {
+        //arg_compgen_help_group(arg, *it);
+        printf("%c%.*s.", 0, SO_F((*it)->name));
+    }
+    //arg_compgen_help_group(arg, &arg->pos);
+    //arg_compgen_help_group(arg, &arg->env);
+    printf("%c%.*s.", 0, SO_F(arg->pos.name));
+    printf("%c%.*s.", 0, SO_F(arg->env.name));
 }
 
 
