@@ -233,8 +233,14 @@ void argx_fmt_help(So *out, Argx *argx) {
     Argx_So xso = {0};
     argx_so(&xso, true, argx);
 
+    ASSERT_ARG(argx->group_p);
+    bool treat_as_options = (argx->group_p->table == &argx->group_p->arg->t_opt);
+    bool treat_short_spacing = (
+            argx->group_p == &argx->group_p->arg->env
+         || argx->group_p == &argx->group_p->arg->pos);
+
     /* aligning... gather lengths and spacing (( +1 because of spaces between things )) */
-    size_t len_end_opt = 8 + so_len(argx->opt); /* 8 because of this: '  -x  --' */
+    size_t len_end_opt = (treat_short_spacing ? 2 : 8) + so_len(argx->opt); /* 8 because of this: '  -x  --' */
     bool compact_hint = !xso.have_hint || (xso.have_hint && len_end_opt < ARG_SPACING_HINT_WRAP);
     size_t spacing_hint = compact_hint
         ? 1
@@ -248,12 +254,6 @@ void argx_fmt_help(So *out, Argx *argx) {
 
     size_t len_end_desc = spacing_desc + so_len_nfx(argx->desc) + 1; 
     //int spacing_
-
-    ASSERT_ARG(argx->group_p);
-    bool treat_as_options = (argx->group_p->table == &argx->group_p->arg->t_opt);
-    bool treat_short_spacing = (
-            argx->group_p == &argx->group_p->arg->env
-         || argx->group_p == &argx->group_p->arg->pos);
 
     /* format the name */
     if(treat_short_spacing) {
