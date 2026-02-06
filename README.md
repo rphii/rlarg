@@ -17,6 +17,8 @@ Argument parser for C.
 - supports arrays: `bool`, `int`, `ssize_t`, `So`, `Color`
 - supports catch-all via: `rest` (array of `So`)
 - disables all colors when piping (`isatty() == 0`)
+- readable errors, I paid attention to short but descriptive messages
+- tracks where values get set (stdin, config file + line, reference value, ...)
 
 **Builtin**
 
