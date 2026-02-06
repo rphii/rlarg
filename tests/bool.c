@@ -10,7 +10,7 @@ int main(const int argc, const char **argv) {
     struct Argx *x=argx_opt(g1, 'b', so("bool"), so("a boolean value"));
     argx_type_bool(x, &val, 0);
     argx_builtin_env_nocolor(arg);
-    argx_builtin_opt_help(g1);
+    //argx_builtin_opt_help(g1);
     argx_builtin_env_compgen(arg);
     arg_enable_config_print(arg, true);
 
