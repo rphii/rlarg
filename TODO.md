@@ -1,5 +1,6 @@
 # priority
 
+<<<<<<< HEAD
 - don't output 'not set anywhere' .. if a group? what if callback? or just list sources of all sub-items?
 - check better if a rest is valid ... what if we get a rest type but it is null! it should clear rest access.
 - use REALPATH of config file.
