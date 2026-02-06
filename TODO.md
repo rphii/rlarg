@@ -1,5 +1,6 @@
 # priority
 
+- check better if a rest is valid ... what if we get a rest type but it is null! it should clear rest access.
 - use REALPATH of config file.
 - codify usage examples
 - formatting of arrays to multiple lines
