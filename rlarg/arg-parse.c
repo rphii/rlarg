@@ -399,7 +399,11 @@ int arg_parse_argx_vector_rest(struct Arg *arg, Arg_Stream *stream, Argx *argx, 
     if(argx_is_subgroup_of_root(argx, &arg->pos)) {
         arg_stream_not_consumed(stream);
     }
-    stream->rest = argx;
+    if(argx->val.vso) {
+        stream->rest = argx;
+    } else {
+        stream->rest = 0;
+    }
     return 0;
 }
 
