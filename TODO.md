@@ -1,7 +1,6 @@
 # priority
 
 - don't output 'not set anywhere' .. if a group? what if callback? or just list sources of all sub-items?
-- use REALPATH of config file.
 - codify usage examples
 - formatting of arrays to multiple lines
 

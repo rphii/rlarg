@@ -1059,6 +1059,7 @@ void arg_parse_configs(Arg *arg) {
         So path = array_at(arg->builtin.sources_vso, i);
         so_clear(&extend);
         so_extend_wordexp(&extend, path, false);
+        so_path_get_realpath(&extend, extend);
         //printff("SOURCE [%.*s]",SO_F(extend));
         /* check if I already loaded a file at that location */
         bool have_already_loaded = false;
