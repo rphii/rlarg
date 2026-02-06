@@ -13,6 +13,7 @@
 
 - min/max for numbers and...
 - float/double
+- time
 
 # later
 
