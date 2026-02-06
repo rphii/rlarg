@@ -216,12 +216,6 @@ struct Argx_Group *argx_builtin_rice(struct Arg *arg) {
     return g;
 }
 
-#define ARG_SPACING_HINT_WRAP               40
-#define ARG_SPACING_HINT_ALTERNATE          10
-
-#define ARG_SPACING_DESCRIPTION_DEFAULT     40
-#define ARG_SPACING_DESCRIPTION_ALTERNATE   12
-
 
 void argx_fmt_help(So *out, Argx *argx) {
     ASSERT_ARG(out);
@@ -231,7 +225,7 @@ void argx_fmt_help(So *out, Argx *argx) {
     Arg_Rice *rice = &argx->group_p->arg->rice;
 
     Argx_So xso = {0};
-    argx_so(&xso, true, argx);
+    argx_so(&xso, argx, false);
 
     ASSERT_ARG(argx->group_p);
     bool treat_as_options = (argx->group_p->table == &argx->group_p->arg->t_opt);
@@ -312,7 +306,7 @@ void argx_fmt_config(So *out, Argx *argx) {
 
     /* now format */
     Argx_So xso = {0};
-    argx_so(&xso, 0, argx);
+    argx_so(&xso, argx, true);
 
     if(xso.val_group) {
         ASSERT(argx->id == ARGX_TYPE_GROUP && argx->group_s, "expected to have a group");

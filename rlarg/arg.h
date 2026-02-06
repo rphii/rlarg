@@ -9,6 +9,16 @@
 #include <rlso.h>
 #include <rlc.h>
 
+#define ARG_SPACING_HINT_WRAP               40
+#define ARG_SPACING_HINT_ALTERNATE          10
+
+#define ARG_SPACING_DESCRIPTION_DEFAULT     40
+//#define ARG_SPACING_DESCRIPTION_ALTERNATE   12
+#define ARG_SPACING_DESCRIPTION_ALTERNATE   40
+
+#define ARG_SPACING_VALUE_WRAP_ARRAY        42
+#define ARG_SPACING_VALUE_WRAP_DELIM        40
+
 enum Arg_Parse_Error_List;
 
 typedef struct Arg_Help_Source {

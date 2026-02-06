@@ -2,7 +2,6 @@
 
 - don't output 'not set anywhere' .. if a group? what if callback? or just list sources of all sub-items?
 - codify usage examples
-- formatting of arrays to multiple lines
 
 - config things:
     - compact help for if flag not found? (this here: stdin: Option not found in root groups: 'ow3efo')
