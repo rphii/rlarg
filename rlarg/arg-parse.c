@@ -64,7 +64,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_MISSING_SHORTOPT: /* pseudo */
             case ARG_PARSE_ERROR_NO_REST_ALLOWED:
                 arg_parse_set_help_error(arg, arg->help.argx);
-                argx_so(&xso, 0, arg->help.argx);
+                argx_so(&xso, arg->help.argx, false);
                 newline = (bool)(arg->help.argx);
                 break;
             case ARG_PARSE_ERROR_UNCONFIGURABLE:
@@ -74,7 +74,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_MISSING_VALUE:
             case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL:
                 arg_parse_set_help_error(arg, argx);
-                argx_so(&xso, 0, argx);
+                argx_so(&xso, argx, false);
                 newline = (bool)(argx);
                 break;
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
