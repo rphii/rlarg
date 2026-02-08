@@ -45,6 +45,10 @@ int main(const int argc, const char **argv) {
         argx_type_bool(x, &p2, &d);
         argx_hint_kind(x, ARGX_HINT_OPTIONAL);
 
+    So name = SO;
+    x = argx_opt(g1, 'N', so("name"), so("a name"));
+        argx_type_so(x, &name, 0);
+
     bool f1, f2, f3;
     VSo rest = 0;
     VSo vec_p = 0;
