@@ -373,3 +373,14 @@ bool argx_is_subgroup_of_root(Argx *argx, struct Argx_Group *group) {
     return (bool)(g == group);
 }
 
+bool argx_is_multiline_config(Argx *argx) {
+    if(!argx) return false;
+    //if(argx->attr.is_array) return true;
+    switch(argx->id) {
+        case ARGX_TYPE_STRING:
+        case ARGX_TYPE_URI:
+        case ARGX_TYPE_REST: /* TODO should this even be configurables ?? */
+        default: return false;
+    }
+}
+

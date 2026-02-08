@@ -72,6 +72,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_INVALID_OPTION_GROUP:
             case ARG_PARSE_ERROR_MISSING_POSITIONAL:
             case ARG_PARSE_ERROR_MISSING_VALUE:
+            case ARG_PARSE_ERROR_INVALID_STRING:
             case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL:
                 arg_parse_set_help_error(arg, argx);
                 argx_so(&xso, argx, false);
@@ -94,6 +95,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_GROUP: {
                     fprintf(stderr, FF(nc, "Option not found in '%.*s' %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+                } break;
+                case ARG_PARSE_ERROR_INVALID_STRING: {
+                    fprintf(stderr, FF(nc, "Invalid string for '%.*s': %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: { /* pseudo */
                     fprintf(stderr, FF(nc, "Option not found in root groups: '%.*s'", FG_RD_B BOLD), SO_F(argx->opt));
@@ -588,6 +592,17 @@ Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Grou
     return result;
 }
 
+typedef enum {
+    ARG_PARSE_CONFIG_GET_LINE,
+    ARG_PARSE_CONFIG_SPLIT_HIERARCHY_VALUE,
+    ARG_PARSE_CONFIG_QUIT,
+    ARG_PARSE_CONFIG_COMMIT,
+    ARG_PARSE_CONFIG_MULTILINE_BEGIN,
+    ARG_PARSE_CONFIG_MULTILINE_STRING,
+    ARG_PARSE_CONFIG_SINGLE_STRING,
+    ARG_PARSE_CONFIG_ARRAY,
+} Arg_Parse_Config_List;
+
 int arg_parse_config(struct Arg *arg, So config, So path) {
     arg->help.error = 0;
     arg->help.last = 0;
@@ -597,9 +612,90 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     };
     int line_number = 1;
     int status = 0;
+    bool is_array = false;
+    bool request_parse = true;
+    bool multiline_string = false;
+    So sanitized_string = SO;
+    Arg_Parse_Config_List id = ARG_PARSE_CONFIG_SPLIT_HIERARCHY_VALUE;
+    Arg_Parse_Config_List id_sub = ARG_PARSE_CONFIG_QUIT;
+    Arg_Parse_Config_List id_next = ARG_PARSE_CONFIG_QUIT;
+    Arg_Parse_Config_List *id_step = &id;
+
+#if 1
+    Argx *argx = 0;
+    So hierarchy = SO, value = SO;
+    So line = SO;
+    so_splice(config, &line, '\n');
+    while(so_it0(line) < so_itE(config)) {
+        switch(*id_step) {
+            case ARG_PARSE_CONFIG_SPLIT_HIERARCHY_VALUE: {
+                id_sub = ARG_PARSE_CONFIG_QUIT;
+                id_step = &id_sub;
+            } break;
+            case ARG_PARSE_CONFIG_GET_LINE: {
+                if(!so_splice(config, &line, '\n')) {
+                    *id_step = ARG_PARSE_CONFIG_QUIT;
+                }
+                line = so_trim(so_split_ch(line, '#', 0));
+                if(!so_len(line)) continue;
+
+                /* split on '=' , then...
+                *  -> LHS : split on '.' and follow tables to get final argx
+                *  -> RHS : pass on to parse_argx
+                */
+                hierarchy = so_trim(so_split_ch(line, '=', &value));
+                value = so_trim(value);
+                stream_config.carg = value; /* set early, to have context for potential erros */
+                /* get argx from hierarchy */
+                argx = arg_parse_hierarchy(arg, &stream_config, hierarchy, 0);
+                if(!argx) {
+                    Argx pseudo = { .opt = hierarchy };
+                    arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG, &pseudo);
+                    status = -1;
+                    continue;
+                }
+                /* check cases */
+                if(argx->attr.is_array || argx_is_multiline_config(argx)) {
+                    id = ARG_PARSE_CONFIG_MULTILINE_BEGIN;
+                } else {
+                    stream_config.source.line_number = line_number;
+                    id = ARG_PARSE_CONFIG_COMMIT;
+                }
+            } break;
+            case ARG_PARSE_CONFIG_MULTILINE_BEGIN: {
+                if(argx->attr.is_array) {
+                    id = ARG_PARSE_CONFIG_ARRAY;
+                } else switch(argx->id) {
+                    case ARGX_TYPE_URI:
+                    case ARGX_TYPE_STRING: {
+                        if(!so_cmp0(value, so("'''"))) {
+                            id = ARG_PARSE_CONFIG_MULTILINE_STRING;
+                        } else {
+                            id = ARG_PARSE_CONFIG_SINGLE_STRING;
+                        }
+                    } break;
+                    default: ABORT(ERR_UNREACHABLE("don't know how to handle multiline config: %u"), id);
+                }
+            } break;
+            case ARG_PARSE_CONFIG_MULTILINE_STRING: {
+                /* TODO implement */
+            } break;
+            case ARG_PARSE_CONFIG_SINGLE_STRING: {
+            } break;
+            case ARG_PARSE_CONFIG_ARRAY: {
+            } break;
+            case ARG_PARSE_CONFIG_COMMIT: {
+                ASSERT_ARG(argx);
+                arg_parse_argx(arg, &stream_config, argx, value);
+                argx = 0;
+                id = ARG_PARSE_CONFIG_GET_LINE;
+            } break;
+            default: break;
+        }
+    }
+#else
+
     for(So line = SO; so_splice(config, &line, '\n'); ++line_number) {
-        arg_stream_clear(&stream_config);
-        stream_config.source.line_number = line_number;
         if(so_is_zero(line)) continue;
         line = so_trim(so_split_ch(line, '#', 0));
         if(!so_len(line)) continue;
@@ -608,39 +704,9 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
          *  -> LHS : split on '.' and follow tables to get final argx
          *  -> RHS : pass on to parse_argx
          */
-        So rhs, lhs = so_trim(so_split_ch(line, '=', &rhs));
+        lhs = so_trim(so_split_ch(line, '=', &rhs));
         rhs = so_trim(rhs);
-#if 0
-        T_Argx *table = &arg->t_opt;
-        Argx *argx = 0;
-        So root = so_trim(so_split_ch(lhs, '.', &lhs));
-        /* verify that the root group exists */
-        bool exist = false;
-        Argx_Groups groupE = array_itE(arg->opts);
-        for(Argx_Groups group = arg->opts; group < groupE; ++group) {
-            if(so_cmp((*group)->name, root)) continue;
-            exist = true;
-            break;
-        }
-        if(!exist) {
-            Argx pseudo = { .opt = root };
-            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG, &pseudo);
-            status = -1;
-            goto skip_try_next;
-        }
-        /* now search for sub option */
-        for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
-            if(!table) {
-                Argx pseudo = { .opt = lhs };
-                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
-                status = -1;
-                goto skip_try_next;
-            }
-            argx = t_argx_get(table, opt);
-            if(!argx) break;
-            table = argx->group_s ? argx->group_s->table : 0;
-        }
-#endif
+        stream_config.carg = rhs;
         Argx *argx = arg_parse_hierarchy(arg, &stream_config, lhs, 0);
         if(!argx) {
             Argx pseudo = { .opt = lhs };
@@ -648,12 +714,37 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
             status = -1;
             goto skip_try_next;
         }
-        /* parse */
+
         //printff("PARSE %.*s <- |%.*s|", SO_F(argx->opt), SO_F(rhs));
-        stream_config.carg = rhs;
-        arg_parse_argx(arg, &stream_config, argx, rhs);
+        if(argx->attr.is_array) {
+            So from_rhs_to_end = so_trim(so_ll(rhs.str, rhs.str - config.str));
+        }
+
+        if(argx->id == ARGX_TYPE_STRING && so_len(rhs)) {
+            multiline_string = true;
+            if(so_atE(rhs) == '\\') {
+            }
+            if(so_at0(rhs) == '\'') {
+                rhs = so_i0(rhs, 1);
+                if(so_fmt_unescape(&sanitized_string, rhs, '\'')) {
+                    arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_INVALID_STRING, argx);
+                }
+                printff(">>> SANITIZED [%.*s]",SO_F(sanitized_string));
+                stream_config.carg = sanitized_string;
+            }
+        }
+
+        /* parse */
+        if(request_parse) {
+            //printff(">>> CARG [%.*s]",SO_F(stream_config.carg));
+            stream_config.source.line_number = line_number;
+            arg_parse_argx(arg, &stream_config, argx, stream_config.carg);
+        }
 skip_try_next:;
+        arg_stream_clear(&stream_config);
     }
+#endif
+    arg_stream_free(&stream_config);
     return status;
 }
 
