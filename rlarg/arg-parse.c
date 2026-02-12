@@ -614,6 +614,76 @@ typedef enum {
     ARG_CONFIG_ARRAY_CLOSE,
 } Arg_Config_Special_List;
 
+int arg_parse_config_argx(struct Arg *arg, Arg_Stream *stream_config, So *sanitized_string, So *sanitized_file_path, Argx_So *xso, Argx *argx, So value, bool *request_parse) {
+    ASSERT_ARG(arg);
+    ASSERT_ARG(stream_config);
+    ASSERT_ARG(sanitized_string);
+    ASSERT_ARG(sanitized_file_path);
+    ASSERT_ARG(xso);
+    ASSERT_ARG(request_parse);
+
+    int status = 0;
+
+    /* check if value is any special keyword */
+    printff("::: VALUE [%.*s]", SO_F(value));
+    if(!so_cmp(value, so("file"))) {
+
+        argx_so_clear(xso);
+        argx_so(xso, argx, true, false);
+
+        so_clear(sanitized_file_path);
+        so_extend(sanitized_file_path, xso->hierarchy);
+        so_extend(sanitized_file_path, argx->opt);
+
+        /* search for a file named like the option */
+        if(so_file_read(*sanitized_file_path, sanitized_string)) {
+            arg_parse_error(arg, stream_config, ARG_PARSE_ERROR_READ_FILE_AUTO, argx);
+            status = -1;
+            goto defer;
+        }
+        printff("::: VALUE [%.*s]", SO_F(*sanitized_string));
+
+    } else if(!so_cmp0(value, so("file(")) && so_atE(value) == ')') {
+        printff("::: VALUE [%.*s]", SO_F(value));
+
+        so_clear(sanitized_file_path);
+        so_extend(sanitized_file_path, so_sub(value, 5, so_len(value) - 1));
+
+        /* search for a file named like specified */
+        if(so_file_read(*sanitized_file_path, sanitized_string)) {
+            Argx pseudo = { .opt = argx->opt, .desc = *sanitized_file_path };
+            arg_parse_error(arg, stream_config, ARG_PARSE_ERROR_READ_FILE_SPECIFIC, &pseudo);
+            status = -1;
+            goto defer;
+        }
+        printff("::: VALUE [%.*s]", SO_F(*sanitized_string));
+
+    } else if(so_at0(value) == '"') {
+        printff(">>> STRING");
+
+        if(so_fmt_unescape(sanitized_string, so_i0(value, 1), '\"')) {
+            arg_parse_error(arg, stream_config, ARG_PARSE_ERROR_INVALID_STRING, argx);
+            status = -1;
+            goto defer;
+        }
+
+        if(so_len(*sanitized_string) + 2 != so_len(value)) {
+            arg_parse_error(arg, stream_config, ARG_PARSE_ERROR_INVALID_STRING_END, argx);
+            status = -1;
+            goto defer;
+        }
+
+        printff(">>> SANITIZED [%.*s] FROM [%.*s]",SO_F(*sanitized_string),SO_F(value));
+
+        printff(">>> DEFAULT");
+    } else {
+        *request_parse = true;
+    }
+
+defer:
+    return status;
+}
+
 int arg_parse_config(struct Arg *arg, So config, So path) {
     arg->help.error = 0;
     arg->help.last = 0;
@@ -670,65 +740,13 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
             continue;
         }
 
-        /* check if value is any special keyword */
-        printff("::: VALUE [%.*s]", SO_F(value));
-        if(!so_cmp(value, so("file"))) {
-
-            argx_so_clear(&xso);
-            argx_so(&xso, argx, true, false);
-
-            so_clear(&sanitized_file_path);
-            so_extend(&sanitized_file_path, xso.hierarchy);
-            so_extend(&sanitized_file_path, argx->opt);
-
-            /* search for a file named like the option */
-            if(so_file_read(sanitized_file_path, &sanitized_string)) {
-                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_READ_FILE_AUTO, argx);
-                status = -1;
-                continue;
-            }
-            printff("::: VALUE [%.*s]", SO_F(sanitized_string));
-
-        } else if(!so_cmp0(value, so("file(")) && so_atE(value) == ')') {
-            printff("::: VALUE [%.*s]", SO_F(value));
-
-            so_clear(&sanitized_file_path);
-            so_extend(&sanitized_file_path, so_sub(value, 5, so_len(value) - 1));
-
-            /* search for a file named like specified */
-            if(so_file_read(sanitized_file_path, &sanitized_string)) {
-                Argx pseudo = { .opt = argx->opt, .desc = sanitized_file_path };
-                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_READ_FILE_SPECIFIC, &pseudo);
-                status = -1;
-                continue;
-            }
-            printff("::: VALUE [%.*s]", SO_F(sanitized_string));
-
-        } else if(so_at0(value) == '"') {
-            printff(">>> STRING");
-
-            if(so_fmt_unescape(&sanitized_string, so_i0(value, 1), '\"')) {
-                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_INVALID_STRING, argx);
-                status = -1;
-                continue;
-            }
-
-            if(so_len(sanitized_string) + 2 != so_len(value)) {
-                arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_INVALID_STRING_END, argx);
-                status = -1;
-                continue;
-            }
-
-            printff(">>> SANITIZED [%.*s] FROM [%.*s]",SO_F(sanitized_string),SO_F(value));
-
-            printff(">>> DEFAULT");
-        } else if(so_at0(value) == '[') {
+        if(so_at0(value) == '[') {
             // TODO
         } else if(so_at0(value) == ']') {
             // TODO
-        } else {
-            request_parse = true;
         }
+
+        status |= arg_parse_config_argx(arg, &stream_config, &sanitized_string, &sanitized_file_path, &xso, argx, value, &request_parse);
 
 #if 0
         /* parse */
