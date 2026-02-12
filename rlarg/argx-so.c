@@ -259,12 +259,14 @@ void argx_so_hint_generic(Argx_So *xso, Arg_Rice *rice, char *hint, So so) {
     so_fmt_fx(&xso->hint, rice->hint_delim, 0, "%c", hint[1]);
 }
 
-void argx_so(Argx_So *xso, Argx *argx, bool is_for_config) {
+void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
     //printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
     if(!argx) return;
     ASSERT_ARG(xso);
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
+    bool was_nocolor = argx->group_p->arg->builtin.nocolor; /* TODO this is disgusting */
+    if(force_nocolor) argx->group_p->arg->builtin.nocolor = true; /* TODO this is disgusting */
     Arg_Rice *rice = &argx->group_p->arg->rice;
 
     argx_so_clear(xso);
@@ -417,6 +419,7 @@ void argx_so(Argx_So *xso, Argx *argx, bool is_for_config) {
         xso->val_visible = false;
     }
     xso->argx = argx;
+    argx->group_p->arg->builtin.nocolor = was_nocolor ; /* TODO this is disgusting */
 }
 
 

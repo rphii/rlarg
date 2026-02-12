@@ -225,7 +225,7 @@ void argx_fmt_help(So *out, Argx *argx) {
     Arg_Rice *rice = &argx->group_p->arg->rice;
 
     Argx_So xso = {0};
-    argx_so(&xso, argx, false);
+    argx_so(&xso, argx, false, false);
 
     ASSERT_ARG(argx->group_p);
     bool treat_as_options = (argx->group_p->table == &argx->group_p->arg->t_opt);
@@ -306,7 +306,7 @@ void argx_fmt_config(So *out, Argx *argx) {
 
     /* now format */
     Argx_So xso = {0};
-    argx_so(&xso, argx, true);
+    argx_so(&xso, argx, false, true);
 
     if(xso.val_group) {
         ASSERT(argx->id == ARGX_TYPE_GROUP && argx->group_s, "expected to have a group");
@@ -373,6 +373,7 @@ bool argx_is_subgroup_of_root(Argx *argx, struct Argx_Group *group) {
     return (bool)(g == group);
 }
 
+#if 0
 bool argx_is_multiline_config(Argx *argx) {
     if(!argx) return false;
     //if(argx->attr.is_array) return true;
@@ -383,4 +384,5 @@ bool argx_is_multiline_config(Argx *argx) {
         default: return false;
     }
 }
+#endif
 

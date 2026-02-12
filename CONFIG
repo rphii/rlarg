@@ -1,0 +1,22 @@
+
+string.escaped = "some sort of string\n supports escape sequences"
+
+string.file = file(path/to/file)    # put the file content of path/to/file there
+
+string.multi = file                 # synonymous with below
+string.multi = file(string.multi)   # synonymous with above
+
+int.file = file(path/to/file)       # put the file content of path/to/file there
+
+vint.file = file(path/to/file)      # put the file content of path/to/file there
+vint.files = [                      # each file should only contain ONE integer
+    file(path/to/file),
+    file(path/to/other/file),
+]
+
+vstring.file = file(path/to/file)  # each line is a new element
+vstring.files = [                   # every entry is another element
+    file(path/to/file),
+    file(path/to/other/file),
+]
+

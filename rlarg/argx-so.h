@@ -19,7 +19,7 @@ typedef struct Argx_So {
 
 void argx_so_free(Argx_So *xso);
 void argx_so_clear(Argx_So *xso);
-void argx_so(Argx_So *xso, Argx *argx, bool is_for_config);
+void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config);
 
 #define ARGX_SO_H
 #endif /* ARGX_SO_H */

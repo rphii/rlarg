@@ -73,7 +73,7 @@ void arg_compgen_help_argx(struct Arg *arg, struct Argx *argx) {
     if(argx->id == ARGX_TYPE_GROUP) {
         arg_compgen_help_group(arg, argx->group_s);
     } else {
-        argx_so(&xso, argx, false);
+        argx_so(&xso, argx, true, false);
         printf("%c%.*s%.*s", 0, SO_F(xso.hierarchy), SO_F(argx->opt));
     }
     argx_so_free(&xso);
@@ -85,7 +85,7 @@ void arg_compgen_help_group(struct Arg *arg, struct Argx_Group *group) {
 
     for(Argx **it = group->list; it < itE; ++it) {
         argx_so_clear(&xso);
-        argx_so(&xso, *it, false);
+        argx_so(&xso, *it, true, false);
         printf("%c%.*s%.*s", 0, SO_F(xso.hierarchy), SO_F((*it)->opt));
         if((*it)->id == ARGX_TYPE_GROUP) {
             printf(".");
