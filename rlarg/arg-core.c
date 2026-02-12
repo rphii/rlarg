@@ -78,7 +78,7 @@ void arg_help_argx(struct Argx *help) {
     ASSERT_ARG(help->group_p->arg);
     Arg_Rice *rice = &help->group_p->arg->rice;
 
-    argx_so(&xso, help, false);
+    argx_so(&xso, help, false, false);
     so_fmt(&out, "%.*s", SO_F(xso.hierarchy));
     so_fmt_fx(&out, rice->group, 0, "%.*s", SO_F(xso.argx->opt));
     so_fmt_fx(&out, rice->group_delim, 0, ":");
