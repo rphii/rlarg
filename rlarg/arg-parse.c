@@ -49,7 +49,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG: /* pseudo */
             case ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG: /* pseudo */
             case ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG: /* pseudo */
+            case ARG_PARSE_ERROR_MISSING_ARRAY_DELIM:
             case ARG_PARSE_ERROR_READ_FILE_SPECIFIC: /* pseudo */
+            case ARG_PARSE_ERROR_MISSING_FILE_DELIM: /* pseudo */
                 break;
             case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_SHORTOPT: /* pseudo */
@@ -97,6 +99,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 } break;
                 case ARG_PARSE_ERROR_READ_FILE_AUTO: { /* pseudo */
                     fprintf(stderr, FF(nc, "Failed reading file: %.*s%.*s", FG_RD_B BOLD), SO_F(xso.hierarchy), SO_F(argx->opt));
+                } break;
+                case ARG_PARSE_ERROR_MISSING_FILE_DELIM: { /* pseudo */
+                    fprintf(stderr, FF(nc, "Failed file()<-- end delimiter for %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(argx->desc));
                 } break;
                 case ARG_PARSE_ERROR_READ_FILE_SPECIFIC: {
                     fprintf(stderr, FF(nc, "Failed reading file(%.*s) for: %.*s", FG_RD_B BOLD), SO_F(argx->desc), SO_F(argx->opt));
@@ -596,91 +601,130 @@ Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Grou
 }
 
 typedef enum {
-    ARG_PARSE_CONFIG_GET_LINE,
-    ARG_PARSE_CONFIG_SPLIT_HIERARCHY_VALUE,
-    ARG_PARSE_CONFIG_QUIT,
-    ARG_PARSE_CONFIG_COMMIT,
-    ARG_PARSE_CONFIG_MULTILINE_BEGIN,
-    ARG_PARSE_CONFIG_MULTILINE_STRING,
-    ARG_PARSE_CONFIG_SINGLE_STRING,
+    ARG_PARSE_CONFIG_SINGLE,
     ARG_PARSE_CONFIG_ARRAY,
 } Arg_Parse_Config_List;
 
-typedef enum {
-    ARG_CONFIG_NONE,
-    ARG_CONFIG_FILE,
-    ARG_CONFIG_STRING,
-    ARG_CONFIG_ARRAY_OPEN,
-    ARG_CONFIG_ARRAY_CLOSE,
-} Arg_Config_Special_List;
+/* function to find matching character.. should go in rlso */
 
-int arg_parse_config_argx(struct Arg *arg, Arg_Stream *stream_config, So *sanitized_string, So *sanitized_file_path, Argx_So *xso, Argx *argx, So value, bool *request_parse) {
+
+typedef struct Arg_Parse_Config {
+    Arg_Stream *stream_config;
+    So sanitized_string;
+    So sanitized_file_path;
+    Argx_So xso;
+    Arg_Parse_Config_List id;
+    bool request_parse;
+} Arg_Parse_Config;
+
+
+int arg_parse_config_value(struct Arg *arg, Arg_Parse_Config *cfg, Argx *argx, So *value) {
     ASSERT_ARG(arg);
-    ASSERT_ARG(stream_config);
-    ASSERT_ARG(sanitized_string);
-    ASSERT_ARG(sanitized_file_path);
-    ASSERT_ARG(xso);
-    ASSERT_ARG(request_parse);
+    ASSERT_ARG(cfg);
+    ASSERT_ARG(argx);
 
     int status = 0;
+    So shifted = *value;
+
+    so_clear(&cfg->sanitized_string);
 
     /* check if value is any special keyword */
-    printff("::: VALUE [%.*s]", SO_F(value));
-    if(!so_cmp(value, so("file"))) {
+    printff("::: VALUE [%.*s]", SO_F(*value));
 
-        argx_so_clear(xso);
-        argx_so(xso, argx, true, false);
+    if(cfg->id == ARG_PARSE_CONFIG_SINGLE && so_at0(*value) == '[') {
+        printff("::: ARRAY (BEGIN)");
 
-        so_clear(sanitized_file_path);
-        so_extend(sanitized_file_path, xso->hierarchy);
-        so_extend(sanitized_file_path, argx->opt);
+        so_shift(value, 1);
+        cfg->id = ARG_PARSE_CONFIG_ARRAY;
 
-        /* search for a file named like the option */
-        if(so_file_read(*sanitized_file_path, sanitized_string)) {
-            arg_parse_error(arg, stream_config, ARG_PARSE_ERROR_READ_FILE_AUTO, argx);
+    }
+
+    if(!so_cmp0(*value, so("file("))) {
+        So rhs, path = so_i0(so_split_ch(*value, ')', &rhs), 5);
+        so_shift(&shifted, 5);
+
+        printff("::: SPLIT [%.*s]", SO_F(*value));
+        if(!so_len(rhs)) {
+            Argx pseudo = { .opt = argx->opt, .desc = *value };
+            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_MISSING_FILE_DELIM, &pseudo);
             status = -1;
             goto defer;
         }
-        printff("::: VALUE [%.*s]", SO_F(*sanitized_string));
 
-    } else if(!so_cmp0(value, so("file(")) && so_atE(value) == ')') {
-        printff("::: VALUE [%.*s]", SO_F(value));
+        so_shift(&shifted, so_len(path) + 1);
+        printff("::: PATH [%.*s]", SO_F(path));
 
-        so_clear(sanitized_file_path);
-        so_extend(sanitized_file_path, so_sub(value, 5, so_len(value) - 1));
+        so_clear(&cfg->sanitized_file_path);
+        so_extend(&cfg->sanitized_file_path, path);
 
         /* search for a file named like specified */
-        if(so_file_read(*sanitized_file_path, sanitized_string)) {
-            Argx pseudo = { .opt = argx->opt, .desc = *sanitized_file_path };
-            arg_parse_error(arg, stream_config, ARG_PARSE_ERROR_READ_FILE_SPECIFIC, &pseudo);
+        if(so_file_read(cfg->sanitized_file_path, &cfg->sanitized_string)) {
+            Argx pseudo = { .opt = argx->opt, .desc = cfg->sanitized_file_path };
+            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_READ_FILE_SPECIFIC, &pseudo);
             status = -1;
             goto defer;
         }
-        printff("::: VALUE [%.*s]", SO_F(*sanitized_string));
+        printff("::: VALUE [%.*s]", SO_F(cfg->sanitized_string));
 
-    } else if(so_at0(value) == '"') {
+    } else if(!so_cmp0(*value, so("file"))) {
+        printff("::: FILE (AUTO)");
+        so_shift(&shifted, 4); /* so_len('file') == 4 */
+
+        argx_so_clear(&cfg->xso);
+        argx_so(&cfg->xso, argx, true, false);
+
+        so_clear(&cfg->sanitized_file_path);
+        so_extend(&cfg->sanitized_file_path, cfg->xso.hierarchy);
+        so_extend(&cfg->sanitized_file_path, argx->opt);
+
+
+        /* search for a file named like the option */
+        if(so_file_read(cfg->sanitized_file_path, &cfg->sanitized_string)) {
+            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_READ_FILE_AUTO, argx);
+            status = -1;
+            goto defer;
+        }
+        printff("::: VALUE [%.*s]", SO_F(cfg->sanitized_string));
+
+    } else if(so_at0(*value) == '"') {
+
         printff(">>> STRING");
 
-        if(so_fmt_unescape(sanitized_string, so_i0(value, 1), '\"')) {
-            arg_parse_error(arg, stream_config, ARG_PARSE_ERROR_INVALID_STRING, argx);
+        if(so_fmt_unescape(&cfg->sanitized_string, so_i0(*value, 1), '\"')) {
+            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_INVALID_STRING, argx);
             status = -1;
             goto defer;
         }
 
-        if(so_len(*sanitized_string) + 2 != so_len(value)) {
-            arg_parse_error(arg, stream_config, ARG_PARSE_ERROR_INVALID_STRING_END, argx);
+        if(so_len(cfg->sanitized_string) + 2 != so_len(*value)) {
+            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_INVALID_STRING_END, argx);
             status = -1;
             goto defer;
         }
 
-        printff(">>> SANITIZED [%.*s] FROM [%.*s]",SO_F(*sanitized_string),SO_F(value));
+        printff(">>> SANITIZED [%.*s] FROM [%.*s]",SO_F(cfg->sanitized_string),SO_F(*value));
+
+
+        so_shift(&shifted, so_len(cfg->sanitized_string) + 2); /* skip string + delimiter */
+
+    } else if((cfg->id == ARG_PARSE_CONFIG_ARRAY) && so_at0(*value) == ']') {
+        printff("::: ARRAY (END)");
+
+        so_shift(&shifted, 1);
+        cfg->id = ARG_PARSE_CONFIG_SINGLE;
+
+    } else {
 
         printff(">>> DEFAULT");
-    } else {
-        *request_parse = true;
+
+        so_extend(&cfg->sanitized_string, *value);
+        so_shift(&shifted, so_len(*value));
+        cfg->request_parse = true;
+
     }
 
 defer:
+    *value = shifted;
     return status;
 }
 
@@ -693,18 +737,11 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     };
     int line_number = 1;
     int status = 0;
-    bool is_array = false;
-    bool request_parse = true;
-    bool multiline_string = false;
     So sanitized_string = SO;
     So sanitized_file_path = SO;
-    Arg_Parse_Config_List id = ARG_PARSE_CONFIG_SPLIT_HIERARCHY_VALUE;
-    Arg_Parse_Config_List id_sub = ARG_PARSE_CONFIG_QUIT;
-    Arg_Parse_Config_List id_next = ARG_PARSE_CONFIG_QUIT;
-    Arg_Parse_Config_List *id_step = &id;
-
     Argx *argx = 0;
     Argx_So xso = {0};
+    Arg_Parse_Config cfg = { .stream_config = &stream_config };
 
 #if 0
     So_Switches config_cases = So_Switches(
@@ -726,6 +763,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         So value, hierarchy = so_trim(so_split_ch(line, '=', &value));
         value = so_trim(value);
         stream_config.carg = value; /* set early, to have context for potential erros */
+        stream_config.source.line_number = line_number;
 
         so_clear(&sanitized_string);
 
@@ -742,11 +780,36 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
 
         if(so_at0(value) == '[') {
             // TODO
-        } else if(so_at0(value) == ']') {
+        }
+        if(so_at0(value) == ']') {
             // TODO
         }
 
-        status |= arg_parse_config_argx(arg, &stream_config, &sanitized_string, &sanitized_file_path, &xso, argx, value, &request_parse);
+        for(;;) {
+
+            value = so_trim(value);
+
+            status |= arg_parse_config_value(arg, &cfg, argx, &value);
+            printff(" *  SHIFTED VALUE [%.*s] SANITIZED [%.*s]", SO_F(value), SO_F(cfg.sanitized_string));
+
+            if(cfg.id == ARG_PARSE_CONFIG_ARRAY) {
+
+                //while(cfg.id == ARG_PARSE_CONFIG_ARRAY && so_len(value));
+
+            } else {
+                break;
+            }
+
+        } 
+
+#if 0
+        if(cfg.id == ARG_PARSE_CONFIG_ARRAY) {
+            Argx pseudo = { .opt = line };
+            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_MISSING_ARRAY_DELIM, &pseudo);
+            status = -1;
+            continue;
+        }
+#endif
 
 #if 0
         /* parse */
