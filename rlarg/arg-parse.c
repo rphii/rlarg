@@ -722,6 +722,12 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
             printff(">>> SANITIZED [%.*s] FROM [%.*s]",SO_F(sanitized_string),SO_F(value));
 
             printff(">>> DEFAULT");
+        } else if(so_at0(value) == '[') {
+            // TODO
+        } else if(so_at0(value) == ']') {
+            // TODO
+        } else {
+            request_parse = true;
         }
 
 #if 0
