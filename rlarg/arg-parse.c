@@ -600,14 +600,17 @@ Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Grou
     return result;
 }
 
+#if 0
 typedef enum {
     ARG_PARSE_CONFIG_SINGLE,
     ARG_PARSE_CONFIG_ARRAY,
 } Arg_Parse_Config_List;
+#endif
 
 /* function to find matching character.. should go in rlso */
 
 
+#if 0
 typedef struct Arg_Parse_Config {
     Arg_Stream *stream_config;
     So sanitized_string;
@@ -615,9 +618,13 @@ typedef struct Arg_Parse_Config {
     Argx_So xso;
     Arg_Parse_Config_List id;
     bool request_parse;
+    So all_lines;
+    So current_line;
 } Arg_Parse_Config;
+#endif
 
 
+#if 0
 int arg_parse_config_value(struct Arg *arg, Arg_Parse_Config *cfg, Argx *argx, So *value) {
     ASSERT_ARG(arg);
     ASSERT_ARG(cfg);
@@ -727,6 +734,168 @@ defer:
     *value = shifted;
     return status;
 }
+#endif
+
+typedef enum {
+    ARG_PARSE_CONFIG_DEFAULT,
+    ARG_PARSE_CONFIG_STRING,
+    ARG_PARSE_CONFIG_FILE,
+    ARG_PARSE_CONFIG_ARRAY,
+} Arg_Parse_Config_List;
+
+typedef struct Arg_Parse_Config {
+    So head;
+    Arg *arg;
+    Argx *argx;
+    bool inside_array;
+} Arg_Parse_Config;
+
+/* return true on match */
+bool arg_parse_config_ch(Arg_Parse_Config *p, char c) {
+    ASSERT_ARG(p);
+    if(!p->head.len) return false;
+    bool result = (bool)(*p->head.str == c);
+    if(result) {
+        so_shift(&p->head, 1);
+    }
+    return result;
+}
+
+/* return true on match */
+bool arg_parse_config_any(Arg_Parse_Config *p, char *s) {
+    ASSERT_ARG(p);
+    if(!p->head.len) return false;
+    char *result = strchr(s, *p->head.str);
+    if(result && *result) {
+        so_shift(&p->head, 1);
+        return true;
+    }
+    return false;
+}
+
+void arg_parse_config_ws(Arg_Parse_Config *p) {
+    ASSERT_ARG(p);
+    while(arg_parse_config_any(p, " \t\v\n\r")) {}
+}
+
+/* return true on successful parse */
+bool arg_parse_config_value_string(Arg_Parse_Config *p, So *val) {
+    ASSERT_ARG(p);
+    ASSERT_ARG(val);
+    Arg_Parse_Config q = *p;
+    if(!arg_parse_config_ch(&q, '"')) goto invalid;
+    if(so_fmt_unescape(val, q.head, '"')) goto invalid;
+    if(!arg_parse_config_ch(&q, '"')) goto invalid;
+    p->head = q.head;
+    return true;
+invalid:
+    return false;
+}
+
+/* return true on successful parse */
+bool arg_parse_config_value_file(Arg_Parse_Config *p, So *val) {
+    ASSERT_ARG(p);
+    ASSERT_ARG(val);
+    bool ok = true;
+    Arg_Parse_Config q = *p;
+    if(!arg_parse_config_ch(&q, 'f')) { ok = false; goto invalid; }
+    if(!arg_parse_config_ch(&q, 'i')) { ok = false; goto invalid; }
+    if(!arg_parse_config_ch(&q, 'l')) { ok = false; goto invalid; }
+    if(!arg_parse_config_ch(&q, 'e')) { ok = false; goto invalid; }
+    So path = SO;
+    Argx_So xso = {0};
+    /* check if path is given */
+    if(arg_parse_config_ch(&q, '(')) {
+        bool found_end = false;
+        path = q.head;
+        path.len = 0;
+        while(q.head.len) {
+            /* check for ending */
+            found_end = arg_parse_config_ch(&q, ')');
+            if(found_end) break;
+            /* otherwise, collect to path */
+            so_shift(&q.head, 1);
+            ++path.len;
+        }
+        if(!found_end) { ok = false; goto invalid; }
+    } else {
+        /* assume from argx */
+        argx_so(&xso, p->argx, true, false);
+        so_extend(&path, xso.hierarchy);
+        so_extend(&path, p->argx->opt);
+    }
+    
+    p->head = q.head;
+invalid:
+    argx_so_free(&xso);
+    so_free(&path);
+    return ok;
+}
+
+/* return true on successful parse */
+bool arg_parse_config_value_any(Arg_Parse_Config *p, So *val) {
+    ASSERT_ARG(p);
+    ASSERT_ARG(val);
+    Arg_Parse_Config q = *p;
+    So to_line_end = so_split_ch(q.head, '\n', &q.head);
+    *val = so_trim(so_split_ch(to_line_end, '#', 0));
+    p->head = q.head;
+    return true;
+}
+
+bool arg_parse_config_value(Arg_Parse_Config *p, So *val);
+
+/* return true on successful parse */
+bool arg_parse_config_value_array(Arg_Parse_Config *p) {
+    ASSERT_ARG(p);
+    bool ok = true;
+    Arg_Parse_Config q = *p;
+    if(!arg_parse_config_ch(&q, '[')) { ok = false; goto invalid; }
+    q.inside_array = true;
+    bool have_end = false;
+    bool have_value = false;
+    So val = SO;
+    while(q.head.len) {
+        /* check for end */
+        have_end = arg_parse_config_ch(&q, ']');
+        if(have_end) break;
+        /* parse anything */
+        if(!arg_parse_config_value(&q, &val)) { ok = false; goto invalid; }
+        bool is_comma = so_at0(val) == ',';
+        if(is_comma) {
+            if(!have_value) { ok = false; goto invalid; }
+            else arg_parse_config_ch(&q, ',');
+        }
+        if(so_atE(val) == ']') {
+            have_end = true;
+            val = so_iE(val, so_len(val) - 1);
+        }
+        printff(">>> ARRAY VALUE: %.*s :: HAVE END %u", SO_F(val), have_end);
+        getchar();
+        so_free(&val);
+        if(have_end) break;
+    }
+    if(!have_end) { ok = false; goto invalid; }
+    p->head = q.head;
+invalid:
+    return ok;
+}
+
+bool arg_parse_config_value(Arg_Parse_Config *p, So *val) {
+    bool ok = true;
+    Arg_Parse_Config q = *p;
+    if(!q.inside_array && arg_parse_config_value_array(&q)) {
+    } else if(arg_parse_config_value_string(&q, val)) {
+        printff(">>> STRING VALUE: %.*s", SO_F(*val));
+    } else if(arg_parse_config_value_file(&q, val)) {
+        printff(">>> FILE VALUE: %.*s", SO_F(*val));
+    } else if(arg_parse_config_value_any(&q, val)) {
+        printff(">>> ANY VALUE: %.*s", SO_F(*val));
+    }
+    p->head = q.head;
+invalid:
+    return ok;
+}
 
 int arg_parse_config(struct Arg *arg, So config, So path) {
     arg->help.error = 0;
@@ -741,7 +910,10 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     So sanitized_file_path = SO;
     Argx *argx = 0;
     Argx_So xso = {0};
-    Arg_Parse_Config cfg = { .stream_config = &stream_config };
+    //Arg_Parse_Config cfg = {
+    //    .stream_config = &stream_config,
+    //    .all_lines = config
+    //};
 
 #if 0
     So_Switches config_cases = So_Switches(
@@ -778,6 +950,31 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
             continue;
         }
 
+        Arg_Parse_Config p = {
+            .argx = argx,
+            .arg = arg,
+            .head = so_ll(value.str, config.str - value.str),
+        };
+        So san = SO;
+        if(!arg_parse_config_value(&p, &san)) {
+            Argx pseudo = { .opt = hierarchy };
+            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG, &pseudo);
+            status = -1;
+            continue;
+        }
+        //line = so_ll(san.str + san.len, 0);
+        so_free(&san);
+        
+
+        /* values:
+         * ANY        -> single line, always
+         * STRING '"' -> single line, always
+         * FILE       -> single line, always
+         * FILE(path) -> single line, always
+         * [          -> sinlge or multi line, expect value, then comment comma, and some time later ]
+         * */
+
+#if 0
         if(so_at0(value) == '[') {
             // TODO
         }
@@ -801,6 +998,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
             }
 
         } 
+#endif
 
 #if 0
         if(cfg.id == ARG_PARSE_CONFIG_ARRAY) {
