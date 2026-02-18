@@ -1,0 +1,81 @@
+#help = ;;
+#source = [$HOME/.config/rphiic/colors.conf,all.conf] # <uri-array>
+
+[default]
+
+source = $HOME/.config/rphiic/colors.conf,all.conf # <uri-array>
+# hi
+[]
+default.boolr = false # <bool>
+default.boolo = true # (bool)
+default.color = rgb(123, 123, 123)
+default.vso = ['one', 'two'] # <string-array>
+default.enumerator = nsfw # <sfw|nsfw|sketchy>
+# enumerator2 = <sfw|nsfw|sketchy>
+# enumerator33 = <sfw|nsfw|sketchy>
+# enumerator444 = <sfw|nsfw|sketchy>
+default.flag = sfw,nsfw # [sfw|nsfw|sketchy]
+
+default.rice.test.bg = rgb(febde3)
+default.rice.test.fg = rgb(3ebde3)
+
+# subopt4.subopt3.subopt = <string>
+# subopt4.subopt3.subopt2 = <string>
+# subopt4.subopt2
+# 1111
+# somerandom
+#func = 123
+#func = 456
+# func = <int>
+
+default.name = file(default.name
+
+[rice]
+[rice.arg]
+
+### rice
+
+## rice.arg.program.fg = rgb(dd5555)
+## rice.arg.program.bold = true
+## 
+## rice.arg.pos.fg = rgb(aa55dd)
+## rice.arg.pos.it = true
+## 
+## rice.arg.short.fg = rgb(b97b97)
+## rice.arg.long.fg =  rgb(b97b97)
+## rice.arg.long.bold = true
+## rice.arg.env.bg =  rgb(865865)
+## rice.arg.env.fg =  rgb(010101)
+## rice.arg.env.bold = true
+## rice.arg.env.bold = true
+## rice.arg.desc.fg = rgb(aaaaaa)
+## 
+## rice.arg.group.fg = rgb(cccccc)
+## rice.arg.group.bold = true
+## rice.arg.group.ul = true
+## rice.arg.group-delim.fg = rgb(666666)
+## 
+## rice.arg.subopt.fg = gbr(66ee33)
+## rice.arg.subopt-delim.fg = rgb(666666)
+## 
+## rice.arg.enum.fg = rgb(5555bb)
+## rice.arg.enum-set.fg = rgb(7777dd)
+## rice.arg.enum-set.bold = true
+## rice.arg.enum-set.ul = true
+## rice.arg.enum-delim.fg = rgb(666666)
+## 
+## rice.arg.flag.fg = rgb(bbbb55)
+## rice.arg.flag-set.fg = rgb(dddd77)
+## rice.arg.flag-set.bold = true
+## rice.arg.flag-set.ul = true
+## rice.arg.flag-delim.fg = rgb(666666)
+## 
+## rice.arg.hint.fg = rgb(55aadd)
+## rice.arg.hint-delim.fg = rgb(666666)
+## 
+## rice.arg.val.fg = rgb(55dd55)
+## rice.arg.val-delim.fg = rgb(666666)
+## 
+## #positional.kind = true
+## #environment.NOCOLOR = true
+
