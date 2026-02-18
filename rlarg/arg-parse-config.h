@@ -14,6 +14,7 @@ typedef struct Arg_Parse_Config {
     Arg *arg;
     So section;
     So hierarchy;
+    So file;
 } Arg_Parse_Config;
 
 int arg_parse_config(struct Arg *arg, So config, So path);
