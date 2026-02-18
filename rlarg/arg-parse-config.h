@@ -11,10 +11,9 @@ typedef enum {
 } Arg_Parse_Config_List;
 
 typedef struct Arg_Parse_Config {
-    So head;
     Arg *arg;
-    Argx *argx;
-    bool inside_array;
+    So section;
+    So hierarchy;
 } Arg_Parse_Config;
 
 int arg_parse_config(struct Arg *arg, So config, So path);
