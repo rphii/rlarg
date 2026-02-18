@@ -104,16 +104,20 @@ bool arg_parse_config_section(Arg_Parse_Config *p, So *head) {
     bool ok = true;
     arg_parse_config_ws(p, head);
     if(!arg_parse_config_ch(p, head, '[')) return ok;
+    so_clear(&p->section);
     arg_parse_config_ws(p, head);
     while(head->len) {
         arg_parse_config_ws(p, head);
         if(arg_parse_config_ch(p, head, '\n')) { ok = false; break; }
         if(arg_parse_config_ch(p, head, ']')) break;
         so_push(&p->section, so_at0(*head));
+        so_shift(head, 1);
     }
-    if(!ok) {
+    if(ok) {
+        printff("SECTION %.*s", SO_F(p->section));
+    } else {
         printff(F("TODO ERROR", FG_RD BOLD));
-    }
+    } 
     return ok;
 }
 
