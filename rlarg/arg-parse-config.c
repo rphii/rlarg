@@ -103,7 +103,7 @@ bool arg_parse_config_section(Arg_Parse_Config *p, So *head) {
     ASSERT_ARG(head);
     bool ok = true;
     arg_parse_config_ws(p, head);
-    if(!arg_parse_config_ch(p, head, '[')) return ok;
+    if(!arg_parse_config_ch(p, head, '[')) return false;
     so_clear(&p->section);
     arg_parse_config_ws(p, head);
     while(head->len) {
@@ -158,9 +158,10 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     };
 
     while(head.len) {
-        arg_parse_config_section(&p, &head);
-        arg_parse_config_ws(&p, &head);
-        arg_parse_config_other(&p, &head);
+        if(!arg_parse_config_section(&p, &head)) {
+            arg_parse_config_ws(&p, &head);
+            arg_parse_config_other(&p, &head);
+        }
     }
 
     arg_stream_free(&stream_config);
