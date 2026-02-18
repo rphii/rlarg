@@ -29,6 +29,11 @@ void arg_parse_config_ws(Arg_Parse_Config *p, So *head) {
     while(arg_parse_config_any(p, head, " \t\v\n\r")) {}
 }
 
+void arg_parse_config_ws_no_newline(Arg_Parse_Config *p, So *head) {
+    ASSERT_ARG(p);
+    while(arg_parse_config_any(p, head, " \t\v\r")) {}
+}
+
 /* return true on successful parse */
 bool arg_parse_config_value_string(Arg_Parse_Config *p, So *head, So *val) {
     ASSERT_ARG(p);
@@ -102,14 +107,16 @@ bool arg_parse_config_section(Arg_Parse_Config *p, So *head) {
     arg_parse_config_ws(p, head);
     if(!arg_parse_config_ch(p, head, '[')) return false;
     so_clear(&p->section);
-    arg_parse_config_ws(p, head);
+    arg_parse_config_ws_no_newline(p, head);
     while(head->len) {
-        arg_parse_config_ws(p, head);
+        arg_parse_config_ws_no_newline(p, head);
         if(arg_parse_config_ch(p, head, '\n')) { ok = false; break; }
-        if(arg_parse_config_ch(p, head, ']')) break;
+        if(arg_parse_config_ch(p, head, ']')) { break; }
         so_push(&p->section, so_at0(*head));
         so_shift(head, 1);
     }
+    arg_parse_config_ws_no_newline(p, head);
+    if(!arg_parse_config_ch(p, head, '\n')) { ok = false; }
     if(ok) {
         printff("SECTION %.*s", SO_F(p->section));
     } else {
