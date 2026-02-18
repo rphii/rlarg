@@ -1,3 +1,4 @@
+#include "arg-parse-config.h"
 #include "arg-parse.h"
 #include "arg.h"
 #include "arg-compgen.h"
@@ -546,489 +547,6 @@ typedef enum {
     ARG_STREAM_SHORTOPT,
 } Arg_Stream_List;
 
-Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Group **root_group) {
-    Argx *result = 0;
-
-    So root = so_trim(so_split_ch(lhs, '.', &lhs));
-
-    /* verify that the root group exists */
-    bool exist = false;
-    Argx_Groups groupE = array_itE(arg->opts);
-    for(Argx_Groups group = arg->opts; group < groupE; ++group) {
-        if(so_cmp((*group)->name, root)) continue;
-        if(root_group) *root_group = *group;
-        exist = true;
-        break;
-    }
-    T_Argx *table = &arg->t_opt;
-    if(!exist && stream->is_help_lookup) {
-        ASSERT_ARG(root_group);
-        if(!so_cmp(arg->env.name, root)) {
-            *root_group = &arg->env;
-            table = &arg->t_env;
-            exist = true;
-        }
-        if(!so_cmp(arg->pos.name, root)) {
-            *root_group = &arg->pos;
-            table = &arg->t_pos;
-            exist = true;
-        }
-    }
-    if(!exist) {
-        Argx pseudo = { .opt = root };
-        arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG, &pseudo);
-        return 0;
-    }
-
-    /* now search for sub option */
-    for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
-        if(!table) {
-            Argx pseudo = { .opt = lhs };
-            arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
-            return 0;
-        }
-        result = t_argx_get(table, opt);
-        if(!result) {
-            Argx pseudo = { .opt = lhs };
-            arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
-            return 0;
-        }
-        table = result->group_s ? result->group_s->table : 0;
-        if(table && root_group) *root_group = result->group_s;
-    }
-
-    return result;
-}
-
-#if 0
-typedef enum {
-    ARG_PARSE_CONFIG_SINGLE,
-    ARG_PARSE_CONFIG_ARRAY,
-} Arg_Parse_Config_List;
-#endif
-
-/* function to find matching character.. should go in rlso */
-
-
-#if 0
-typedef struct Arg_Parse_Config {
-    Arg_Stream *stream_config;
-    So sanitized_string;
-    So sanitized_file_path;
-    Argx_So xso;
-    Arg_Parse_Config_List id;
-    bool request_parse;
-    So all_lines;
-    So current_line;
-} Arg_Parse_Config;
-#endif
-
-
-#if 0
-int arg_parse_config_value(struct Arg *arg, Arg_Parse_Config *cfg, Argx *argx, So *value) {
-    ASSERT_ARG(arg);
-    ASSERT_ARG(cfg);
-    ASSERT_ARG(argx);
-
-    int status = 0;
-    So shifted = *value;
-
-    so_clear(&cfg->sanitized_string);
-
-    /* check if value is any special keyword */
-    printff("::: VALUE [%.*s]", SO_F(*value));
-
-    if(cfg->id == ARG_PARSE_CONFIG_SINGLE && so_at0(*value) == '[') {
-        printff("::: ARRAY (BEGIN)");
-
-        so_shift(value, 1);
-        cfg->id = ARG_PARSE_CONFIG_ARRAY;
-
-    }
-
-    if(!so_cmp0(*value, so("file("))) {
-        So rhs, path = so_i0(so_split_ch(*value, ')', &rhs), 5);
-        so_shift(&shifted, 5);
-
-        printff("::: SPLIT [%.*s]", SO_F(*value));
-        if(!so_len(rhs)) {
-            Argx pseudo = { .opt = argx->opt, .desc = *value };
-            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_MISSING_FILE_DELIM, &pseudo);
-            status = -1;
-            goto defer;
-        }
-
-        so_shift(&shifted, so_len(path) + 1);
-        printff("::: PATH [%.*s]", SO_F(path));
-
-        so_clear(&cfg->sanitized_file_path);
-        so_extend(&cfg->sanitized_file_path, path);
-
-        /* search for a file named like specified */
-        if(so_file_read(cfg->sanitized_file_path, &cfg->sanitized_string)) {
-            Argx pseudo = { .opt = argx->opt, .desc = cfg->sanitized_file_path };
-            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_READ_FILE_SPECIFIC, &pseudo);
-            status = -1;
-            goto defer;
-        }
-        printff("::: VALUE [%.*s]", SO_F(cfg->sanitized_string));
-
-    } else if(!so_cmp0(*value, so("file"))) {
-        printff("::: FILE (AUTO)");
-        so_shift(&shifted, 4); /* so_len('file') == 4 */
-
-        argx_so_clear(&cfg->xso);
-        argx_so(&cfg->xso, argx, true, false);
-
-        so_clear(&cfg->sanitized_file_path);
-        so_extend(&cfg->sanitized_file_path, cfg->xso.hierarchy);
-        so_extend(&cfg->sanitized_file_path, argx->opt);
-
-
-        /* search for a file named like the option */
-        if(so_file_read(cfg->sanitized_file_path, &cfg->sanitized_string)) {
-            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_READ_FILE_AUTO, argx);
-            status = -1;
-            goto defer;
-        }
-        printff("::: VALUE [%.*s]", SO_F(cfg->sanitized_string));
-
-    } else if(so_at0(*value) == '"') {
-
-        printff(">>> STRING");
-
-        if(so_fmt_unescape(&cfg->sanitized_string, so_i0(*value, 1), '\"')) {
-            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_INVALID_STRING, argx);
-            status = -1;
-            goto defer;
-        }
-
-        if(so_len(cfg->sanitized_string) + 2 != so_len(*value)) {
-            arg_parse_error(arg, cfg->stream_config, ARG_PARSE_ERROR_INVALID_STRING_END, argx);
-            status = -1;
-            goto defer;
-        }
-
-        printff(">>> SANITIZED [%.*s] FROM [%.*s]",SO_F(cfg->sanitized_string),SO_F(*value));
-
-
-        so_shift(&shifted, so_len(cfg->sanitized_string) + 2); /* skip string + delimiter */
-
-    } else if((cfg->id == ARG_PARSE_CONFIG_ARRAY) && so_at0(*value) == ']') {
-        printff("::: ARRAY (END)");
-
-        so_shift(&shifted, 1);
-        cfg->id = ARG_PARSE_CONFIG_SINGLE;
-
-    } else {
-
-        printff(">>> DEFAULT");
-
-        so_extend(&cfg->sanitized_string, *value);
-        so_shift(&shifted, so_len(*value));
-        cfg->request_parse = true;
-
-    }
-
-defer:
-    *value = shifted;
-    return status;
-}
-#endif
-
-typedef enum {
-    ARG_PARSE_CONFIG_DEFAULT,
-    ARG_PARSE_CONFIG_STRING,
-    ARG_PARSE_CONFIG_FILE,
-    ARG_PARSE_CONFIG_ARRAY,
-} Arg_Parse_Config_List;
-
-typedef struct Arg_Parse_Config {
-    So head;
-    Arg *arg;
-    Argx *argx;
-    bool inside_array;
-} Arg_Parse_Config;
-
-/* return true on match */
-bool arg_parse_config_ch(Arg_Parse_Config *p, char c) {
-    ASSERT_ARG(p);
-    if(!p->head.len) return false;
-    bool result = (bool)(*p->head.str == c);
-    if(result) {
-        so_shift(&p->head, 1);
-    }
-    return result;
-}
-
-/* return true on match */
-bool arg_parse_config_any(Arg_Parse_Config *p, char *s) {
-    ASSERT_ARG(p);
-    if(!p->head.len) return false;
-    char *result = strchr(s, *p->head.str);
-    if(result && *result) {
-        so_shift(&p->head, 1);
-        return true;
-    }
-    return false;
-}
-
-void arg_parse_config_ws(Arg_Parse_Config *p) {
-    ASSERT_ARG(p);
-    while(arg_parse_config_any(p, " \t\v\n\r")) {}
-}
-
-/* return true on successful parse */
-bool arg_parse_config_value_string(Arg_Parse_Config *p, So *val) {
-    ASSERT_ARG(p);
-    ASSERT_ARG(val);
-    Arg_Parse_Config q = *p;
-    if(!arg_parse_config_ch(&q, '"')) goto invalid;
-    if(so_fmt_unescape(val, q.head, '"')) goto invalid;
-    if(!arg_parse_config_ch(&q, '"')) goto invalid;
-    p->head = q.head;
-    return true;
-invalid:
-    return false;
-}
-
-/* return true on successful parse */
-bool arg_parse_config_value_file(Arg_Parse_Config *p, So *val) {
-    ASSERT_ARG(p);
-    ASSERT_ARG(val);
-    bool ok = true;
-    Arg_Parse_Config q = *p;
-    if(!arg_parse_config_ch(&q, 'f')) { ok = false; goto invalid; }
-    if(!arg_parse_config_ch(&q, 'i')) { ok = false; goto invalid; }
-    if(!arg_parse_config_ch(&q, 'l')) { ok = false; goto invalid; }
-    if(!arg_parse_config_ch(&q, 'e')) { ok = false; goto invalid; }
-    So path = SO;
-    Argx_So xso = {0};
-    /* check if path is given */
-    if(arg_parse_config_ch(&q, '(')) {
-        bool found_end = false;
-        path = q.head;
-        path.len = 0;
-        while(q.head.len) {
-            /* check for ending */
-            found_end = arg_parse_config_ch(&q, ')');
-            if(found_end) break;
-            /* otherwise, collect to path */
-            so_shift(&q.head, 1);
-            ++path.len;
-        }
-        if(!found_end) { ok = false; goto invalid; }
-    } else {
-        /* assume from argx */
-        argx_so(&xso, p->argx, true, false);
-        so_extend(&path, xso.hierarchy);
-        so_extend(&path, p->argx->opt);
-    }
-    
-    p->head = q.head;
-invalid:
-    argx_so_free(&xso);
-    so_free(&path);
-    return ok;
-}
-
-/* return true on successful parse */
-bool arg_parse_config_value_any(Arg_Parse_Config *p, So *val) {
-    ASSERT_ARG(p);
-    ASSERT_ARG(val);
-    Arg_Parse_Config q = *p;
-    So to_line_end = so_split_ch(q.head, '\n', &q.head);
-    *val = so_trim(so_split_ch(to_line_end, '#', 0));
-    p->head = q.head;
-    return true;
-}
-
-bool arg_parse_config_value(Arg_Parse_Config *p, So *val);
-
-/* return true on successful parse */
-bool arg_parse_config_value_array(Arg_Parse_Config *p) {
-    ASSERT_ARG(p);
-    bool ok = true;
-    Arg_Parse_Config q = *p;
-    if(!arg_parse_config_ch(&q, '[')) { ok = false; goto invalid; }
-    q.inside_array = true;
-    bool have_end = false;
-    bool have_value = false;
-    So val = SO;
-    while(q.head.len) {
-        /* check for end */
-        have_end = arg_parse_config_ch(&q, ']');
-        if(have_end) break;
-        /* parse anything */
-        if(!arg_parse_config_value(&q, &val)) { ok = false; goto invalid; }
-        bool is_comma = so_at0(val) == ',';
-        if(is_comma) {
-            if(!have_value) { ok = false; goto invalid; }
-            else arg_parse_config_ch(&q, ',');
-        }
-        if(so_atE(val) == ']') {
-            have_end = true;
-            val = so_iE(val, so_len(val) - 1);
-        }
-        printff(">>> ARRAY VALUE: %.*s :: HAVE END %u", SO_F(val), have_end);
-        getchar();
-        so_free(&val);
-        if(have_end) break;
-    }
-    if(!have_end) { ok = false; goto invalid; }
-    p->head = q.head;
-invalid:
-    return ok;
-}
-
-bool arg_parse_config_value(Arg_Parse_Config *p, So *val) {
-    bool ok = true;
-    Arg_Parse_Config q = *p;
-    if(!q.inside_array && arg_parse_config_value_array(&q)) {
-    } else if(arg_parse_config_value_string(&q, val)) {
-        printff(">>> STRING VALUE: %.*s", SO_F(*val));
-    } else if(arg_parse_config_value_file(&q, val)) {
-        printff(">>> FILE VALUE: %.*s", SO_F(*val));
-    } else if(arg_parse_config_value_any(&q, val)) {
-        printff(">>> ANY VALUE: %.*s", SO_F(*val));
-    }
-    p->head = q.head;
-invalid:
-    return ok;
-}
-
-int arg_parse_config(struct Arg *arg, So config, So path) {
-    arg->help.error = 0;
-    arg->help.last = 0;
-    Arg_Stream stream_config = {
-        .source.path = path,
-        .is_config = true,
-    };
-    int line_number = 1;
-    int status = 0;
-    So sanitized_string = SO;
-    So sanitized_file_path = SO;
-    Argx *argx = 0;
-    Argx_So xso = {0};
-    //Arg_Parse_Config cfg = {
-    //    .stream_config = &stream_config,
-    //    .all_lines = config
-    //};
-
-#if 0
-    So_Switches config_cases = So_Switches(
-        ARG_CONFIG_FILE, so("file"),
-        ARG_CONFIG_STRING, so("\""),
-        ARG_CONFIG_ARRAY_OPEN, so("["),
-        ARG_CONFIG_ARRAY_CLOSE, so("]"),
-        );
-#endif
-
-    for(So line = SO; so_splice(config, &line, '\n'); ++line_number) {
-
-        /* get one line and split on '=' */
-        if(so_is_zero(line)) continue;
-
-        line = so_trim(so_split_ch(line, '#', 0));
-        if(!so_len(line)) continue;
-
-        So value, hierarchy = so_trim(so_split_ch(line, '=', &value));
-        value = so_trim(value);
-        stream_config.carg = value; /* set early, to have context for potential erros */
-        stream_config.source.line_number = line_number;
-
-        so_clear(&sanitized_string);
-
-        printff("LINE: [%.*s]",SO_F(line));
-
-        /* get argx from hierarchy */
-        argx = arg_parse_hierarchy(arg, &stream_config, hierarchy, 0);
-        if(!argx) {
-            Argx pseudo = { .opt = hierarchy };
-            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG, &pseudo);
-            status = -1;
-            continue;
-        }
-
-        Arg_Parse_Config p = {
-            .argx = argx,
-            .arg = arg,
-            .head = so_ll(value.str, config.str - value.str),
-        };
-        So san = SO;
-        if(!arg_parse_config_value(&p, &san)) {
-            Argx pseudo = { .opt = hierarchy };
-            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG, &pseudo);
-            status = -1;
-            continue;
-        }
-        //line = so_ll(san.str + san.len, 0);
-        so_free(&san);
-        
-
-        /* values:
-         * ANY        -> single line, always
-         * STRING '"' -> single line, always
-         * FILE       -> single line, always
-         * FILE(path) -> single line, always
-         * [          -> sinlge or multi line, expect value, then comment comma, and some time later ]
-         * */
-
-#if 0
-        if(so_at0(value) == '[') {
-            // TODO
-        }
-        if(so_at0(value) == ']') {
-            // TODO
-        }
-
-        for(;;) {
-
-            value = so_trim(value);
-
-            status |= arg_parse_config_value(arg, &cfg, argx, &value);
-            printff(" *  SHIFTED VALUE [%.*s] SANITIZED [%.*s]", SO_F(value), SO_F(cfg.sanitized_string));
-
-            if(cfg.id == ARG_PARSE_CONFIG_ARRAY) {
-
-                //while(cfg.id == ARG_PARSE_CONFIG_ARRAY && so_len(value));
-
-            } else {
-                break;
-            }
-
-        } 
-#endif
-
-#if 0
-        if(cfg.id == ARG_PARSE_CONFIG_ARRAY) {
-            Argx pseudo = { .opt = line };
-            arg_parse_error(arg, &stream_config, ARG_PARSE_ERROR_MISSING_ARRAY_DELIM, &pseudo);
-            status = -1;
-            continue;
-        }
-#endif
-
-#if 0
-        /* parse */
-        if(request_parse) {
-            //printff(">>> CARG [%.*s]",SO_F(stream_config.carg));
-            stream_config.source.line_number = line_number;
-            arg_parse_argx(arg, &stream_config, argx, stream_config.carg);
-        }
-        arg_stream_clear(&stream_config);
-#endif
-
-    }
-
-    arg_stream_free(&stream_config);
-    so_free(&sanitized_file_path);
-    so_free(&sanitized_string);
-    argx_so_free(&xso);
-
-    return status;
-}
-
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
     //printff("parse... argc %u", array_len(stream->vso));
@@ -1352,7 +870,59 @@ void arg_parse_help_fmt_rec(So *out, Argx *argx) {
     argx_fmt_help(out, argx);
 }
 
+Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Group **root_group) {
+    Argx *result = 0;
 
+    So root = so_trim(so_split_ch(lhs, '.', &lhs));
+
+    /* verify that the root group exists */
+    bool exist = false;
+    Argx_Groups groupE = array_itE(arg->opts);
+    for(Argx_Groups group = arg->opts; group < groupE; ++group) {
+        if(so_cmp((*group)->name, root)) continue;
+        if(root_group) *root_group = *group;
+        exist = true;
+        break;
+    }
+    T_Argx *table = &arg->t_opt;
+    if(!exist && stream->is_help_lookup) {
+        ASSERT_ARG(root_group);
+        if(!so_cmp(arg->env.name, root)) {
+            *root_group = &arg->env;
+            table = &arg->t_env;
+            exist = true;
+        }
+        if(!so_cmp(arg->pos.name, root)) {
+            *root_group = &arg->pos;
+            table = &arg->t_pos;
+            exist = true;
+        }
+    }
+    if(!exist) {
+        Argx pseudo = { .opt = root };
+        arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG, &pseudo);
+        return 0;
+    }
+
+    /* now search for sub option */
+    for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
+        if(!table) {
+            Argx pseudo = { .opt = lhs };
+            arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
+            return 0;
+        }
+        result = t_argx_get(table, opt);
+        if(!result) {
+            Argx pseudo = { .opt = lhs };
+            arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
+            return 0;
+        }
+        table = result->group_s ? result->group_s->table : 0;
+        if(table && root_group) *root_group = result->group_s;
+    }
+
+    return result;
+}
 
 void arg_parse_help(Arg *arg) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
