@@ -37,20 +37,6 @@ void arg_parse_config_ws_no_newline(Arg_Parse_Config *p, So *head) {
     while(arg_parse_config_any(p, head, " \t\v\r")) {}
 }
 
-/* return true on successful parse */
-bool arg_parse_config_value_string(Arg_Parse_Config *p, So *head, So *val) {
-    ASSERT_ARG(p);
-    ASSERT_ARG(val);
-    So q = *head;
-    if(!arg_parse_config_ch(p, &q, '"')) goto invalid;
-    if(so_fmt_unescape(val, q, '"')) goto invalid;
-    if(!arg_parse_config_ch(p, &q, '"')) goto invalid;
-    *head = q;
-    return true;
-invalid:
-    return false;
-}
-
 void arg_parse_config_other(Arg_Parse_Config *p, So *head, So *val, bool in_array) {
     ASSERT_ARG(p);
     ASSERT_ARG(head);
@@ -98,8 +84,9 @@ bool arg_parse_config_string(Arg_Parse_Config *p, So *head) {
     So q = *head;
     So val = SO;
     if(!arg_parse_config_ch(p, &q, '"')) return false;
-    if(so_fmt_unescape(&val, q, '"')) return false;
-    so_shift(&q, so_len(val));
+    size_t n_unescaped = 0;
+    if(so_fmt_unescape(&val, q, '"', &n_unescaped)) return false;
+    so_shift(&q, n_unescaped);
     if(!arg_parse_config_ch(p, &q, '"')) return false;
     printff("STRING %.*s", SO_F(val));
     so_free(&val);
