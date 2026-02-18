@@ -51,11 +51,15 @@ invalid:
     return false;
 }
 
-void arg_parse_config_other(Arg_Parse_Config *p, So *head, So *val) {
+void arg_parse_config_other(Arg_Parse_Config *p, So *head, So *val, bool in_array) {
     ASSERT_ARG(p);
     ASSERT_ARG(head);
     ASSERT_ARG(val);
     size_t len = so_find_ch(*head, '\n');
+    if(in_array && len) {
+        So check_for_comma = so_ll(head->str, len);
+        len = so_find_ch(check_for_comma, ',');
+    }
     if(len < so_len(*head)) {
         *val = so_trim(so_split_ch(so_ll(head->str, len), '#', 0)); /* wild */
     }
@@ -131,8 +135,9 @@ bool arg_parse_config_file(Arg_Parse_Config *p, So *head) {
     return ok;
 }
 
-bool arg_parse_config_value(Arg_Parse_Config *p, So *head) {
+bool arg_parse_config_value(Arg_Parse_Config *p, So *head, bool in_array) {
     bool ok = false;
+    bool shift = false;
     So other = SO;
     So q = *head;
     arg_parse_config_ws(p, &q);
@@ -141,14 +146,15 @@ bool arg_parse_config_value(Arg_Parse_Config *p, So *head) {
     } else if(arg_parse_config_string(p, &q)) {
         ok = true;
     } else {
-        arg_parse_config_other(p, &q, &other);
+        arg_parse_config_other(p, &q, &other, in_array);
         if(so_len(other)) {
             printff("OTHER %.*s", SO_F(other));
+            ok = true;
         }
-        ok = true;
+        shift = true;
     }
     arg_parse_config_ws(p, &q);
-    if(ok) {
+    if(ok || shift) {
         *head = q;
     }
     return ok;
@@ -192,6 +198,7 @@ bool arg_parse_config_array(Arg_Parse_Config *p, So *head) {
     while(q.len) {
         /* can we expect an end ? */
         arg_parse_config_ws(p, &q);
+        //printff("Q[%.*s]",SO_F(q));
         if(values_parsed_now > values_parsed_old) {
             if(!arg_parse_config_ch(p, &q, ',')) {
                 if(arg_parse_config_ch(p, &q, ']')) break;
@@ -200,6 +207,8 @@ bool arg_parse_config_array(Arg_Parse_Config *p, So *head) {
                     TODO_ERROR;
                     break;
                 }
+            } else {
+                values_parsed_old = values_parsed_now;
             }
         } else {
             if(arg_parse_config_ch(p, &q, ']')) break;
@@ -211,7 +220,7 @@ bool arg_parse_config_array(Arg_Parse_Config *p, So *head) {
             /* try parse a value */
             values_parsed_old = values_parsed_now;
             //printff("1EAD:%.*s",SO_F(q));
-            if(arg_parse_config_value(p, &q)) {
+            if(arg_parse_config_value(p, &q, true)) {
                 ++values_parsed_now;
             }
         }
@@ -232,7 +241,7 @@ bool arg_parse_config_config(Arg_Parse_Config *p, So *head) {
     So q = *head;
     arg_parse_config_ws(p, &q);
     if(arg_parse_config_array(p, &q)) {
-    } else if(arg_parse_config_value(p, &q)) {
+    } else if(arg_parse_config_value(p, &q, false)) {
     } else {
         ok = false;
         TODO_ERROR;
@@ -249,7 +258,7 @@ bool arg_parse_config_settings(Arg_Parse_Config *p, So *head) {
     ASSERT_ARG(head);
     bool ok = true;
     So inspect = SO;
-    arg_parse_config_other(p, head, &inspect);
+    arg_parse_config_other(p, head, &inspect, false);
     if(!so_len(inspect)) return false;
     So inspected = inspect;
     if(!arg_parse_config_hierarchy(p, &inspected)) return false;
@@ -288,7 +297,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     while(head.len) {
         if(!arg_parse_config_section(&p, &head)) {
             if(!arg_parse_config_settings(&p, &head)) {
-                arg_parse_config_other(&p, &head, &comment);
+                arg_parse_config_other(&p, &head, &comment, false);
             }
         }
     }
