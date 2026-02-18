@@ -30,6 +30,8 @@ struct Argx;
 struct Argx_Group;
 
 int arg_parse_argx(struct Arg *arg, struct Arg_Stream *stream, struct Argx *argx, So so);
+struct Argx *arg_parse_hierarchy(struct Arg *arg, struct Arg_Stream *stream, So lhs, struct Argx_Group **root_group);
+void arg_parse_error(struct Arg *arg, struct Arg_Stream *stream, Arg_Parse_Error_List id, struct Argx *argx);
 
 #define ARG_PARSE_H
 #endif /* ARG_PARSE_H */

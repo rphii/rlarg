@@ -3,6 +3,7 @@ project('rlarg', 'c', meson_version: '>=1.1', version: '0.0.1')
 sources = [
   'rlarg/arg-compgen.c',
   'rlarg/arg-core.c',
+  'rlarg/arg-parse-config.c',
   'rlarg/arg-parse.c',
   'rlarg/arg-runtime.c',
   'rlarg/arg-stream.c',
