@@ -43,60 +43,57 @@ invalid:
     return false;
 }
 
-#if 0
-/* return true on successful parse */
-bool arg_parse_config_value_file(Arg_Parse_Config *p, So *head, So *val) {
+bool arg_parse_config_other(Arg_Parse_Config *p, So *head, So *val) {
     ASSERT_ARG(p);
+    ASSERT_ARG(head);
     ASSERT_ARG(val);
-    bool ok = true;
-    So q = *head;
-    if(!arg_parse_config_ch(p, &q, 'f')) { ok = false; goto invalid; }
-    if(!arg_parse_config_ch(p, &q, 'i')) { ok = false; goto invalid; }
-    if(!arg_parse_config_ch(p, &q, 'l')) { ok = false; goto invalid; }
-    if(!arg_parse_config_ch(p, &q, 'e')) { ok = false; goto invalid; }
-    So path = SO;
-    Argx_So xso = {0};
-    /* check if path is given */
-    if(arg_parse_config_ch(p, &q, '(')) {
-        bool found_end = false;
-        path = *head;
-        path.len = 0;
-        while(head->len) {
-            /* check for ending */
-            found_end = arg_parse_config_ch(p, &q, ')');
-            if(found_end) break;
-            /* otherwise, collect to path */
-            so_shift(head, 1);
-            ++path.len;
-        }
-        if(!found_end) { ok = false; goto invalid; }
-    } else {
-        /* assume from argx */
-        argx_so(&xso, p->argx, true, false);
-        so_extend(&path, xso.hierarchy);
-        so_extend(&path, p->argx->opt);
+    size_t len = so_find_ch(*head, '\n');
+    if(len < so_len(*head)) {
+        *val = so_split_ch(so_ll(head->str, len), '#', 0);
+        so_shift(head, len);
     }
-    
-    *head = q;
-invalid:
-    argx_so_free(&xso);
-    so_free(&path);
+    return so_len(*val);
+}
+
+bool arg_parse_config_hierarchy(Arg_Parse_Config *p, So *head) {
+    ASSERT_ARG(p);
+    ASSERT_ARG(head);
+    bool ok = true;
+    arg_parse_config_ws(p, head);
+    so_clear(&p->hierarchy);
+    while(head->len) {
+        arg_parse_config_ws(p, head);
+        if(arg_parse_config_ch(p, head, '\n')) { ok = false; break; }
+        if(arg_parse_config_ch(p, head, '=')) break;
+        so_push(&p->hierarchy, so_at0(*head));
+        so_shift(head, 1);
+    }
+    if(ok) {
+        if(so_len(p->hierarchy)) {
+            printff("HIERARCHY %.*s", SO_F(p->hierarchy));
+        }
+    } else {
+        printff(F("TODO ERROR", FG_RD BOLD));
+    }
     return ok;
 }
 
-/* return true on successful parse */
-bool arg_parse_config_value_any(Arg_Parse_Config *p, So *head, So *val) {
+bool arg_parse_config_settings(Arg_Parse_Config *p, So *head) {
     ASSERT_ARG(p);
-    ASSERT_ARG(val);
-    So q = *head;
-    So to_line_end = so_split_ch(q, '\n', &q);
-    *val = so_trim(so_split_ch(to_line_end, '#', 0));
-    *head = q;
-    return true;
-}
+    ASSERT_ARG(head);
+    bool ok = true;
+    So inspect = SO;
+    if(!arg_parse_config_other(p, head, &inspect)) return false;
+    So inspected = inspect;
+    if(!arg_parse_config_hierarchy(p, &inspected)) return false;
 
-bool arg_parse_config_value(Arg_Parse_Config *p, So *val);
-#endif
+    so_shift(head, inspected.len + inspected.str - head->str);
+
+    So val = SO;
+    arg_parse_config_other(p, head, &val);
+
+    return ok;
+}
 
 bool arg_parse_config_section(Arg_Parse_Config *p, So *head) {
     ASSERT_ARG(p);
@@ -121,22 +118,6 @@ bool arg_parse_config_section(Arg_Parse_Config *p, So *head) {
     return ok;
 }
 
-bool arg_parse_config_other(Arg_Parse_Config *p, So *head) {
-    ASSERT_ARG(p);
-    ASSERT_ARG(head);
-    bool ok = true;
-    size_t len = so_find_ch(*head, '\n');
-    So val = SO;
-    if(len < so_len(*head)) {
-        val = so_split_ch(so_ll(head->str, len), '#', 0);
-        if(val.len) {
-            printff("OTHER %.*s", SO_F(val));
-        }
-        so_shift(head, len);
-    }
-    return ok;
-}
-
 int arg_parse_config(struct Arg *arg, So config, So path) {
     arg->help.error = 0;
     arg->help.last = 0;
@@ -152,6 +133,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     Argx *argx = 0;
     Argx_So xso = {0};
 
+    So comment = SO;
     So head = config;
     Arg_Parse_Config p = {
         .arg = arg,
@@ -159,8 +141,9 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
 
     while(head.len) {
         if(!arg_parse_config_section(&p, &head)) {
-            arg_parse_config_ws(&p, &head);
-            arg_parse_config_other(&p, &head);
+            if(!arg_parse_config_settings(&p, &head)) {
+                arg_parse_config_other(&p, &head, &comment);
+            }
         }
     }
 
