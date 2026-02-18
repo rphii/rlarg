@@ -42,15 +42,22 @@ void arg_parse_config_other(Arg_Parse_Config *p, So *head, So *val, bool in_arra
     ASSERT_ARG(head);
     ASSERT_ARG(val);
     size_t len = so_find_ch(*head, '\n');
+    size_t len_to_comment = SIZE_MAX;
+    size_t len_to_comma = SIZE_MAX;
     if(in_array && len) {
         So check_for_comma = so_ll(head->str, len);
-        len = so_find_ch(check_for_comma, ',');
+        len_to_comma = so_find_ch(check_for_comma, ',');
     }
     if(len < so_len(*head)) {
+        len_to_comment = so_find_ch(*head, '#');
         *val = so_trim(so_split_ch(so_ll(head->str, len), '#', 0)); /* wild */
     }
-    //printff("SHIFT %zu/%zu",len,so_len(*head));
-    so_shift(head, len);
+    if(len_to_comment != SIZE_MAX && len_to_comma != SIZE_MAX && len_to_comma < len_to_comment) {
+        so_shift(head, len_to_comma);
+    } else {
+        //printff("SHIFT %zu/%zu",len,so_len(*head));
+        so_shift(head, len);
+    }
 }
 
 bool arg_parse_config_hierarchy(Arg_Parse_Config *p, So *head) {
