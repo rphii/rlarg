@@ -57,9 +57,10 @@ void arg_parse_config_other(Arg_Parse_Config *p, So *head, So *val) {
     ASSERT_ARG(val);
     size_t len = so_find_ch(*head, '\n');
     if(len < so_len(*head)) {
-        *val = so_split_ch(so_ll(head->str, len), '#', 0);
-        so_shift(head, len);
+        *val = so_trim(so_split_ch(so_ll(head->str, len), '#', 0)); /* wild */
     }
+    //printff("SHIFT %zu/%zu",len,so_len(*head));
+    so_shift(head, len);
 }
 
 bool arg_parse_config_hierarchy(Arg_Parse_Config *p, So *head) {
@@ -77,7 +78,8 @@ bool arg_parse_config_hierarchy(Arg_Parse_Config *p, So *head) {
     }
     if(ok) {
         if(so_len(p->hierarchy)) {
-            printff("HIERARCHY %.*s /// %.*s", SO_F(p->hierarchy), SO_F(*head));
+            //printff("HIERARCHY %.*s /// %.*s", SO_F(p->hierarchy), SO_F(*head));
+            printff("HIERARCHY %.*s", SO_F(p->hierarchy));
         }
     } else {
         printff(F("TODO ERROR", FG_RD BOLD));
@@ -140,31 +142,15 @@ bool arg_parse_config_value(Arg_Parse_Config *p, So *head) {
         ok = true;
     } else {
         arg_parse_config_other(p, &q, &other);
-        printff("OTHER %.*s", SO_F(other));
+        if(so_len(other)) {
+            printff("OTHER %.*s", SO_F(other));
+        }
         ok = true;
     }
+    arg_parse_config_ws(p, &q);
     if(ok) {
         *head = q;
     }
-    return ok;
-}
-
-bool arg_parse_config_settings(Arg_Parse_Config *p, So *head) {
-    ASSERT_ARG(p);
-    ASSERT_ARG(head);
-    bool ok = true;
-    So inspect = SO;
-    arg_parse_config_other(p, head, &inspect);
-    if(!so_len(inspect)) return false;
-    So inspected = inspect;
-    if(!arg_parse_config_hierarchy(p, &inspected)) return false;
-
-    /* start of inspected now points to where we want to continue! */
-    so_shift(head, inspected.str - head->str);
-
-    So val = SO;
-    arg_parse_config_value(p, head);
-
     return ok;
 }
 
@@ -190,6 +176,91 @@ bool arg_parse_config_section(Arg_Parse_Config *p, So *head) {
     } else {
         printff(F("TODO ERROR", FG_RD BOLD));
     } 
+    return ok;
+}
+
+bool arg_parse_config_array(Arg_Parse_Config *p, So *head) {
+    ASSERT_ARG(p);
+    ASSERT_ARG(head);
+    bool ok = true;
+    So q = *head;
+    if(!arg_parse_config_ch(p, &q, '[')) return false;
+    printff("PARSE ARRAY vvvvvvvv");
+    arg_parse_config_ws(p, &q);
+    size_t values_parsed_old = 0;
+    size_t values_parsed_now = 0;
+    while(q.len) {
+        /* can we expect an end ? */
+        arg_parse_config_ws(p, &q);
+        if(values_parsed_now > values_parsed_old) {
+            if(!arg_parse_config_ch(p, &q, ',')) {
+                if(arg_parse_config_ch(p, &q, ']')) break;
+                else {
+                    ok = false;
+                    TODO_ERROR;
+                    break;
+                }
+            }
+        } else {
+            if(arg_parse_config_ch(p, &q, ']')) break;
+            if(arg_parse_config_ch(p, &q, ',')) {
+                ok = false;
+                TODO_ERROR;
+                break;
+            }
+            /* try parse a value */
+            values_parsed_old = values_parsed_now;
+            //printff("1EAD:%.*s",SO_F(q));
+            if(arg_parse_config_value(p, &q)) {
+                ++values_parsed_now;
+            }
+        }
+        //printff("HEAD:%.*s",SO_F(q));
+    }
+    printff("PARSE ARRAY ^^^^^^^^ --- ok? %u", ok);
+    if(ok) {
+        *head = q;
+    }
+    //printff("REST:[%.*s]",SO_F(*head));
+    return ok;
+}
+
+bool arg_parse_config_config(Arg_Parse_Config *p, So *head) {
+    ASSERT_ARG(p);
+    ASSERT_ARG(head);
+    bool ok = true;
+    So q = *head;
+    arg_parse_config_ws(p, &q);
+    if(arg_parse_config_array(p, &q)) {
+    } else if(arg_parse_config_value(p, &q)) {
+    } else {
+        ok = false;
+        TODO_ERROR;
+    }
+    arg_parse_config_ws(p, &q);
+    if(ok) {
+        *head = q;
+    }
+    return ok;
+}
+
+bool arg_parse_config_settings(Arg_Parse_Config *p, So *head) {
+    ASSERT_ARG(p);
+    ASSERT_ARG(head);
+    bool ok = true;
+    So inspect = SO;
+    arg_parse_config_other(p, head, &inspect);
+    if(!so_len(inspect)) return false;
+    So inspected = inspect;
+    if(!arg_parse_config_hierarchy(p, &inspected)) return false;
+
+    /* start of inspected now points to where we want to continue! */
+    so_shift(head, inspected.str - head->str);
+
+    So val = SO;
+    arg_parse_config_config(p, head);
+    //arg_parse_config_value(p, head);
+
     return ok;
 }
 
