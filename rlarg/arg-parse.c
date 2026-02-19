@@ -547,6 +547,60 @@ typedef enum {
     ARG_STREAM_SHORTOPT,
 } Arg_Stream_List;
 
+Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Group **root_group) {
+    Argx *result = 0;
+
+    So root = so_trim(so_split_ch(lhs, '.', &lhs));
+
+    /* verify that the root group exists */
+    bool exist = false;
+    Argx_Groups groupE = array_itE(arg->opts);
+    for(Argx_Groups group = arg->opts; group < groupE; ++group) {
+        if(so_cmp((*group)->name, root)) continue;
+        if(root_group) *root_group = *group;
+        exist = true;
+        break;
+    }
+    T_Argx *table = &arg->t_opt;
+    if(!exist && stream->is_help_lookup) {
+        ASSERT_ARG(root_group);
+        if(!so_cmp(arg->env.name, root)) {
+            *root_group = &arg->env;
+            table = &arg->t_env;
+            exist = true;
+        }
+        if(!so_cmp(arg->pos.name, root)) {
+            *root_group = &arg->pos;
+            table = &arg->t_pos;
+            exist = true;
+        }
+    }
+    if(!exist) {
+        Argx pseudo = { .opt = root };
+        arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG, &pseudo);
+        return 0;
+    }
+
+    /* now search for sub option */
+    for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
+        if(!table) {
+            Argx pseudo = { .opt = lhs };
+            arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
+            return 0;
+        }
+        result = t_argx_get(table, opt);
+        if(!result) {
+            Argx pseudo = { .opt = lhs };
+            arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
+            return 0;
+        }
+        table = result->group_s ? result->group_s->table : 0;
+        if(table && root_group) *root_group = result->group_s;
+    }
+
+    return result;
+}
+
 int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
     /* now parse */
     //printff("parse... argc %u", array_len(stream->vso));
@@ -868,60 +922,6 @@ void arg_parse_help_fmt_rec(So *out, Argx *argx) {
     if(!argx) return;
     arg_parse_help_fmt_rec(out, argx->group_p ? argx->group_p->parent : 0);
     argx_fmt_help(out, argx);
-}
-
-Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Group **root_group) {
-    Argx *result = 0;
-
-    So root = so_trim(so_split_ch(lhs, '.', &lhs));
-
-    /* verify that the root group exists */
-    bool exist = false;
-    Argx_Groups groupE = array_itE(arg->opts);
-    for(Argx_Groups group = arg->opts; group < groupE; ++group) {
-        if(so_cmp((*group)->name, root)) continue;
-        if(root_group) *root_group = *group;
-        exist = true;
-        break;
-    }
-    T_Argx *table = &arg->t_opt;
-    if(!exist && stream->is_help_lookup) {
-        ASSERT_ARG(root_group);
-        if(!so_cmp(arg->env.name, root)) {
-            *root_group = &arg->env;
-            table = &arg->t_env;
-            exist = true;
-        }
-        if(!so_cmp(arg->pos.name, root)) {
-            *root_group = &arg->pos;
-            table = &arg->t_pos;
-            exist = true;
-        }
-    }
-    if(!exist) {
-        Argx pseudo = { .opt = root };
-        arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG, &pseudo);
-        return 0;
-    }
-
-    /* now search for sub option */
-    for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
-        if(!table) {
-            Argx pseudo = { .opt = lhs };
-            arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
-            return 0;
-        }
-        result = t_argx_get(table, opt);
-        if(!result) {
-            Argx pseudo = { .opt = lhs };
-            arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
-            return 0;
-        }
-        table = result->group_s ? result->group_s->table : 0;
-        if(table && root_group) *root_group = result->group_s;
-    }
-
-    return result;
 }
 
 void arg_parse_help(Arg *arg) {
