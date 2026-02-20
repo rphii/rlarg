@@ -265,7 +265,9 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
 
 int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
-    if(argx->val.vso) vso_push(argx->val.vso, so);
+    So add = so;
+    //if(stream->is_config) add = so_clone(so);
+    if(argx->val.vso) vso_push(argx->val.vso, add);
     arg_parse_add_source(argx, stream->source);
     return result;
 }
@@ -312,7 +314,9 @@ int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 }
 
 int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    if(argx->val.vso) *argx->val.so = so;
+    So add = so;
+    //if(stream->is_config) add = so_clone(so);
+    if(argx->val.vso) *argx->val.so = add;
     arg_parse_add_source(argx, stream->source);
     return 0;
 }
@@ -441,7 +445,7 @@ static Arg_Parse_Argx_Callback static_parse_argx_single_cbs[ARGX_TYPE__COUNT] = 
 static Arg_Parse_Argx_Callback static_parse_argx_vector_vals_cbs[ARGX_TYPE__COUNT] = {
     [ARGX_TYPE_INT] = arg_parse_argx_vint,
     [ARGX_TYPE_SIZE] = arg_parse_argx_vsize,
-    [ARGX_TYPE_BOOL] = arg_parse_argx_vso,
+    [ARGX_TYPE_BOOL] = arg_parse_argx_vbool,
     [ARGX_TYPE_URI] = arg_parse_argx_vso,
     [ARGX_TYPE_STRING] = arg_parse_argx_vso,
     [ARGX_TYPE_COLOR] = arg_parse_argx_vcolor,
@@ -1015,8 +1019,9 @@ void arg_parse_configs(Arg *arg) {
             //printff("ALREADY LOADED");
             continue;
         }
-        /* can safely load the file for the first time */
         So content = SO;
+        /* can safely load the file for the first time */
+        so_clear(&content);
         if(!so_file_read(extend, &content)) {
             vso_push(&arg->builtin.sources_paths, extend);
             vso_push(&arg->builtin.sources_content, content);

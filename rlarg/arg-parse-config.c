@@ -17,7 +17,7 @@ Argx *arg_parse_config_get_hierarchy(Arg_Parse_Config *p) {
     so_extend(tmp, p->hierarchy);
     p->stream.error_id = 0;
     Argx *argx = arg_parse_hierarchy(p->arg, &p->stream, *tmp, 0);
-    printff("FULL HIER: %.*s -> %p", SO_F(p->tmp_full_hierarchy), argx);
+    //printff("FULL HIER: %.*s -> %p", SO_F(p->tmp_full_hierarchy), argx);
     return argx;
 }
 
@@ -27,21 +27,22 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
         return -1;
     }
     /* construct path */
-    so_clear(&p->tmp_file_auto);
-    so_clear(&p->tmp_file_content);
-    so_path_join(&p->tmp_file_auto, so_get_dir(p->stream.source.path), path);
+    So content = SO;
+    /* TODO: the tmp_file_path is lost to the operator of the arg parser (it is technically a source..) */
+    so_path_join(&p->tmp_file_path, so_get_dir(p->stream.source.path), path);
     /* read file */
-    printff("FILE NAMED %.*s", SO_F(p->tmp_file_content));
-    if(so_file_read(p->tmp_file_auto, &p->tmp_file_content)) {
+    //printff("FILE NAMED %.*s", SO_F(p->tmp_file_path));
+    if(so_file_read(p->tmp_file_path, &content)) {
         TODO_ERROR;
         return -1;
     }
     /* now parse */
+    vso_push(&p->arg->builtin.sources_content, content);
     if(in_array) {
-        p->stream.carg = p->tmp_file_content;
-        arg_parse_argx(p->arg, &p->stream, p->argx, p->tmp_file_content);
+        p->stream.carg = content;
+        arg_parse_argx(p->arg, &p->stream, p->argx, content);
     } else {
-        for(So line = SO; so_splice(p->tmp_file_content, &line, '\n'); ) {
+        for(So line = SO; so_splice(content, &line, '\n'); ) {
             if(so_is_zero(line)) continue;
             line = so_trim(line);
             if(!so_len(line)) continue;
@@ -62,7 +63,7 @@ int arg_parse_config_assign_string(Arg_Parse_Config *p, So val, bool in_array) {
         //TODO_WARN;
         return -1;
     }
-    printff("STRING %.*s", SO_F(val));
+    //printff("STRING %.*s", SO_F(val));
     p->stream.carg = val;
     arg_parse_argx(p->arg, &p->stream, p->argx, so_clone(val));
     return 0;
@@ -73,13 +74,17 @@ int arg_parse_config_assign_other(Arg_Parse_Config *p, So val, bool in_array) {
         //TODO_WARN;
         return -1;
     }
-    printff("OTHER %.*s", SO_F(val));
+    //printff("OTHER %.*s", SO_F(val));
     p->stream.carg = val;
     arg_parse_argx(p->arg, &p->stream, p->argx, val);
     return 0;
 }
 
 void arg_parse_config_shift(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, size_t n) {
+    size_t len = so_len(head->so);
+    if(len < n) {
+        ABORT(ERR_UNREACHABLE("can't shift this much"));
+    }
     size_t n_newline = so_find_ch(so_iE(head->so, n), '\n');
     if(n_newline < n) ++p->stream.source.line_number;
     so_shift(&head->so, n);
@@ -138,7 +143,6 @@ void arg_parse_config_other(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, So
     if(len_to_comment != SIZE_MAX && len_to_comma != SIZE_MAX && len_to_comma < len_to_comment) {
         arg_parse_config_shift(p, head, len_to_comma);
     } else {
-        //printff("SHIFT %zu/%zu",len,so_len(*head));
         arg_parse_config_shift(p, head, len);
     }
 }
@@ -158,8 +162,7 @@ bool arg_parse_config_hierarchy(Arg_Parse_Config *p, Arg_Parse_Config_Head *head
     }
     if(ok) {
         if(so_len(p->hierarchy)) {
-            //printff("HIERARCHY %.*s /// %.*s", SO_F(p->hierarchy), SO_F(*head));
-            printff("HIERARCHY %.*s", SO_F(p->hierarchy));
+            //printff("HIERARCHY %.*s", SO_F(p->hierarchy));
         }
     } else {
         printff(F("TODO ERROR", FG_RD BOLD));
@@ -338,7 +341,8 @@ bool arg_parse_config_settings(Arg_Parse_Config *p, Arg_Parse_Config_Head *head)
     ASSERT_ARG(head);
     bool ok = true;
     So inspect = SO;
-    arg_parse_config_other(p, head, &inspect, false);
+    Arg_Parse_Config_Head q = *head;
+    arg_parse_config_other(p, &q, &inspect, false);
     if(!so_len(inspect)) return false;
     Arg_Parse_Config_Head inspected = { .so = inspect, .line_number = head->line_number };
     if(!arg_parse_config_hierarchy(p, &inspected)) return false;
@@ -350,9 +354,7 @@ bool arg_parse_config_settings(Arg_Parse_Config *p, Arg_Parse_Config_Head *head)
     /* start of inspected now points to where we want to continue! */
     arg_parse_config_shift(p, head, inspected.so.str - head->so.str);
 
-    So val = SO;
     arg_parse_config_config(p, head);
-    //arg_parse_config_value(p, head);
 
     return ok;
 }
@@ -362,10 +364,6 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     arg->help.last = 0;
 
     int status = 0;
-    So sanitized_string = SO;
-    So sanitized_file_path = SO;
-
-    Argx_So xso = {0};
 
     So comment = SO;
 
@@ -377,7 +375,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     Arg_Parse_Config p = {
         .arg = arg,
         .stream.is_config = true,
-        .stream.source.path = so_clone(path),
+        .stream.source.path = path,
         .stream.source.line_number = 1,
     };
 
@@ -390,9 +388,12 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     }
 
     arg_stream_free(&p.stream);
-    so_free(&sanitized_file_path);
-    so_free(&sanitized_string);
-    argx_so_free(&xso);
+
+    so_free(&p.tmp_file_path);
+    so_free(&p.tmp_full_hierarchy);
+    so_free(&p.file);
+    so_free(&p.hierarchy);
+    so_free(&p.section);
 
     return status;
 }
