@@ -43,6 +43,37 @@ Used from within a callback (`argx_callback`):
 - `arg_runtime_quit_early` quit the parser immediately (once control regained)
 - `arg_runtime_quit_when_all_valid` quit the parser early after full validation
 
+## Everything About Config Files
+
+### [Example](tests/readme.c)
+
+<details><summary>
+### Syntax
+</summary>
+
+The config file syntax resembles `TOML` with important differences (it is way less complex)
+
+Say that your program outputs something along the lines of this with `--help`:
+
+```
+positional:
+default:
+  -h  --help <rest>                     print this help
+      --source <uri-array>              source config files =[
+                                          "readme.conf"
+                                        ]
+      --int <int>                       an integer =0
+      --vint <int-array>                an integer array
+environment:
+  NOCOLOR <bool>                        disable colors =false
+  CONFIG_PRINT [default]                generate config of certain group
+```
+
+You could generate a template configuration: `CONFIG_PRINT=default ./your-program`
+</details>
+
+### Sections
+
 ## Adding an internal type
 
 1. [`argx.h`](rlarg/argx.h) extend enum and union:
