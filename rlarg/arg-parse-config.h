@@ -24,6 +24,7 @@ typedef struct Arg_Parse_Config {
     So tmp_full_hierarchy;
     So tmp_file_path;
     So tmp_string;
+    So tmp_file_path_wordexp;
     Argx *argx;
     Arg_Stream stream;
 } Arg_Parse_Config;

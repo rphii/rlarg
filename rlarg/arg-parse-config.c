@@ -30,12 +30,13 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
     /* construct path */
     So content = SO;
     /* TODO: the tmp_file_path is lost to the operator of the arg parser (it is technically a source..) */
+    so_clear(&p->tmp_file_path_wordexp);
     so_clear(&p->tmp_file_path);
-    if(so_at0(path) == PLATFORM_CH_SUBDIR || so_at0(path) == '~') {
-        so_extend_wordexp(&p->tmp_file_path, path, false);
+    so_extend_wordexp(&p->tmp_file_path_wordexp, path, false);
+    if(so_at0(p->tmp_file_path_wordexp) == PLATFORM_CH_SUBDIR) {
+        so_extend(&p->tmp_file_path, p->tmp_file_path_wordexp);
     } else {
-        so_path_join(&p->tmp_string, so_get_dir(p->stream.source.path), path);
-        so_extend_wordexp(&p->tmp_file_path, p->tmp_string, false);
+        so_path_join(&p->tmp_file_path, so_get_dir(p->stream.source.path), path);
     }
     /* read file */
     //printff("FILE NAMED %.*s", SO_F(p->tmp_file_path));
@@ -446,6 +447,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     arg_stream_free(&p.stream);
 
     so_free(&p.tmp_file_path);
+    so_free(&p.tmp_file_path_wordexp);
     so_free(&p.tmp_full_hierarchy);
     so_free(&p.tmp_string);
     so_free(&p.file);
