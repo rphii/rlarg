@@ -196,7 +196,7 @@ To move around this issue, you can either use
 
 ### What does it do?
 
-It load a file into the value, as *any other thing on MULTIPLE lines*.
+It load a file into the value, as the type, ... let's call it: *any other thing on MULTIPLE lines*.
 
 - `file` searches, in the same folder as the configuration file, for one that matches the hierarchy\*
 - `file("with/a/path")` searches for the specified file
