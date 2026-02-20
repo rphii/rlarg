@@ -342,7 +342,7 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     size_t values_parsed_now = 0;
     while(q.so.len) {
         arg_parse_config_ws(p, &q);
-        printff("ARRAY PASS %zu/%zu: %.*s",values_parsed_now,values_parsed_old,SO_F(so_split_ch(q.so,'\n',0)));
+        //printff("ARRAY PASS %zu/%zu: %.*s",values_parsed_now,values_parsed_old,SO_F(so_split_ch(q.so,'\n',0)));
         /* can we expect an end ']' or comma ',' ? */
         if(values_parsed_now > values_parsed_old) {
             /* .. comments .. */

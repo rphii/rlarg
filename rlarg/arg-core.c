@@ -24,7 +24,7 @@ struct Arg *arg_new(void) {
     result->rice.program =      (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xff, 0x00, 0x00) };
     result->rice.group =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xef, 0x3f, 0x3f) };
     result->rice.group_delim =  (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xcf, 0x3f, 0x3f) };
-    result->rice.pos =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xaf, 0xaf, 0xff) };
+    result->rice.pos =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xaf, 0xaf, 0xff), .italic = true };
     result->rice.c =            (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xcf, 0xff, 0xff) };
     result->rice.opt =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x00, 0xff, 0xff) };
     result->rice.env =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x8f, 0xff, 0xaf) };
