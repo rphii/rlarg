@@ -8,15 +8,25 @@ should_fail = [
   ]
 
 configs = [
-    [true,  'empty.conf'],
-    [true,  'scope1.conf'],
+    [true , 'empty.conf'],
+    [true , 'scope1.conf'],
     [false, 'scope2.conf'],
-    [true,  'empty-string.conf'],
-    [true,  'empty-array.conf'],
-    [true,  'file1.conf'],
-    [true,  'file2.conf'],
+    [true , 'empty-string.conf'],
+    [true , 'empty-array.conf'],
+    [true , 'file1.conf'],
+    [true , 'file2.conf'],
+    [false, 'file3.conf'],
+    [false, 'file4.conf'],
+    [false, 'file5.conf'],
+    [false, 'file6.conf'],
+    [false, 'file7.conf'],
+    [true , 'file8.conf'],
     [false, 'array-whitespace.conf'],
-    [true,  'array-whitespace2.conf'],
+    [true , 'array-whitespace2.conf'],
+    [true , 'array-whitespace3.conf'],
+    [true , 'array-whitespace4.conf'],
+    [false, 'array-whitespace5.conf'],
+    [false, 'array-whitespace6.conf'],
   ]
 
 dep_rlc = dependency('rlc', required: true)
