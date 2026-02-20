@@ -16,6 +16,7 @@ typedef enum {
     ARG_PARSE_CONFIG_ERR_SYNTAX = (1L << 1), /* if syntax errors occures */
     ARG_PARSE_CONFIG_ERR_ASSIGN = (1L << 2), /* if assigning errors occured */
     ARG_PARSE_CONFIG_ERR_HIERAR = (1L << 3), /* if hierarchy errors occured */
+    ARG_PARSE_CONFIG_ERR_SECTIO = (1L << 3), /* if section errors occured */
     ARG_PARSE_CONFIG_ERR_FILE   = (1L << 4), /* if any file failed to read */
 } Arg_Parse_Config_Flag;
 
