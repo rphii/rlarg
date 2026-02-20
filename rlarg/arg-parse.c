@@ -26,6 +26,10 @@ void arg_parse_set_help_error(struct Arg *arg, Argx *argx) {
 
 #define FF(n,x,f)     (n ? x : F(x, f))
 
+void arg_parse_error_allow_more(Arg_Stream *stream) {
+    stream->error_id = 0;
+}
+
 void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx *argx) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
@@ -51,6 +55,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG: /* pseudo */
             case ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_ARRAY_DELIM: /* pseudo */
+            case ARG_PARSE_ERROR_MISSING_ARRAY_VALUE: /* pseudo */
             case ARG_PARSE_ERROR_INVALID_FILE: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_FILE_DELIM: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_HIERARCHY_DELIM: /* pseudo */
@@ -68,6 +73,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_INVALID_CONVERSION:
             case ARG_PARSE_ERROR_INVALID_OPTION_GROUP:
             case ARG_PARSE_ERROR_MISSING_POSITIONAL:
+            case ARG_PARSE_ERROR_CONFIG:
             case ARG_PARSE_ERROR_MISSING_VALUE:
             case ARG_PARSE_ERROR_INVALID_STRING:
             case ARG_PARSE_ERROR_INVALID_STRING_END:
@@ -109,14 +115,17 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 case ARG_PARSE_ERROR_MISSING_ARRAY_DELIM: { /* pseudo */
                     fprintf(stderr, FF(nc, "Failed to find closing ']': %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(argx->desc));
                 } break;
+                case ARG_PARSE_ERROR_MISSING_ARRAY_VALUE: { /* pseudo */
+                    fprintf(stderr, FF(nc, "Expected a value, not a ',': %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                } break;
                 case ARG_PARSE_ERROR_MISSING_HIERARCHY_DELIM: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Failed to find '=': %.*s", FG_RD BOLD), SO_F(argx->opt));
+                    fprintf(stderr, FF(nc, "Failed to find '=': %.*s", FG_RD_B BOLD), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_STRING_DELIM: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Failed to find closing '\"': %.*s", FG_RD BOLD), SO_F(argx->opt));
+                    fprintf(stderr, FF(nc, "Failed to find closing '\"': %.*s", FG_RD_B BOLD), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_SECTION: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Invalid section format: %.*s", FG_RD BOLD), SO_F(argx->opt));
+                    fprintf(stderr, FF(nc, "Invalid section format: %.*s", FG_RD_B BOLD), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: { /* pseudo */
                     fprintf(stderr, FF(nc, "Option not found in root groups: '%.*s'", FG_RD_B BOLD), SO_F(argx->opt));
@@ -135,6 +144,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
                     fprintf(stderr, FF(nc, "Missing positional values: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));
+                } break;
+                case ARG_PARSE_ERROR_CONFIG: {
+                    fprintf(stderr, FF(nc, "Error(s) occured while configuring: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_VALUE: {
                     fprintf(stderr, FF(nc, "Missing value for argument: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));

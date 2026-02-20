@@ -15,7 +15,7 @@ Argx *arg_parse_config_get_hierarchy(Arg_Parse_Config *p, Arg_Parse_Config_Head 
         so_push(tmp, '.');
     }
     so_extend(tmp, p->hierarchy);
-    p->stream.error_id = 0;
+    arg_parse_error_allow_more(&p->stream);
     p->stream.source.line_number = head->line_number;
     Argx *argx = arg_parse_hierarchy(p->arg, &p->stream, *tmp, 0);
     //printff("FULL HIER: %.*s -> %p", SO_F(p->tmp_full_hierarchy), argx);
@@ -256,8 +256,11 @@ bool arg_parse_config_value(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, bo
     } else {
         arg_parse_config_other(p, &q, &other, in_array);
         if(so_len(other)) {
-            arg_parse_config_assign_other(p, other, in_array);
-            ok = true;
+            /* ONLY assign this, if no error reported! */
+            if(!p->stream.error_id) {
+                arg_parse_config_assign_other(p, other, in_array);
+                ok = true;
+            }
         }
         shift = true;
     }
@@ -309,19 +312,21 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     while(q.so.len) {
         /* can we expect an end ? */
         arg_parse_config_ws(p, &q);
-        //printff("Q[%.*s]",SO_F(q));
+        //printff("ARRAY PASS: %.*s",SO_F(so_split_ch(q.so,'\n',0)));
         if(values_parsed_now > values_parsed_old) {
             if(!arg_parse_config_ch(p, &q, ',')) {
                 if(arg_parse_config_ch(p, &q, ']')) { ok = true; break; }
                 else { break; }
             } else {
+                arg_parse_error_allow_more(&p->stream);
                 values_parsed_old = values_parsed_now;
             }
         } else {
             if(arg_parse_config_ch(p, &q, ']')) { ok = true; break; }
             if(arg_parse_config_ch(p, &q, ',')) {
-                ok = false;
-                TODO_ERROR;
+                Argx pseudo = { .opt = so_split_ch(head->so, '\n', 0) };
+                p->stream.source.line_number = q.line_number;
+                arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_MISSING_ARRAY_VALUE, &pseudo);
                 break;
             }
             /* try parse a value */
@@ -340,11 +345,10 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
         arg_parse_config_shift(p, &q, so_find_ch(q.so, '\n'));
         *head = q;
         ok = false;
-    }
-    //printff("PARSE ARRAY ^^^^^^^^ --- ok? %u", ok);
-    if(ok) {
+    } else {
         *head = q;
     }
+    //printff("PARSE ARRAY ^^^^^^^^ --- ok? %u", ok);
     //printff("REST:[%.*s]",SO_F(*head));
     return ok;
 }
@@ -355,10 +359,11 @@ bool arg_parse_config_config(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     bool ok = true;
     Arg_Parse_Config_Head q = *head;
     arg_parse_config_ws(p, &q);
+    //printff("PARSE CONFIG");
     if(arg_parse_config_array(p, &q)) {
     } else if(arg_parse_config_value(p, &q, false)) {
     } else {
-        arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_MISSING_VALUE, p->argx);
+        arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_CONFIG, p->argx);
         ok = false;
     }
     arg_parse_config_ws(p, &q);
@@ -387,6 +392,11 @@ bool arg_parse_config_settings(Arg_Parse_Config *p, Arg_Parse_Config_Head *head)
     arg_parse_config_shift(p, head, inspected.so.str - head->so.str);
 
     arg_parse_config_config(p, head);
+
+    /* if an error occured, skip this line */
+    if(p->stream.error_id) {
+        arg_parse_config_shift(p, head, so_find_ch(head->so, '\n'));
+    }
 
     return ok;
 }
