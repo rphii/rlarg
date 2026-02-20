@@ -194,6 +194,12 @@ You can set a string by "quoting" it. This allows for precise control over your 
 
 - for more (test coverage) see [here](https://github.com/rphii/rlso/blob/main/tests/unescape.c)
 
+Once the conversion is done, it is treated as... *any other type*. If your
+option is an int, it is then converted to an int (it informs you if the
+conversion failed). If your option happens to be a string, well, you're quite
+lucky, aren't you. Because this is one way to make multiline strings!
+
+
 </details>
 
 <details>
