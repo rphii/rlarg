@@ -7,9 +7,6 @@
 
 - config things:
     - compact help for if flag not found? (this here: stdin: Option not found in root groups: 'ow3efo')
-    - proper parsing of strings in configs
-    - proper parsing of multiline arrays in configs
-    - allow parsing of +value or -value for arrays...? [unlikely]
     - add option to disable/enable function execution during compgen (why would I want/not want this...?)
 
 - min/max for numbers and...

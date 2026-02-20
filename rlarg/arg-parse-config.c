@@ -30,7 +30,14 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
     /* construct path */
     So content = SO;
     /* TODO: the tmp_file_path is lost to the operator of the arg parser (it is technically a source..) */
-    so_path_join(&p->tmp_file_path, so_get_dir(p->stream.source.path), path);
+    so_clear(&p->tmp_file_path);
+    if(so_at0(path) == PLATFORM_CH_SUBDIR) {
+        so_extend(&p->tmp_file_path, path);
+    } else if(so_at0(path) == '~') {
+        so_extend_wordexp(&p->tmp_file_path, path, false);
+    } else {
+        so_path_join(&p->tmp_file_path, so_get_dir(p->stream.source.path), path);
+    }
     /* read file */
     //printff("FILE NAMED %.*s", SO_F(p->tmp_file_path));
     if(so_file_read(p->tmp_file_path, &content)) {
@@ -221,9 +228,7 @@ bool arg_parse_config_file(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, boo
         /* get string to path */
         if(!arg_parse_config_string(p, &q, in_array)) return false;
         /* got it, find ')' */
-        //printff("Q2[%.*s]",SO_F(so_split_ch(q.so, '\n', 0)));
         arg_parse_config_ws_no_newline(p, &q);
-        //printff("Q4[%.*s]",SO_F(so_split_ch(q.so, '\n', 0)));
         if(arg_parse_config_ch(p, &q, ')')) {
             ok = true;
         }
