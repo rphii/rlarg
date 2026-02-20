@@ -54,7 +54,7 @@ if get_option('tests').enabled()
 
   config_checker = executable('parse-config', 'parse-config.c', link_with: librlarg, dependencies: [dep_rlc, dep_rlso])
   foreach cfg : configs
-    test('config-checker // ' + cfg[1], config_checker, args: [ meson.current_source_dir() / 'parse-config' / cfg[1] ], should_fail: not cfg[0])
+    test('config-checker -> ' + cfg[1], config_checker, args: [ meson.current_source_dir() / 'parse-config' / cfg[1] ], should_fail: not cfg[0])
   endforeach
 
 
