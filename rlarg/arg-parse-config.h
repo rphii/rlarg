@@ -23,7 +23,7 @@ typedef struct Arg_Parse_Config {
     /* other things */
     So tmp_full_hierarchy;
     So tmp_file_path;
-    //So tmp_file_content;
+    So tmp_string;
     Argx *argx;
     Arg_Stream stream;
 } Arg_Parse_Config;
