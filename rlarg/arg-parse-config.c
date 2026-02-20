@@ -242,11 +242,12 @@ bool arg_parse_config_file(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, boo
         used_path = true;
         arg_parse_config_ws_no_newline(p, &q);
         /* get string to path */
-        if(!arg_parse_config_string(p, &q, in_array)) return false;
-        /* got it, find ')' */
-        arg_parse_config_ws_no_newline(p, &q);
-        if(arg_parse_config_ch(p, &q, ')')) {
-            ok = true;
+        if(arg_parse_config_string(p, &q, in_array)) {
+            /* got it, find ')' */
+            arg_parse_config_ws_no_newline(p, &q);
+            if(arg_parse_config_ch(p, &q, ')')) {
+                ok = true;
+            }
         }
     }
     if(!ok) {
@@ -257,8 +258,7 @@ bool arg_parse_config_file(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, boo
         /* shift until next line */
         arg_parse_config_shift(p, &q, so_find_ch(q.so, '\n'));
         *head = q;
-    }
-    if(ok) {
+    } else {
         *head = q;
         if(used_path) arg_parse_config_assign_file_named(p, p->tmp_string, in_array);
         else arg_parse_config_assign_file_auto(p, in_array);
