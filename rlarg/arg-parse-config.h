@@ -10,11 +10,22 @@ typedef enum {
     ARG_PARSE_CONFIG_ARRAY,
 } Arg_Parse_Config_List;
 
+typedef struct Arg_Parse_Config_Head {
+    So so;
+    size_t line_number;
+} Arg_Parse_Config_Head;
+
 typedef struct Arg_Parse_Config {
     Arg *arg;
     So section;
     So hierarchy;
     So file;
+    /* other things */
+    So tmp_full_hierarchy;
+    So tmp_file_auto;
+    So tmp_file_content;
+    Argx *argx;
+    Arg_Stream stream;
 } Arg_Parse_Config;
 
 int arg_parse_config(struct Arg *arg, So config, So path);

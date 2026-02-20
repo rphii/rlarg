@@ -547,10 +547,10 @@ typedef enum {
     ARG_STREAM_SHORTOPT,
 } Arg_Stream_List;
 
-Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Group **root_group) {
+Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So hierarchy, Argx_Group **root_group) {
     Argx *result = 0;
 
-    So root = so_trim(so_split_ch(lhs, '.', &lhs));
+    So root = so_trim(so_split_ch(hierarchy, '.', &hierarchy));
 
     /* verify that the root group exists */
     bool exist = false;
@@ -582,15 +582,15 @@ Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So lhs, Argx_Grou
     }
 
     /* now search for sub option */
-    for(So opt = SO; so_splice(lhs, &opt, '.'); ) {
+    for(So opt = SO; so_splice(hierarchy, &opt, '.'); ) {
         if(!table) {
-            Argx pseudo = { .opt = lhs };
+            Argx pseudo = { .opt = hierarchy };
             arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
             return 0;
         }
         result = t_argx_get(table, opt);
         if(!result) {
-            Argx pseudo = { .opt = lhs };
+            Argx pseudo = { .opt = hierarchy };
             arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
             return 0;
         }
@@ -1024,7 +1024,7 @@ void arg_parse_configs(Arg *arg) {
             arg_parse_config(arg, content, extend);
             so_zero(&extend);
         } else {
-            //printff("COULD NOT OPEN [%.*s]",SO_F(extend));
+            printff("TODO WARN: COULD NOT OPEN [%.*s]",SO_F(path));
         }
     }
     so_free(&extend);
