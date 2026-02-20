@@ -79,7 +79,7 @@ int = 0 # <int>
 
 ### Syntax rules
 
-The config file syntax resembles `TOML` with important differences (it is way less complex, has other features)
+The config file syntax resembles `TOML` if you squint really really hard. (it a lot different)
 
 **Hierarchy**
 
@@ -179,6 +179,20 @@ int = 456
 = 123
 = 456
 ```
+
+</details>
+
+<details>
+<summary>Setting your first string</summary>
+
+You can set a string by "quoting" it. This allows for precise control over your input data®.
+
+- `\a \b \f \b \r \t \v \\ \' \" \e` more or less common escape sequences
+- `\o123` -> `83` octal
+- `\x42` -> `66` hex
+- `\u03c6` -> `φ` unicode
+
+- for more (test coverage) see [here](https://github.com/rphii/rlso/blob/main/tests/unescape.c)
 
 </details>
 
