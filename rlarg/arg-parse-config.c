@@ -239,15 +239,17 @@ bool arg_parse_config_file(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, boo
     bool used_path = false;
     if(arg_parse_config_ch(p, &q, '(')) {
         ok = false;
-        used_path = true;
         arg_parse_config_ws_no_newline(p, &q);
         /* get string to path */
-        if(arg_parse_config_string(p, &q, in_array)) {
+        ok = true;
+        if(so_len(q.so) && so_at0(q.so) == '"') {
+            if(!arg_parse_config_string(p, &q, in_array)) ok = false;
+        }
+        if(ok) {
+            used_path = true;
             /* got it, find ')' */
             arg_parse_config_ws_no_newline(p, &q);
-            if(arg_parse_config_ch(p, &q, ')')) {
-                ok = true;
-            }
+            if(!arg_parse_config_ch(p, &q, ')')) ok = false;
         }
     }
     if(!ok) {
@@ -340,7 +342,7 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     size_t values_parsed_now = 0;
     while(q.so.len) {
         arg_parse_config_ws(p, &q);
-        //printff("ARRAY PASS %zu/%zu: %.*s",values_parsed_now,values_parsed_old,SO_F(so_split_ch(q.so,'\n',0)));
+        printff("ARRAY PASS %zu/%zu: %.*s",values_parsed_now,values_parsed_old,SO_F(so_split_ch(q.so,'\n',0)));
         /* can we expect an end ']' or comma ',' ? */
         if(values_parsed_now > values_parsed_old) {
             /* .. comments .. */

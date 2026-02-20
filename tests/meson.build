@@ -21,12 +21,14 @@ configs = [
     [false, 'file6.conf'],
     [false, 'file7.conf'],
     [true , 'file8.conf'],
+    [true , 'file9.conf'],
     [false, 'array-whitespace.conf'],
     [true , 'array-whitespace2.conf'],
     [true , 'array-whitespace3.conf'],
     [true , 'array-whitespace4.conf'],
     [false, 'array-whitespace5.conf'],
     [false, 'array-whitespace6.conf'],
+    [true,  'array.conf'],
   ]
 
 dep_rlc = dependency('rlc', required: true)
