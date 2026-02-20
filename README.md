@@ -223,10 +223,10 @@ So these two differ:
 ```
 [default]
 
-# create array of integers from the contents of default.vint file, spliiting on each new line
+# append an array of integers from the contents of default.vint file, spliting on each new line
 vint = file         
 
-# create an array 2 long, containing the int of the first and second file
+# append an array 2 long, containing the int of the first and second file
 vint = [ file("single int"), file("single int 2") ]
 ```
 
