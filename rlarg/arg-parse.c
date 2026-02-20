@@ -50,9 +50,12 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG: /* pseudo */
             case ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG: /* pseudo */
             case ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG: /* pseudo */
-            case ARG_PARSE_ERROR_MISSING_ARRAY_DELIM:
-            case ARG_PARSE_ERROR_READ_FILE_SPECIFIC: /* pseudo */
+            case ARG_PARSE_ERROR_MISSING_ARRAY_DELIM: /* pseudo */
+            case ARG_PARSE_ERROR_INVALID_FILE: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_FILE_DELIM: /* pseudo */
+            case ARG_PARSE_ERROR_MISSING_HIERARCHY_DELIM: /* pseudo */
+            case ARG_PARSE_ERROR_MISSING_STRING_DELIM: /* pseudo */
+            case ARG_PARSE_ERROR_INVALID_SECTION: /* pseudo */
                 break;
             case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_SHORTOPT: /* pseudo */
@@ -69,7 +72,6 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_INVALID_STRING:
             case ARG_PARSE_ERROR_INVALID_STRING_END:
             case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL:
-            case ARG_PARSE_ERROR_READ_FILE_AUTO:
                 arg_parse_set_help_error(arg, argx);
                 argx_so(&xso, argx, true, true);
                 newline = (bool)(argx);
@@ -98,14 +100,23 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 case ARG_PARSE_ERROR_INVALID_STRING_END: {
                     fprintf(stderr, FF(nc, "Invalid string end for '%.*s': %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(stream->carg));
                 } break;
-                case ARG_PARSE_ERROR_READ_FILE_AUTO: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Failed reading file: %.*s%.*s", FG_RD_B BOLD), SO_F(xso.hierarchy), SO_F(argx->opt));
+                case ARG_PARSE_ERROR_INVALID_FILE: { /* pseudo */
+                    fprintf(stderr, FF(nc, "Failed reading file: %.*s", FG_RD_B BOLD), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_FILE_DELIM: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Failed file()<-- end delimiter for %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(argx->desc));
+                    fprintf(stderr, FF(nc, "Failed to find closing ')': %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(argx->desc));
                 } break;
-                case ARG_PARSE_ERROR_READ_FILE_SPECIFIC: {
-                    fprintf(stderr, FF(nc, "Failed reading file(%.*s) for: %.*s", FG_RD_B BOLD), SO_F(argx->desc), SO_F(argx->opt));
+                case ARG_PARSE_ERROR_MISSING_ARRAY_DELIM: { /* pseudo */
+                    fprintf(stderr, FF(nc, "Failed to find closing ']': %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(argx->desc));
+                } break;
+                case ARG_PARSE_ERROR_MISSING_HIERARCHY_DELIM: { /* pseudo */
+                    fprintf(stderr, FF(nc, "Failed to find '=': %.*s", FG_RD BOLD), SO_F(argx->opt));
+                } break;
+                case ARG_PARSE_ERROR_MISSING_STRING_DELIM: { /* pseudo */
+                    fprintf(stderr, FF(nc, "Failed to find closing '\"': %.*s", FG_RD BOLD), SO_F(argx->opt));
+                } break;
+                case ARG_PARSE_ERROR_INVALID_SECTION: { /* pseudo */
+                    fprintf(stderr, FF(nc, "Invalid section format: %.*s", FG_RD BOLD), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: { /* pseudo */
                     fprintf(stderr, FF(nc, "Option not found in root groups: '%.*s'", FG_RD_B BOLD), SO_F(argx->opt));
