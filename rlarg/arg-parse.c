@@ -1052,7 +1052,7 @@ void arg_parse_configs(Arg *arg) {
             arg_parse_config(arg, content, extend);
             so_zero(&extend);
         } else {
-            printff("TODO WARN: COULD NOT OPEN [%.*s]",SO_F(path));
+            //printff("TODO WARN: COULD NOT OPEN [%.*s]",SO_F(path));
         }
     }
     so_free(&extend);
