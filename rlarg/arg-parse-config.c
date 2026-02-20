@@ -87,7 +87,7 @@ int arg_parse_config_assign_other(Arg_Parse_Config *p, So val, bool in_array) {
 void arg_parse_config_shift(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, size_t n) {
     size_t len = so_len(head->so);
     if(len < n) {
-        ABORT(ERR_UNREACHABLE("can't shift this much"));
+        ABORT(ERR_UNREACHABLE("can't shift this much: %zu/%zu"), n, len);
     }
     size_t n_newline = so_find_ch(so_iE(head->so, n), '\n');
     if(n_newline < n) ++head->line_number;
@@ -290,10 +290,14 @@ bool arg_parse_config_section(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) 
         arg_parse_config_shift(p, head, 1);
     }
     arg_parse_config_ws_no_newline(p, head);
-    if(!arg_parse_config_ch(p, head, '\n')) { ok = false; }
+    So rest = SO;
+    arg_parse_config_other(p, head, &rest, false); /* this is guaranteed to go to the next line */
+    if(so_len(rest)) ok = false;
+    /* TODO if one section is wrong, skip all of it under that ?? until next section ? */
     if(ok) {
         //printff("SECTION %.*s", SO_F(p->section));
     } else {
+        so_clear(&p->section);
         Argx pseudo = { .opt = so_split_ch(r.so, '\n', 0) };
         p->stream.source.line_number = r.line_number;
         arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_INVALID_SECTION, &pseudo);
@@ -312,11 +316,15 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     size_t values_parsed_old = 0;
     size_t values_parsed_now = 0;
     while(q.so.len) {
-        /* can we expect an end ? */
         arg_parse_config_ws(p, &q);
         //printff("ARRAY PASS: %.*s",SO_F(so_split_ch(q.so,'\n',0)));
+        /* can we expect an end ']' or comma ',' ? */
         if(values_parsed_now > values_parsed_old) {
-            if(!arg_parse_config_ch(p, &q, ',')) {
+            /* .. comments .. */
+            if(arg_parse_config_ch(p, &q, '#')) {
+                /* skip whole line */
+                arg_parse_config_shift(p, &q, so_find_ch(q.so, '\n'));
+            } else if(!arg_parse_config_ch(p, &q, ',')) {
                 if(arg_parse_config_ch(p, &q, ']')) { ok = true; break; }
                 else { break; }
             } else {
@@ -333,12 +341,12 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
             }
             /* try parse a value */
             values_parsed_old = values_parsed_now;
-            //printff("1EAD:%.*s",SO_F(q));
+            //printff("1EAD:%.*s",SO_F(q.so));
             if(arg_parse_config_value(p, &q, true)) {
                 ++values_parsed_now;
             }
+            //printff("HEAD:%.*s",SO_F(q.so));
         }
-        //printff("HEAD:%.*s",SO_F(q));
     }
     if(!ok) {
         Argx pseudo = { .opt = p->argx ? p->argx->opt : so("???"), .desc = so_split_ch(head->so, '\n', 0) };

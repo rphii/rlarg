@@ -1,5 +1,6 @@
 should_pass = [
   'all.c',
+  'readme.c',
   ]
 should_fail = [
   'fail-duplicate.c',

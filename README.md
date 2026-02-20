@@ -45,13 +45,9 @@ Used from within a callback (`argx_callback`):
 
 ## Everything About Config Files
 
-### [Example](tests/readme.c)
+### Example
 
-<details><summary>
-### Syntax
-</summary>
-
-The config file syntax resembles `TOML` with important differences (it is way less complex)
+See [tests/readme.c](tests/readme.c)
 
 Say that your program outputs something along the lines of this with `--help`:
 
@@ -69,10 +65,122 @@ environment:
   CONFIG_PRINT [default]                generate config of certain group
 ```
 
-You could generate a template configuration: `CONFIG_PRINT=default ./your-program`
+### Get a template configuration
+
+```sh
+$ CONFIG_PRINT=default ./build/tests/readme.c
+[default]
+source = [
+  "readme.conf"
+] # <uri-array>
+int = 0 # <int>
+# vint = <int-array>
+```
+
+### Syntax rules
+
+The config file syntax resembles `TOML` with important differences (it is way less complex, has other features)
+
+**Hierarchy**
+
+To access any option, you can always use the full *hierarchy*. In the above
+example, to access the `int` setting, you could do `default.int`. For the
+`vint` -> `default.vint`.
+
+**Sections**
+
+If there are many configurations that belong to the same parent group, you can
+make a line, that contains only `[the.section]` to make it easier for yourself.
+
+**Basic Types:**
+
+- Anything past a # is considered a comment and ignored *(except if it is
+  wrapped inside a string, duh)*
+- an array `[ with, something, inside ]`
+- an automatic `file`
+- a specified `file("with/a/path")`
+- a string "that supports\nescape sequences"
+- *any other thing on one line*
+
+<details><summary>**Setting your first int**</summary>
+
+In `readme.conf`, you could do this to set the int:
+
+```
+default.int = 123 # ignored comment
+```
+
+...or this...
+
+```
+[default] # ignored comment
+int = 123
+```
+
+...or this...
+
+```
+[default.int]
+= 123
+```
+
+</summary>
+
+<details><summary>**Setting your first vector**</summary>
+
+In `readme.conf`, you could do this to set the int array:
+
+```
+default.vint = 123 # ignored comment
+```
+
+...or this...
+
+```
+default.vint = [123,456]
+```
+
+...or this...
+
+```
+default.vint = 
+
+   [
+
+        123
+
+      ,
+
+# ,,,ignored],,,comment,,,
+
+     456
+
+     ,
+
+ ]
+
+```
+
+...or this...
+
+```
+[default]
+int = 123
+# ignored comment
+int = 456
+```
+
+...or this...
+
+```
+[default.int]
+= 123
+= 456
+```
+
 </details>
 
-### Sections
+
 
 ## Adding an internal type
 
