@@ -307,6 +307,8 @@ void argx_fmt_config(So *out, Argx *argx) {
     /* now format */
     Argx_So xso = {0};
     argx_so(&xso, argx, false, true);
+    So hierarchy = SO;
+    so_split_ch(xso.hierarchy, '.', &hierarchy);
 
     if(xso.val_group) {
         ASSERT(argx->id == ARGX_TYPE_GROUP && argx->group_s, "expected to have a group");
@@ -316,13 +318,13 @@ void argx_fmt_config(So *out, Argx *argx) {
         }
     } else {
         if(xso.val_config) {
-            so_fmt(out, "%.*s = %.*s", SO_F(argx->opt), SO_F(xso.set_val));
+            so_fmt(out, "%.*s%.*s = %.*s", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
             if(xso.have_hint) {
                 so_fmt(out, " # %.*s", SO_F(xso.hint));
             }
         } else {
             if(xso.have_hint) {
-                so_fmt(out, "# %.*s = %.*s", SO_F(argx->opt), SO_F(xso.hint));
+                so_fmt(out, "# %.*s%.*s = %.*s", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.hint));
             } else {
                 so_fmt(out, "# %.*s", SO_F(argx->opt));
             }
