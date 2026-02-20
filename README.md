@@ -215,7 +215,7 @@ searches for a file called: `~/.config/readme/default.int`
 
 In the context if your *hierarchy* is an array vs. if your *file* is in an array:
 
-- Hierarchy is array -> *file* is NOT in an array -> split on each line and
+- Hierarchy is array -> *file* is NOT in an array -> split on each (non-empty) line, generating a vector equivalent to the number of lines
 - Hierarchy is array -> *file* is INSIDE an array -> dump 1:1
 
 So these two differ:
