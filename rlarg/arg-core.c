@@ -21,26 +21,26 @@ struct Arg *arg_new(void) {
     result->env = argx_group_init(result, &result->t_env, so("environment"), ARGX_GROUP_ROOT, 0);
 
     bool *nofx = &result->builtin.nocolor;
-    result->rice.program =      (So_Fx){ .nocolor = nofx };
-    result->rice.group =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RED };
-    result->rice.group_delim =  (So_Fx){ .nocolor = nofx, .fg = COLOR_MAROON };
-    result->rice.pos =          (So_Fx){ .nocolor = nofx, .fg = COLOR_GREEN };
-    result->rice.c =            (So_Fx){ .nocolor = nofx, .fg = COLOR_BLUE };
-    result->rice.opt =          (So_Fx){ .nocolor = nofx, .fg = COLOR_AQUA };
-    result->rice.env =          (So_Fx){ .nocolor = nofx, .fg = COLOR_WHITE };
-    result->rice.desc =         (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
-    result->rice.subopt =       (So_Fx){ .nocolor = nofx, .fg = COLOR_BLUE };
-    result->rice.subopt_delim = (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
-    result->rice.enum_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_OLIVE };
-    result->rice.enum_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_YELLOW, .bold = true, .underline = true };
-    result->rice.enum_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
-    result->rice.flag_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_PURPLE };
-    result->rice.flag_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_FUCHSIA, .bold = true, .underline = true };
-    result->rice.flag_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
-    result->rice.hint =         (So_Fx){ .nocolor = nofx, .fg = COLOR_TEAL };
-    result->rice.hint_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_GRAY };
-    result->rice.val =          (So_Fx){ .nocolor = nofx, .fg = COLOR_TEAL };
-    result->rice.val_delim =    (So_Fx){ .nocolor = nofx, .fg = COLOR_NAVY };
+    result->rice.program =      (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xff, 0x00, 0x00) };
+    result->rice.group =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xef, 0x3f, 0x3f) };
+    result->rice.group_delim =  (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xcf, 0x3f, 0x3f) };
+    result->rice.pos =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xaf, 0xaf, 0xff) };
+    result->rice.c =            (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xcf, 0xff, 0xff) };
+    result->rice.opt =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x00, 0xff, 0xff) };
+    result->rice.env =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x8f, 0xff, 0xaf) };
+    result->rice.desc =         (So_Fx){ .nocolor = nofx,                                   };
+    result->rice.subopt =       (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x5f, 0x5f, 0xff) };
+    result->rice.subopt_delim = (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x5f, 0x5f, 0x5f) };
+    result->rice.enum_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xcf, 0x5f, 0xcf) };
+    result->rice.enum_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xff, 0x5f, 0xff), .bold = true, .underline = true };
+    result->rice.enum_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x5f, 0x0f, 0x5f) };
+    result->rice.flag_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xcf, 0xcf, 0x00) };
+    result->rice.flag_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xff, 0xff, 0x00), .bold = true, .underline = true };
+    result->rice.flag_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x5f, 0x5f, 0x00) };
+    result->rice.hint =         (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xff, 0xaf, 0xaf) };
+    result->rice.hint_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xff, 0x7f, 0x7f) };
+    result->rice.val =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x00, 0xff, 0x00) };
+    result->rice.val_delim =    (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x00, 0x5f, 0x00) };
 
     return result;
 }
