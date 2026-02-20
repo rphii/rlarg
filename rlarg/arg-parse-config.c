@@ -152,19 +152,21 @@ void arg_parse_config_other(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, So
     ASSERT_ARG(val);
     size_t len = so_find_ch(head->so, '\n');
     size_t len_to_comment = SIZE_MAX;
-    size_t len_to_comma = SIZE_MAX;
+    size_t len_to_arr_delim = SIZE_MAX;
     if(in_array && len) {
         So check_for_comma = so_iE(head->so, len);
-        len_to_comma = so_find_ch(check_for_comma, ',');
+        size_t len_to_comma = so_find_ch(check_for_comma, ',');
+        size_t len_to_brack = so_find_ch(check_for_comma, ']');
+        len_to_arr_delim = len_to_comma < len_to_brack ? len_to_comma : len_to_brack;
     }
     if(len < so_len(head->so)) {
         len_to_comment = so_find_ch(head->so, '#');
-        size_t less = len_to_comment < len_to_comma ? len_to_comment : len_to_comma;
+        size_t less = len_to_comment < len_to_arr_delim ? len_to_comment : len_to_arr_delim;
         if(len < less) less = len;
         *val = so_trim(so_iE(head->so, less));
     }
-    if(len_to_comment != SIZE_MAX && len_to_comma != SIZE_MAX && len_to_comma < len_to_comment) {
-        arg_parse_config_shift(p, head, len_to_comma);
+    if(len_to_comment != SIZE_MAX && len_to_arr_delim != SIZE_MAX && len_to_arr_delim < len_to_comment) {
+        arg_parse_config_shift(p, head, len_to_arr_delim);
     } else {
         arg_parse_config_shift(p, head, len);
     }
@@ -281,8 +283,8 @@ bool arg_parse_config_value(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, bo
             /* ONLY assign this, if no error reported! */
             if(!p->stream.error_id) {
                 arg_parse_config_assign_other(p, other, in_array);
-                ok = true;
             }
+            ok = true;
         }
         shift = true;
     }
@@ -338,7 +340,7 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     size_t values_parsed_now = 0;
     while(q.so.len) {
         arg_parse_config_ws(p, &q);
-        //printff("ARRAY PASS: %.*s",SO_F(so_split_ch(q.so,'\n',0)));
+        //printff("ARRAY PASS %zu/%zu: %.*s",values_parsed_now,values_parsed_old,SO_F(so_split_ch(q.so,'\n',0)));
         /* can we expect an end ']' or comma ',' ? */
         if(values_parsed_now > values_parsed_old) {
             /* .. comments .. */
@@ -470,6 +472,8 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     so_free(&p.file);
     so_free(&p.hierarchy);
     so_free(&p.section);
+
+    if(p.status) p.status |= ARG_PARSE_CONFIG_ERR_CONFIG;
 
     return p.status;
 }

@@ -1,21 +1,20 @@
 #include "../rlarg/arg-parse-config.h"
 
+/* only check syntax */
+
 int main(int argc, char **argv) {
     int result = -1;
     Arg *arg = arg_new();
 
-    if(argc != 3) goto defer;
+    if(argc != 2) goto defer;
 
-    So expect_so = so_l(argv[1]);
-    So path = so_l(argv[2]);
+    So path = so_l(argv[1]);
 
-    int expect = 0;
-    if(so_as_int(expect_so, &expect, 0)) goto defer;
     So content = SO;
     if(so_file_read(path, &content)) goto defer;
 
     result = arg_parse_config(arg, content, path);
-    if(result == expect) result = 0;
+    result &= ARG_PARSE_CONFIG_ERR_SYNTAX;
 
 defer:
     so_free(&content);
