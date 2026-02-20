@@ -57,7 +57,7 @@ void argx_group_fmt_help(So *out, Argx_Group *group) {
 void argx_group_fmt_config(So *out, Argx_Group *group) {
     ASSERT_ARG(out);
     ASSERT_ARG(group);
-    so_fmt(out, "### %.*s\n", SO_F(group->name));
+    so_fmt(out, "[%.*s]\n", SO_F(group->name));
     for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
         //so_fmt(out, "%.*s.", SO_F(group->name));
         argx_fmt_config(out, *argx);

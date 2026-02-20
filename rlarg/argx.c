@@ -316,15 +316,15 @@ void argx_fmt_config(So *out, Argx *argx) {
         }
     } else {
         if(xso.val_config) {
-            so_fmt(out, "%.*s%.*s = %.*s", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
+            so_fmt(out, "%.*s = %.*s", SO_F(argx->opt), SO_F(xso.set_val));
             if(xso.have_hint) {
                 so_fmt(out, " # %.*s", SO_F(xso.hint));
             }
         } else {
             if(xso.have_hint) {
-                so_fmt(out, "# %.*s%.*s = %.*s", SO_F(xso.hierarchy), SO_F(argx->opt), SO_F(xso.hint));
+                so_fmt(out, "# %.*s = %.*s", SO_F(argx->opt), SO_F(xso.hint));
             } else {
-                so_fmt(out, "# %.*s%.*s", SO_F(xso.hierarchy), SO_F(argx->opt));
+                so_fmt(out, "# %.*s", SO_F(argx->opt));
             }
         }
         //so_fmt(out, " ### %.*s\n", SO_F(argx->desc));
