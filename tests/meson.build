@@ -28,7 +28,8 @@ configs = [
     [true , 'array-whitespace4.conf'],
     [false, 'array-whitespace5.conf'],
     [false, 'array-whitespace6.conf'],
-    [true,  'array.conf'],
+    [true , 'array.conf'],
+    [false, 'array2.conf'],
   ]
 
 dep_rlc = dependency('rlc', required: true)
