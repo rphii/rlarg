@@ -182,9 +182,61 @@ int = 456
 
 </details>
 
+<details>
+<summary>Setting your first file</summary>
+
+### Why does file exist?
+
+The `file` and `file("with/path")` are special. As you may have noticed
+already, there are no multiline strings. *(as of now.
+\#all-my-homies-hate-multiline-strings)*.
+
+To move around this issue, you can either use
+"strings\nwith\nescape\nsequences\n" or... `file`!
+
+### What does it do?
+
+It load a file into the value, as *any other thing on MULTIPLE lines*.
+
+- `file` searches, in the same folder as the configuration file, for one that matches the hierarchy\*
+- `file("with/a/path")` searches for the specified file
 
 
-## Adding an internal type
+\*example, say the config is `~/.config/readme/readme.conf`:
+
+```
+[default]
+int = file
+```
+
+searches for a file called: `~/.config/readme/default.int`
+
+### Special rules?
+
+In the context if your *hierarchy* is an array vs. if your *file* is in an array:
+
+- Hierarchy is array -> *file* is NOT in an array -> split on each line and
+- Hierarchy is array -> *file* is INSIDE an array -> dump 1:1
+
+So these two differ:
+
+```
+[default]
+
+# create array of integers from the contents of default.vint file, spliiting on each new line
+vint = file         
+
+# create an array 2 long, containing the int of the first and second file
+vint = [ file("single int"), file("single int 2") ]
+```
+
+</details>
+
+
+## Note to self
+
+<details>
+<summary>Adding an internal type</summary>
 
 1. [`argx.h`](rlarg/argx.h) extend enum and union:
     - `Argx_Type_List`
@@ -208,4 +260,5 @@ You can alternatively view places you need to patch via:
 ```sh
 $ grep ARGX_TYPE_STRING * -rn
 ```
+</details>
 
