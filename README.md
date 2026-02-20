@@ -102,7 +102,7 @@ make a line, that contains only `[the.section]` to make it easier for yourself.
 - a string "that supports\nescape sequences"
 - *any other thing on one line*
 
-<details><summary>**Setting your first int**</summary>
+<details><summary>Setting your first int</summary>
 
 In `readme.conf`, you could do this to set the int:
 
@@ -124,7 +124,7 @@ int = 123
 = 123
 ```
 
-</summary>
+</details>
 
 <details><summary>**Setting your first vector**</summary>
 
