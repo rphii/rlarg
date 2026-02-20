@@ -31,12 +31,11 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
     So content = SO;
     /* TODO: the tmp_file_path is lost to the operator of the arg parser (it is technically a source..) */
     so_clear(&p->tmp_file_path);
-    if(so_at0(path) == PLATFORM_CH_SUBDIR) {
-        so_extend(&p->tmp_file_path, path);
-    } else if(so_at0(path) == '~') {
+    if(so_at0(path) == PLATFORM_CH_SUBDIR || so_at0(path) == '~') {
         so_extend_wordexp(&p->tmp_file_path, path, false);
     } else {
-        so_path_join(&p->tmp_file_path, so_get_dir(p->stream.source.path), path);
+        so_path_join(&p->tmp_string, so_get_dir(p->stream.source.path), path);
+        so_extend_wordexp(&p->tmp_file_path, p->tmp_string, false);
     }
     /* read file */
     //printff("FILE NAMED %.*s", SO_F(p->tmp_file_path));
