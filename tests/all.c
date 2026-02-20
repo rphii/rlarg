@@ -49,6 +49,8 @@ int main(const int argc, const char **argv) {
     x = argx_opt(g1, 'N', so("name"), so("a name"));
         argx_type_so(x, &name, 0);
 
+    int *vi = 0;
+
     bool f1, f2, f3;
     VSo rest = 0;
     VSo vec_p = 0;
@@ -57,6 +59,8 @@ int main(const int argc, const char **argv) {
     vso_push(&vec_v, so("two"));
     x = argx_opt(g1, 'v', so("vso"), so("list of strings"));
         argx_type_array_so(x, &vec_p, &vec_v);
+    x = argx_opt(g1, 'V', so("vi"), so("list of ints"));
+        argx_type_array_int(x, &vi, 0);
 
     int e_out1, e_out2, e_out3, e_out4, e_default = 1;
     x=argx_opt(g1, 'e', so("enumerator"), so("list of strings"));
