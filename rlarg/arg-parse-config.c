@@ -38,12 +38,14 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
     }
     /* now parse */
     if(in_array) {
+        p->stream.carg = p->tmp_file_content;
         arg_parse_argx(p->arg, &p->stream, p->argx, p->tmp_file_content);
     } else {
         for(So line = SO; so_splice(p->tmp_file_content, &line, '\n'); ) {
             if(so_is_zero(line)) continue;
             line = so_trim(line);
             if(!so_len(line)) continue;
+            p->stream.carg = line;
             arg_parse_argx(p->arg, &p->stream, p->argx, line);
         }
     }
@@ -61,6 +63,7 @@ int arg_parse_config_assign_string(Arg_Parse_Config *p, So val, bool in_array) {
         return -1;
     }
     printff("STRING %.*s", SO_F(val));
+    p->stream.carg = val;
     arg_parse_argx(p->arg, &p->stream, p->argx, so_clone(val));
     return 0;
 }
@@ -71,6 +74,7 @@ int arg_parse_config_assign_other(Arg_Parse_Config *p, So val, bool in_array) {
         return -1;
     }
     printff("OTHER %.*s", SO_F(val));
+    p->stream.carg = val;
     arg_parse_argx(p->arg, &p->stream, p->argx, val);
     return 0;
 }
