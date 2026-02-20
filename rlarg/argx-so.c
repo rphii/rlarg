@@ -27,9 +27,9 @@ void argx_so_clear(Argx_So *xso) {
 void argx_so_like_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     if(val->so) {
-        so_fmt_fx(out, rice->val_delim, 0, "'");
+        so_fmt_fx(out, rice->val_delim, 0, "\"");
         so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(*val->so));
-        so_fmt_fx(out, rice->val_delim, 0, "'");
+        so_fmt_fx(out, rice->val_delim, 0, "\"");
     }
 }
 
@@ -74,9 +74,9 @@ void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, i
         So *vE = array_itE(*val->vso);
         for(So *v = *val->vso; v < vE; ++v) {
             so_fmt(out, "\n%*s", spacing[0], "");
-            so_fmt_fx(out, rice->val_delim, 0, "'");
+            so_fmt_fx(out, rice->val_delim, 0, "\"");
             so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(*v));
-            so_fmt_fx(out, rice->val_delim, 0, "'");
+            so_fmt_fx(out, rice->val_delim, 0, "\"");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ",");
         }
         so_fmt(out, "\n%*s", spacing[1], "");

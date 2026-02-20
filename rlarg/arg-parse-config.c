@@ -60,14 +60,16 @@ int arg_parse_config_assign_file_auto(Arg_Parse_Config *p, bool in_array) {
     return 0;
 }
 
-int arg_parse_config_assign_string(Arg_Parse_Config *p, So val, bool in_array) {
+int arg_parse_config_assign_string(Arg_Parse_Config *p, bool in_array) {
     if(!p->argx) {
         //TODO_WARN;
         return -1;
     }
     //printff("STRING %.*s", SO_F(val));
-    p->stream.carg = val;
-    arg_parse_argx(p->arg, &p->stream, p->argx, so_clone(val));
+    p->stream.carg = p->tmp_string;
+    arg_parse_argx(p->arg, &p->stream, p->argx, p->tmp_string);
+    vso_push(&p->arg->builtin.sources_content, p->tmp_string);
+    p->tmp_string = SO;
     return 0;
 }
 
@@ -251,7 +253,7 @@ bool arg_parse_config_value(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, bo
     if(arg_parse_config_file(p, &q, in_array)) {
         ok = true;
     } else if(arg_parse_config_string(p, &q, in_array)) {
-        arg_parse_config_assign_string(p, p->tmp_string, in_array);
+        arg_parse_config_assign_string(p, in_array);
         ok = true;
     } else {
         arg_parse_config_other(p, &q, &other, in_array);
