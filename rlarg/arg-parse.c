@@ -1131,7 +1131,7 @@ defer:
 
     arg_parse_help(arg);
 
-    *quit_early = arg->builtin.quit_early || arg->builtin.quit_when_all_valid;
+    *quit_early = arg->builtin.quit_early || arg->builtin.quit_when_all_parsed;
     return status;
 }
 
