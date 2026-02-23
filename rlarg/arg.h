@@ -68,7 +68,7 @@ typedef struct Arg {
 
     struct {
         bool quit_early;
-        bool quit_when_all_valid;
+        bool quit_when_all_parsed;
         bool compgen;               /* main trigger for compgen */
         bool compgen_flags;         /* only true has an effect. forces the generation of flags / options TODO I think is unused... */
         bool compgen_done;          /* helps us only printin one single compgen instance */

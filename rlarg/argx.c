@@ -107,7 +107,7 @@ void argx_builtin_env_nocolor(struct Arg *arg) {
 }
 
 int argx_callback_config(Argx *argx, void *user, So so) {
-    arg_runtime_quit_when_all_valid(argx, true);
+    arg_runtime_quit_when_all_parsed(argx, true);
     Arg *arg = user;
     arg->builtin.config_print_selected = true;
     arg->help.last = 0;
@@ -127,7 +127,7 @@ void argx_builtin_env_config(struct Arg *arg) {
 }
 
 int argx_callback_help(Argx *argx, void *user, So so) {
-    arg_runtime_quit_when_all_valid(argx, true);
+    arg_runtime_quit_when_all_parsed(argx, true);
     Arg *arg = user;
     //printff("!!!!! HELP WANTED");
     arg->help.wanted = true;

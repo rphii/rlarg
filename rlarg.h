@@ -18,7 +18,7 @@ void arg_enable_config_print(struct Arg *arg, bool enable);
 
 /* rlarg/arg-runtime.c */
 void arg_runtime_quit_early(struct Argx *argx, bool val);
-void arg_runtime_quit_when_all_valid(struct Argx *argx, bool val);
+void arg_runtime_quit_when_all_parsed(struct Argx *argx, bool val);
 
 /* rlarg/arg-parse.c */
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early);

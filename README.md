@@ -41,7 +41,7 @@ Argument parser for C.
 Used from within a callback (`argx_callback`):
 
 - `arg_runtime_quit_early` quit the parser immediately (once control regained)
-- `arg_runtime_quit_when_all_valid` quit the parser early after full validation
+- `arg_runtime_quit_when_all_parsed` quit the parser early after the argument parser is done
 
 ## Everything About Config Files
 
