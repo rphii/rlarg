@@ -216,6 +216,12 @@ struct Argx_Group *argx_builtin_rice(struct Arg *arg) {
     return g;
 }
 
+void argx_builtin_usage_example(struct Argx *x) {
+    ASSERT_ARG(x);
+    ASSERT_ARG(x->group_p);
+    ASSERT_ARG(x->group_p->arg);
+    array_push(x->group_p->arg->builtin.usages, x);
+}
 
 void argx_fmt_help(So *out, Argx *argx) {
     ASSERT_ARG(out);

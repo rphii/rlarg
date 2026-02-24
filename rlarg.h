@@ -38,6 +38,7 @@ void argx_builtin_opt_help(struct Argx_Group *group);
 void argx_builtin_opt_source(struct Argx_Group *group, So uri);
 void argx_builtin_opt_so_fx(struct Argx *x, So_Fx *fmt, So_Fx *ref);
 struct Argx_Group *argx_builtin_rice(struct Arg *arg);
+void argx_builtin_usage_example(struct Argx *x);
 
 typedef int (*Argx_Function)(struct Argx *argx, void *user, So so);
 
