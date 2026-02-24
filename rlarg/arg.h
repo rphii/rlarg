@@ -49,7 +49,6 @@ typedef struct Arg_Rice {
     So_Fx val_delim;
 } Arg_Rice;
 
-
 typedef struct Arg {
     Argx *c[ARGX_SHORT_COUNT]; /* short options */
 
@@ -79,6 +78,7 @@ typedef struct Arg {
         VSo sources_vso;        /* visible vso sources */
         VSo sources_content;    /* content of sources */
         VSo sources_paths;      /* paths to sources */
+        Argx **usages;          /* array of argx usages */
     } builtin;
 
     struct {
