@@ -8,6 +8,7 @@ typedef struct Argx_Attr {
     bool is_hidden;
     bool is_unconfigurable;
     int val_enum;
+    So switch_arg;
 } Argx_Attr;
 
 #define ARGX_ATTR_H
