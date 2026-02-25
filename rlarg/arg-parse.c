@@ -563,7 +563,7 @@ int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
         case ARGX_TYPE_REST: break;
         default: {
             arg_parse_set_help_any(arg, argx);
-            if(!arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) {
+            if(!arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) { /* TODO ... this ALWAYS requires a value to be passed? -- not good. */
                 arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_VALUE, argx);
                 return -1;
             }

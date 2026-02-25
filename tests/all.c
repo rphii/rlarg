@@ -102,6 +102,10 @@ int main(const int argc, const char **argv) {
     g1=argx_group(arg, so("other"));
 
     Color col = COLOR_AQUA;
+
+    xs=argx_opt(g1, 0, so("all"), so("test short 2"));
+       argx_group_switch(xs);
+
     x=argx_opt(g1, 0, so("color"), so("color support"));
       argx_type_color(x, &col, 0);
 
