@@ -197,7 +197,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     bool done = false;
     do {
         Argx *subx = 0;
-        //printff("parse group of: %.*s", SO_F(argx->opt));
+        printff("parse group of: %.*s", SO_F(argx->opt));
         ASSERT_ARG(argx->group_s);
         if(argx->group_s->id == ARGX_GROUP_FLAGS) {
             if(!so_splice(so, &so_split, ',')) break;
@@ -208,6 +208,10 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 so_split = so_i0(so_split, 1);
                 flagv = so("0");
             }
+        } else if(argx->group_s->id == ARGX_GROUP_SWITCH) {
+            /* TODO ... simulate the switches here */
+            result = 0;
+            break;
         } else {
             so_split = so;
         }
@@ -216,6 +220,8 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
         if(subx) {
             arg_parse_set_help_any(arg, subx);
             switch(argx->group_s->id) {
+                case ARGX_GROUP_SWITCH: {
+                } break;
                 case ARGX_GROUP_ENUM: {
                     result = arg_parse_argx(arg, stream, subx, SO);
                     done = true;
@@ -875,6 +881,9 @@ void arg_parse_setref_group(Argx_Group *group) {
                 case ARGX_GROUP_ENUM: {
                     if(argx->sources) continue;
                     argx->val = argx->ref; 
+                } break;
+                case ARGX_GROUP_SWITCH: { 
+                    /* ??? */
                 } break;
             }
         } else {
