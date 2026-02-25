@@ -26,7 +26,6 @@ typedef enum {
     ARGX_TYPE_ENUM,
     ARGX_TYPE_FLAG,
     ARGX_TYPE_COLOR,
-    ARGX_TYPE_SWITCH,
     /* keep above */
     ARGX_TYPE__COUNT,
 } Argx_Type_List;
