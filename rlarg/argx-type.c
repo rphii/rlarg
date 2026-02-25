@@ -198,8 +198,14 @@ struct Argx_Group *argx_group_switch(struct Argx *argx) {
     NEW(Argx_Group, argx->group_s);
     Argx_Group *group = argx->group_s;
     argx->hint.id = ARGX_HINT_OPTIONAL;
-    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_FLAGS, argx);
+    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_SWITCH, argx);
     return group;
+}
+
+void argx_switch_flag(struct Argx_Group *switch_group, struct Argx *argx, bool value) {
+    ASSERT_ARG(switch_group);
+    ASSERT_ARG(argx);
+
 }
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {

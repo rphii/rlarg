@@ -62,6 +62,7 @@ int main(const int argc, const char **argv) {
     x = argx_opt(g1, 'V', so("vi"), so("list of ints"));
         argx_type_array_int(x, &vi, 0);
 
+
     int e_out1, e_out2, e_out3, e_out4, e_default = 1;
     x=argx_opt(g1, 'e', so("enumerator"), so("list of strings"));
       g2=argx_group_enum(x, &e_out1, &e_default);
@@ -89,9 +90,14 @@ int main(const int argc, const char **argv) {
 
     x=argx_opt(g1, 0, so("flag"), so("some flags"));
       g2=argx_group_flags(x);
+        xs=argx_opt(g2, 0, so("all"), so("test shortie"));
+           argx_group_switch(xs);
         e1=argx_flag(g2, &f1, &(bool){true}, so("sfw"), so("safe for work"));
+           //argx_switch_flag(e1, xs, true);
         e2=argx_flag(g2, &f2, &(bool){false}, so("nsfw"), so("not safe for work"));
-        e2=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));
+           //argx_switch_flag(e2, xs, true);
+        e3=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));
+           //argx_switch_flag(e3, xs, true);
 
     g1=argx_group(arg, so("other"));
 
@@ -114,15 +120,13 @@ int main(const int argc, const char **argv) {
           g3=argx_group_options(x);
             x=argx_opt(g3, 0, so("subopt"), so("final subopt"));
               argx_type_so(x, &subopt, 0);
+              //argx_builtin_switch(x, xs);
             x=argx_opt(g3, 0, so("subopt2"), so("final subopt2"));
               argx_type_so(x, &subopt2, 0);
         x=argx_opt(g2, 0, so("subopt2"), so(""));
 
     x=argx_opt(g1, '1', so("1111"), so("nothing"));
     x=argx_opt(g1, '2', so("somerandom"), so("nothing"));
-
-    xs=argx_opt(g1, 0, so("shorthand"), so("test shortie"));
-       argx_group_switch(xs);
 
     So key_v, key_r = so("invisible api key here");
     x=argx_env(arg, so("APIKEY"), so("test to hide api key visibility"));

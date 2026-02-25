@@ -69,6 +69,8 @@ struct Argx_Group *argx_group_options(struct Argx *argx);
 struct Argx_Group *argx_group_flags(struct Argx *argx);
 struct Argx_Group *argx_group_switch(struct Argx *argx);
 
+void argx_switch_flag(struct Argx_Group *switch_group, struct Argx *argx, bool value);
+
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc);
 
 struct Argx *argx_flag(struct Argx_Group *group, bool *val, bool *ref, So name, So desc);
