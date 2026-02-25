@@ -190,7 +190,20 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
     return group;
 }
 
+struct Argx_Group *argx_group_switch(struct Argx *argx) {
+    ASSERT_ARG(argx);
+    argx->id = ARGX_TYPE_GROUP;
+    T_Argx *table;
+    NEW(T_Argx, table);
+    NEW(Argx_Group, argx->group_s);
+    Argx_Group *group = argx->group_s;
+    argx->hint.id = ARGX_HINT_OPTIONAL;
+    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_FLAGS, argx);
+    return group;
+}
+
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {
+    ASSERT_ARG(group);
     struct Argx *x = argx_opt(group, 0, name, desc);
     //printff("created '%.*s' on table %p",SO_F(name),group->table);
     x->id = ARGX_TYPE_ENUM;

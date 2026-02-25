@@ -351,6 +351,8 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
     } else {
         switch(argx->id) {
             default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
+            case ARGX_TYPE_SWITCH: {
+            } break;
             case ARGX_TYPE_NONE: {
                 //xso->ref_visible = false;
                 xso->have_hint = false;

@@ -1,6 +1,6 @@
 # priority
 
-- codify usage examples
+- codify usage examples --> I have garbage code lingering around
 - add option to limit array items (and then just display (+N more)
 - add info to help output if configurable or not!
 

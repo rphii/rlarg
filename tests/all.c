@@ -28,7 +28,7 @@ int main(const int argc, const char **argv) {
     //argx_builtin_opt_source(g1, so("$HOME/.config/rphiic/colors.conf"));
     argx_builtin_opt_source(g1, so("all.conf"));
 
-    struct Argx *x, *e1, *e2, *e3;
+    struct Argx *x, *e1, *e2, *e3, *xs;
 
     x = argx_opt(g1, 0, so("hi"), so("description"));
         //printff("p %p", x);
@@ -120,6 +120,9 @@ int main(const int argc, const char **argv) {
 
     x=argx_opt(g1, '1', so("1111"), so("nothing"));
     x=argx_opt(g1, '2', so("somerandom"), so("nothing"));
+
+    xs=argx_opt(g1, 0, so("shorthand"), so("test shortie"));
+       argx_group_switch(xs);
 
     So key_v, key_r = so("invisible api key here");
     x=argx_env(arg, so("APIKEY"), so("test to hide api key visibility"));
