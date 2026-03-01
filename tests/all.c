@@ -91,7 +91,7 @@ int main(const int argc, const char **argv) {
     x=argx_opt(g1, 0, so("flag"), so("some flags"));
       g2=argx_group_flags(x);
         xs=argx_opt(g2, 0, so("all"), so("test shortie"));
-           argx_group_switch(xs);
+           argx_type_switch(xs);
         e1=argx_flag(g2, &f1, &(bool){true}, so("sfw"), so("safe for work"));
            //argx_switch_flag(e1, xs, true);
         e2=argx_flag(g2, &f2, &(bool){false}, so("nsfw"), so("not safe for work"));
@@ -104,7 +104,7 @@ int main(const int argc, const char **argv) {
     Color col = COLOR_AQUA;
 
     xs=argx_opt(g1, 0, so("all"), so("test short 2"));
-       argx_group_switch(xs);
+       argx_type_switch(xs);
 
     x=argx_opt(g1, 0, so("color"), so("color support"));
       argx_type_color(x, &col, 0);

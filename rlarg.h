@@ -56,6 +56,7 @@ void argx_type_bool(struct Argx *argx, bool *val, bool *ref);
 void argx_type_int(struct Argx *argx, int *val, int *ref);
 void argx_type_size(struct Argx *argx, ssize_t *val, ssize_t *ref);
 void argx_type_color(struct Argx *argx, Color *val, Color *ref);
+void argx_type_switch(struct Argx *argx);
 
 void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref);
 void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref);
@@ -67,7 +68,6 @@ void argx_type_array_color(struct Argx *argx, Color **val, Color **ref);
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref);
 struct Argx_Group *argx_group_options(struct Argx *argx);
 struct Argx_Group *argx_group_flags(struct Argx *argx);
-struct Argx_Group *argx_group_switch(struct Argx *argx);
 
 void argx_switch_flag(struct Argx_Group *switch_group, struct Argx *argx, bool value);
 
