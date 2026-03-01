@@ -1073,6 +1073,7 @@ void arg_parse_setup_sources_argx(Argx *argx) {
     if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
     if(!argx->ref.any) {
         if(argx->attr.is_array) {
+            /* TODO .. what the fuck is this below .. why use vb array ??? what if it is vz ??? or something else ????? */
             arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->val.vb));
         } else {
             arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, 1);
