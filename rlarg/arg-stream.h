@@ -33,6 +33,7 @@ typedef struct Arg_Stream {
 } Arg_Stream;
 
 void arg_stream_free(Arg_Stream *stream);
+void arg_stream_source_free(Arg_Stream_Source *source);
 void arg_stream_clear(Arg_Stream *stream);
 
 void arg_stream_from_stdin(Arg_Stream *stream, const int argc, const char **argv);

@@ -197,7 +197,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     bool done = false;
     do {
         Argx *subx = 0;
-        printff("parse group of: %.*s", SO_F(argx->opt));
+        //printff("parse group of: %.*s", SO_F(argx->opt));
         ASSERT_ARG(argx->group_s);
         if(argx->group_s->id == ARGX_GROUP_FLAGS) {
             if(!so_splice(so, &so_split, ',')) break;
@@ -408,6 +408,7 @@ int arg_parse_argx_group(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 
 int arg_parse_argx_switch(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
+    arg_parse_add_source(argx, stream->source);
     return result;
 }
 

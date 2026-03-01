@@ -338,6 +338,9 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
                 argx_so_like_array_string(&xso->set_ref, rice, &argx->ref, array_spacing);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
+            case ARGX_TYPE_SWITCH: {
+                /* TODO: add array of sub-items into hint */
+            } break;
             case ARGX_TYPE_GROUP: {
                 ABORT(ERR_UNREACHABLE("vector of GROUP is not supported, and thus you should never see this message"));
             } break;
@@ -381,6 +384,9 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
                 argx_so_like_string(&xso->set_val, rice, &argx->val);
                 argx_so_like_string(&xso->set_ref, rice, &argx->ref);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+            } break;
+            case ARGX_TYPE_SWITCH: {
+                /* TODO: add array of sub-items into hint */
             } break;
             case ARGX_TYPE_GROUP: {
                 xso->have_hint = false;

@@ -198,10 +198,16 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
     return group;
 }
 
-void argx_switch_flag(struct Argx_Group *switch_group, struct Argx *argx, bool value) {
-    ASSERT_ARG(switch_group);
+void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool *value) {
+    ASSERT_ARG(switch_argx);
     ASSERT_ARG(argx);
-
+    ASSERT(switch_argx->id == ARGX_TYPE_SWITCH, "switch_argx argument has to be of type ARGX_TYPE_SWITCH");
+    ASSERT(argx->id == ARGX_TYPE_FLAG && argx->group_p && argx->group_p->id == ARGX_GROUP_FLAGS, "argx argument has to be under ARGX_GROUP_FLAGS");
+    Argx_Switch sw = {
+        .argx = argx,
+        .val.b = value,
+    };
+    //array_push(switch_argx->val.sw, sw);
 }
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {
