@@ -34,19 +34,26 @@ typedef enum {
 typedef union Argx_Value_Union {
     void *any;
     int *i;
-    int **vi; ssize_t *z; ssize_t **vz;
+    int **vi;
+    ssize_t *z;
+    ssize_t **vz;
     bool *b;
     bool **vb;
     So *so;
     VSo *vso;
     Color *c;
     Color **vc;
+    struct Argx_Switch *sw;
 } Argx_Value_Union;
 
 #define ARGX_SOURCE_REFVAL  so("refval")
 #define ARGX_SOURCE_STDIN   so("stdin")
 #define ARGX_SOURCE_ENVVARS so("envvars")
 
+typedef struct Argx_Switch {
+    struct Argx *argx;
+    Argx_Value_Union val;
+} Argx_Switch;
 
 typedef struct Argx {
     Argx_Value_Union val;  /* parsed value */

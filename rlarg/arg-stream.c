@@ -16,6 +16,10 @@ void arg_stream_free(Arg_Stream *stream) {
     memset(stream, 0, sizeof(*stream));
 }
 
+void arg_stream_source_free(Arg_Stream_Source *source) {
+    so_free(&source->path);
+}
+
 void arg_stream_clear(Arg_Stream *stream) {
     vso_clear(&stream->vso);
     stream->i = 0;

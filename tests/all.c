@@ -93,7 +93,7 @@ int main(const int argc, const char **argv) {
         xs=argx_opt(g2, 0, so("all"), so("test shortie"));
            argx_type_switch(xs);
         e1=argx_flag(g2, &f1, &(bool){true}, so("sfw"), so("safe for work"));
-           //argx_switch_flag(e1, xs, true);
+           //argx_switch_flag(xs, e1, &(bool){true});
         e2=argx_flag(g2, &f2, &(bool){false}, so("nsfw"), so("not safe for work"));
            //argx_switch_flag(e2, xs, true);
         e3=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));

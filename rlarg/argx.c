@@ -42,13 +42,16 @@ void argx_free(Argx *argx) {
                 if(argx->val.vc) array_free(*argx->val.vc);
                 if(argx->ref.vc) array_free(*argx->ref.vc);
             } break;
+            case ARGX_TYPE_SWITCH: {
+                if(argx->val.sw) array_free(argx->val.sw);
+            } break;
         }
     } else {
         if(argx->id == ARGX_TYPE_GROUP) {
             argx_group_free(argx->group_s);
         }
     }
-    array_free_ext(argx->sources, so_free);
+    array_free_ext(argx->sources, arg_stream_source_free);
 }
 
 void v_argx_free(V_Argx *vargs) {
