@@ -19,6 +19,7 @@ void argx_free(Argx *argx) {
             case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("array of FLAG unsupported (how did you reach this code?)"));
             case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("array of ENUM unsupported (how did you reach this code?)"));
             case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("array of GROUP unsupported (how did you reach this code?)"));
+            case ARGX_TYPE_SWITCH: ABORT(ERR_UNREACHABLE("array of SWITCH unsupported (how did you reach this code?)"));
             case ARGX_TYPE_NONE: {}
             case ARGX_TYPE_REST:
             case ARGX_TYPE_URI:
@@ -42,12 +43,11 @@ void argx_free(Argx *argx) {
                 if(argx->val.vc) array_free(*argx->val.vc);
                 if(argx->ref.vc) array_free(*argx->ref.vc);
             } break;
-            case ARGX_TYPE_SWITCH: {
-                if(argx->val.sw) array_free(argx->val.sw);
-            } break;
         }
     } else {
-        if(argx->id == ARGX_TYPE_GROUP) {
+        if(argx->id == ARGX_TYPE_SWITCH) {
+            array_free(argx->val.sw);
+        } else if(argx->id == ARGX_TYPE_GROUP) {
             argx_group_free(argx->group_s);
         }
     }

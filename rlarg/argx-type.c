@@ -207,7 +207,7 @@ void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool *value) 
         .argx = argx,
         .val.b = value,
     };
-    //array_push(switch_argx->val.sw, sw);
+    array_push(switch_argx->val.sw, sw);
 }
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {

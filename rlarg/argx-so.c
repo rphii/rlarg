@@ -339,7 +339,7 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_SWITCH: {
-                /* TODO: add array of sub-items into hint */
+                ABORT(ERR_UNREACHABLE("vector of SWITCH is not supported, and thus you should never see this message"));
             } break;
             case ARGX_TYPE_GROUP: {
                 ABORT(ERR_UNREACHABLE("vector of GROUP is not supported, and thus you should never see this message"));
@@ -387,6 +387,10 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
             } break;
             case ARGX_TYPE_SWITCH: {
                 /* TODO: add array of sub-items into hint */
+                Argx_Switch *swE = array_itE(argx->val.sw);
+                for(Argx_Switch *sw = argx->val.sw; sw < swE; ++sw) {
+                    so_fmt(&xso->hint, "%.*s", SO_F(sw->argx->opt));
+                }
             } break;
             case ARGX_TYPE_GROUP: {
                 xso->have_hint = false;
