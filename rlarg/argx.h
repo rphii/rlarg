@@ -26,6 +26,7 @@ typedef enum {
     ARGX_TYPE_ENUM,
     ARGX_TYPE_FLAG,
     ARGX_TYPE_COLOR,
+    ARGX_TYPE_SWITCH,
     /* keep above */
     ARGX_TYPE__COUNT,
 } Argx_Type_List;
@@ -33,9 +34,7 @@ typedef enum {
 typedef union Argx_Value_Union {
     void *any;
     int *i;
-    int **vi;
-    ssize_t *z;
-    ssize_t **vz;
+    int **vi; ssize_t *z; ssize_t **vz;
     bool *b;
     bool **vb;
     So *so;

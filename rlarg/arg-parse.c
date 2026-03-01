@@ -208,10 +208,6 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 so_split = so_i0(so_split, 1);
                 flagv = so("0");
             }
-        } else if(argx->group_s->id == ARGX_GROUP_SWITCH) {
-            /* TODO ... simulate the switches here */
-            result = 0;
-            break;
         } else {
             so_split = so;
         }
@@ -220,8 +216,6 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
         if(subx) {
             arg_parse_set_help_any(arg, subx);
             switch(argx->group_s->id) {
-                case ARGX_GROUP_SWITCH: {
-                } break;
                 case ARGX_GROUP_ENUM: {
                     result = arg_parse_argx(arg, stream, subx, SO);
                     done = true;
@@ -412,6 +406,11 @@ int arg_parse_argx_group(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return result;
 }
 
+int arg_parse_argx_switch(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    int result = 0;
+    return result;
+}
+
 /* parsers for regular - values }}} */
 
 typedef int (*Arg_Parse_Argx_Callback)(Arg *, Arg_Stream *, Argx *, So);
@@ -468,6 +467,7 @@ static Arg_Parse_Argx_Callback static_parse_argx_single_cbs[ARGX_TYPE__COUNT] = 
     [ARGX_TYPE_URI] = arg_parse_argx_so,
     [ARGX_TYPE_STRING] = arg_parse_argx_so,
     [ARGX_TYPE_COLOR] = arg_parse_argx_color,
+    [ARGX_TYPE_SWITCH] = arg_parse_argx_switch,
     [ARGX_TYPE_REST] = 0,
 };
 
@@ -560,6 +560,7 @@ int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
     So so = SO;
     switch(argx->id) {
         case ARGX_TYPE_NONE: break;
+        case ARGX_TYPE_SWITCH: break;
         case ARGX_TYPE_REST: break;
         default: {
             arg_parse_set_help_any(arg, argx);
@@ -881,9 +882,6 @@ void arg_parse_setref_group(Argx_Group *group) {
                 case ARGX_GROUP_ENUM: {
                     if(argx->sources) continue;
                     argx->val = argx->ref; 
-                } break;
-                case ARGX_GROUP_SWITCH: { 
-                    /* ??? */
                 } break;
             }
         } else {

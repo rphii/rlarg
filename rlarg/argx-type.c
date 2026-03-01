@@ -81,6 +81,14 @@ void argx_type_color(struct Argx *argx, Color *val, Color *ref) {
     };
 }
 
+void argx_type_switch(struct Argx *argx) {
+    ASSERT_ARG(argx);
+    argx->id = ARGX_TYPE_SWITCH;
+    argx->hint = (Argx_Hint){
+        .id = ARGX_HINT_NONE,
+    };
+}
+
 void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
     argx->val.vso = val;
@@ -187,18 +195,6 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
     Argx_Group *group = argx->group_s;
     argx->hint.id = ARGX_HINT_FLAGS;
     *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_FLAGS, argx);
-    return group;
-}
-
-struct Argx_Group *argx_group_switch(struct Argx *argx) {
-    ASSERT_ARG(argx);
-    argx->id = ARGX_TYPE_GROUP;
-    T_Argx *table;
-    NEW(T_Argx, table);
-    NEW(Argx_Group, argx->group_s);
-    Argx_Group *group = argx->group_s;
-    argx->hint.id = ARGX_HINT_OPTIONAL;
-    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_SWITCH, argx);
     return group;
 }
 
