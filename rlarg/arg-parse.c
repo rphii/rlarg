@@ -85,11 +85,14 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
         }
         if(!arg->builtin.compgen) {
+            //TODO:source
+#if 0
             if(stream->source.line_number) {
                 fprintf(stderr, FF(nc, "%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.line_number);
             } else {
                 fprintf(stderr, FF(nc, "%.*s: ", FG_MG_B BOLD), SO_F(stream->source.path));
             }
+#endif
             switch(id) {
                 case ARG_PARSE_ERROR_UNCONFIGURABLE: {
                     fprintf(stderr, FF(nc, "Cannot configure: '%.*s', tried setting to: '%.*s'", FG_RD_B BOLD), SO_F(argx->opt), SO_F(stream->carg));
@@ -180,12 +183,14 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
 /* error messages }}} */
 
 void arg_parse_add_source(struct Argx *argx, Arg_Stream_Source source) {
+#if 0
     if(source.line_number) {
         source.path = so_clone(source.path);
         array_push(argx->sources, source);
     } else {
         array_push(argx->sources, source);
     }
+#endif
 }
 
 /* coarse parsers {{{ */
@@ -348,10 +353,10 @@ int arg_parse_argx_group(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 
 int arg_parse_argx_switch(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
-    arg_parse_add_source(argx, stream->source);
+    //TODO:source arg_parse_add_source(argx, stream->source);
     Argx_Switch *swE = array_itE(argx->val.sw);
     for(Argx_Switch *sw = argx->val.sw; sw < swE; ++sw) {
-        printff(" SETVAL %.*s : src %.*s", SO_F(sw->argx->opt), SO_F(stream->source.path));
+        //printff(" SETVAL %.*s : src %.*s", SO_F(sw->argx->opt), SO_F(stream->source.path));
         arg_parse_setval_argx(sw->argx, &sw->val, stream->source, false);
     }
     return result;
@@ -793,7 +798,7 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
             else arg_parse_setref_sources_mono(argx, src, 1);
         } else {
             //printff(" v %p = r %p id %u [%.*s]",argx->val,argx->ref,argx->id,SO_F(argx->opt));
-            printff(" setref sources mono %.*s %.*s",SO_F(argx->opt),SO_F(src.path));
+            //printff(" setref sources mono %.*s %.*s",SO_F(argx->opt),SO_F(src.path));
             arg_parse_setref_sources_mono(argx, src, (int)(bool)(ref->any));
             switch(argx->id) {
                 default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
@@ -819,7 +824,7 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
                     }
                     /* now add source and set flag to true */
                     if(argx->val.b) *argx->val.b = ref->b;
-                    arg_parse_add_source(argx, src);
+                    //arg_parse_add_source(argx, src);
                     arg_parse_add_source(parent, src);
 #endif
                 } break;
@@ -848,6 +853,7 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
                     ASSERT_ARG(parent);
                     ASSERT_ARG(parent->val.i);
                     if(parent->val.i) *parent->val.i = *ref->i;
+                    arg_parse_add_source(parent, src);
                 } break;
             }
         }
@@ -964,7 +970,7 @@ void arg_parse_help(Arg *arg) {
             arg->builtin.nocolor = true;
         }
         Arg_Stream stream_help = {
-            .source = { .path = so("help") },
+            //TODO:source .source = { .path = so("help") },
             .is_help_lookup = true,
         };
 
@@ -1063,13 +1069,14 @@ void arg_parse_configs(Arg *arg) {
 
 /* these set the sources if there is NOT a refval present -- opposite of setref */
 void arg_parse_setup_sources_argx(Argx *argx) {
+    printff(" sources: %p",argx->sources);
     if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
     if(!argx->ref.any) {
         if(argx->attr.is_array) {
             /* TODO .. what the fuck is this below .. why use vb array ??? what if it is vz ??? or something else ????? */
-            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->val.vb));
+            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_NONE, array_len(*argx->val.vb));
         } else {
-            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, 1);
+            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_NONE, 1);
         }
     }
 }
@@ -1078,7 +1085,7 @@ void arg_parse_setup_sources_argx(Argx *argx) {
 void arg_parse_setup_sources_group(Argx_Group *group) {
     if(!group) return;
     for(Argx **it = group->list; it < array_itE(group->list); ++it) {
-        //printff("setref for: %.*s",SO_F((*it)->opt));
+        printff("setup for: %.*s",SO_F((*it)->opt));
         ASSERT_ARG(it);
         Argx *argx = *it;
         ASSERT_ARG(argx);
@@ -1109,11 +1116,13 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
 
     int status = 0;
 
+#if 0
     for(Argx_Group **it = arg->opts; it < array_itE(arg->opts); ++it) {
         arg_parse_setup_sources_group(*it);
     }
     arg_parse_setup_sources_group(&arg->env);
     arg_parse_setup_sources_group(&arg->pos);
+#endif
 
     if(!status) status = arg_parse_environment(arg);
     if(arg->builtin.config_print_selected) arg->builtin.nocolor = true;
