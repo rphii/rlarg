@@ -480,6 +480,9 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
                 so_fmt_fx(&xso->hint, rice->sw_delim, 0, "(sets ");
                 so_fmt_fx(&xso->hint, rice->sw, 0, "%zux", n_sw);
                 so_fmt_fx(&xso->hint, rice->sw_delim, 0, " option%s)", n_sw > 1 ? "s" : "");
+                /* set up config value ... by default always off */
+                xso->val_config = true;
+                so_extend(&xso->set_val, so("false"));
             } break;
             case ARGX_TYPE_ENUM: {
                 xso->have_hint = false;

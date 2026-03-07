@@ -357,12 +357,31 @@ int arg_parse_argx_group(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 }
 
 int arg_parse_argx_switch(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+
     int result = 0;
-    arg_parse_add_source(argx, stream->source);
-    Argx_Switch *swE = array_itE(argx->val.sw);
-    for(Argx_Switch *sw = argx->val.sw; sw < swE; ++sw) {
-        //printff(" SETVAL %.*s : src %.*s", SO_F(sw->argx->opt), SO_F(stream->source.path));
-        arg_parse_setval_argx(sw->argx, &sw->val, stream->source, false);
+    bool on = true;
+    if(stream->is_config) {
+        /* require true/false */
+        if(so_as_yes_or_no(so, &on)) {
+            return -1;
+        }
+    } else {
+        /* try to get a value */
+        if(arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) {
+            if(so_as_yes_or_no(so, &on)) {
+                arg_stream_not_consumed(stream);
+            }
+        }
+    }
+
+
+    if(on) {
+        arg_parse_add_source(argx, stream->source);
+        Argx_Switch *swE = array_itE(argx->val.sw);
+        for(Argx_Switch *sw = argx->val.sw; sw < swE; ++sw) {
+            //printff(" SETVAL %.*s : src %.*s", SO_F(sw->argx->opt), SO_F(stream->source.path));
+            arg_parse_setval_argx(sw->argx, &sw->val, stream->source, false);
+        }
     }
     return result;
 }
@@ -523,7 +542,7 @@ int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
         case ARGX_TYPE_REST: break;
         default: {
             arg_parse_set_help_any(arg, argx);
-            if(!arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) { /* TODO ... this ALWAYS requires a value to be passed? -- not good. */
+            if(!arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) {
                 arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_VALUE, argx);
                 return -1;
             }

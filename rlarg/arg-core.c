@@ -161,6 +161,7 @@ void arg_help_argx(struct Argx *help) {
     if(!so_len(sources)) {
         so_fmt(&sources, "  not set anywhere\n");
     } else {
+        /* TODO: maybe add a: '<-- this is the last/actual source' thingy..? */
         so_extend(&sources, so("\n"));
     }
     so_print(sources);
