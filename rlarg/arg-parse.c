@@ -207,11 +207,10 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     bool done = false;
     do {
         Argx *subx = 0;
-        //printff("parse group of: %.*s", SO_F(argx->opt));
         ASSERT_ARG(argx->group_s);
         if(argx->group_s->id == ARGX_GROUP_FLAGS) {
             if(!so_splice(so, &so_split, ',')) break;
-            flagv = so("1");
+            flagv = so("1"); // TODO: this is so stupid
             if(so_at0(so_split) == '+') {
                 so_split = so_i0(so_split, 1);
             } else if(so_at0(so_split) == '-') {
@@ -343,6 +342,7 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
     ASSERT_ARG(!so_is_zero(so));
     bool flag = false;
+    //printff("FLAG OF %.*s: %.*s", SO_F(argx->opt), SO_F(so));
     if(so_as_yes_or_no(so, &flag)) {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
         return -1;
@@ -749,11 +749,35 @@ void arg_parse_setref_sources_mono(Argx *argx, Arg_Stream_Source src, size_t n) 
     }
 }
 
+void arg_parse_setref_argx_flag(Argx *argx, bool clear) {
+
+    Argx_Value_Union flag = argx->ref;
+    if(clear) {
+        if(!argx->sources) {
+            flag.b = &(bool){ false };
+            arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
+        }
+    } else {
+        arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
+    }
+
+}
+
 void arg_parse_setref_argx(Argx *argx) {
     if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
-    //printff("setref for: %.*s",SO_F(argx->opt));
     arg_parse_setval_argx(argx, &argx->ref, ARGX_SOURCE_REFVAL, false);
 }
+
+#if 0
+bool arg_parse_setref_flags_do_clear(Argx *argx) {
+
+    /* check if there are no sources in any of the associated enums */
+    bool have_sources = argx_flag_is_any_source_set(argx);
+    printff(" clear? %u",have_sources);
+    return have_sources;
+
+}
+#endif
 
 void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source src, bool argx_is_array_but_value_is_not) {
     bool single = argx_is_array_but_value_is_not;
@@ -804,34 +828,10 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
         } else {
             //printff(" v %p = r %p id %u [%.*s]",argx->val,argx->ref,argx->id,SO_F(argx->opt));
             //printff(" setref sources mono %.*s %.*s",SO_F(argx->opt),SO_F(src.path));
-            arg_parse_setref_sources_mono(argx, src, (int)(bool)(ref->any));
             switch(argx->id) {
                 default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
                 case ARGX_TYPE_FLAG: {
-#if 0
                     if(argx->val.b) *argx->val.b = *ref->b;
-#else
-                    ASSERT_ARG(argx->group_p);
-                    Argx *parent = argx->group_p->parent;
-                    ASSERT_ARG(parent);
-                    ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
-                    printff("PARSE FLAG %.*s",SO_F(argx->opt));
-                    /* check if there are no sources in any of the associated enums */
-                    bool have_sources = argx_flag_is_any_source_set(argx);
-                    /* act upon it */
-                    if(!have_sources) {
-                        printff("RESET FLAGS %.*s", SO_F(parent->opt));
-                        Argx **itE = array_itE(parent->group_s->list);
-                        for(Argx **it = parent->group_s->list; it < itE; ++it) {
-                            printff("RESET FLAG %.*s", SO_F((*it)->opt));
-                            if((*it)->val.b) *(*it)->val.b = false;
-                        }
-                    }
-                    /* now add source and set flag to true */
-                    if(argx->val.b) *argx->val.b = ref->b;
-                    //arg_parse_add_source(argx, src);
-                    arg_parse_add_source(parent, src);
-#endif
                 } break;
                 case ARGX_TYPE_COLOR: {
                     if(argx->val.c) *argx->val.c = *ref->c;
@@ -858,9 +858,10 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
                     ASSERT_ARG(parent);
                     ASSERT_ARG(parent->val.i);
                     if(parent->val.i) *parent->val.i = *ref->i;
-                    arg_parse_add_source(parent, src);
+                    //arg_parse_add_source(parent, src);
                 } break;
             }
+            arg_parse_setref_sources_mono(argx, src, (int)(bool)(ref->any));
         }
     // TODO: why did I do this below??
     //} else {
@@ -878,8 +879,21 @@ void arg_parse_setref_group(Argx_Group *group) {
         if(argx->id == ARGX_TYPE_GROUP) {
             if(!argx->group_s) continue;
             switch(argx->group_s->id) {
+                case ARGX_GROUP_FLAGS: {
+                    bool should_clear = false;
+                    if(argx->group_p) {
+                        Argx **itE = array_itE(argx->group_s->list);
+                        for(Argx **it = argx->group_s->list; it < itE; ++it) {
+                            if(!(*it)->sources) continue;
+                            should_clear = true;
+                            break;
+                        }
+                        for(Argx **it = argx->group_s->list; it < itE; ++it) {
+                            arg_parse_setref_argx_flag(*it, should_clear);
+                        }
+                    }
+                } break;
                 case ARGX_GROUP_OPTIONS:
-                case ARGX_GROUP_FLAGS:
                 case ARGX_GROUP_ROOT: {
                     arg_parse_setref_group(argx->group_s); 
                 } break;

@@ -30,6 +30,11 @@ int main(const int argc, const char **argv) {
 
     struct Argx *x, *e1, *e2, *e3, *xs, *xu;
 
+    bool f1, f2, f3;
+    VSo rest = 0;
+    VSo vec_p = 0;
+    VSo vec_v = 0;
+#if 1
     x = argx_opt(g1, 0, so("hi"), so("description"));
         //printff("p %p", x);
 
@@ -51,10 +56,6 @@ int main(const int argc, const char **argv) {
 
     int *vi = 0;
 
-    bool f1, f2, f3;
-    VSo rest = 0;
-    VSo vec_p = 0;
-    VSo vec_v = 0;
     vso_push(&vec_v, so("one"));
     vso_push(&vec_v, so("two"));
     x = argx_opt(g1, 'v', so("vso"), so("list of strings"));
@@ -87,6 +88,7 @@ int main(const int argc, const char **argv) {
         e1=argx_enum_bind(g2, 0, so("sfw"), so("safe for work"));
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
+#endif
 
     xs=argx_opt(g1, 0, so("flag-all"), so("set all flags"));
        argx_type_switch(xs);
@@ -108,6 +110,8 @@ int main(const int argc, const char **argv) {
 
     g1=argx_group(arg, so("other"));
 
+
+#if 1
     Color col = COLOR_AQUA;
 
 
@@ -176,6 +180,7 @@ int main(const int argc, const char **argv) {
 //        x =argx_enum_unique(g2, so("default"), so("default option"));
 //           argx_enum_bind(x, e1);
 //           argx_enum_bind(x, e2);
+#endif
 
     argx_builtin_rice(arg);
 
