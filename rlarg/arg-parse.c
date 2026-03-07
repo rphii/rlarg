@@ -248,68 +248,36 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 /* parsers for vector - values {{{ */
 
 int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    int result = -1;
     int v;
-    if(!so_as_int(so, &v, 0)) {
-        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .i = &v }, stream->source, true);
-        //if(argx->val.vi) array_push(*argx->val.vi, v);
-        //arg_parse_add_source(argx, stream->source);
-        //result = 0;
-    //} else {
-        //arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
-    }
+    int result = so_as_int(so, &v, 0);
+    if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .i = &v }, stream->source, true);
+    
     return result;
 }
 
 int arg_parse_argx_vsize(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    int result = -1;
     ssize_t v;
-    if(!so_as_ssize(so, &v, 0)) {
-        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .z = &v }, stream->source, true);
-        //if(argx->val.vz) array_push(*argx->val.vz, v);
-        //arg_parse_add_source(argx, stream->source);
-        //result = 0;
-    //} else {
-        //arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
-    }
+    int result = so_as_ssize(so, &v, 0);
+    if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .z = &v }, stream->source, true);
     return result;
 }
 
 int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    int result = -1;
     bool v;
-    if(!so_as_yes_or_no(so, &v)) {
-        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, true);
-        //if(argx->val.vi) array_push(*argx->val.vi, v);
-        //arg_parse_add_source(argx, stream->source);
-        result = 0;
-    //} else {
-        //arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
-    }
+    int result = so_as_yes_or_no(so, &v);
+    if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, true);
     return result;
 }
 
 int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    //if(stream->is_config) add = so_clone(so);
-    //if(argx->val.vso) {
-        //vso_push(argx->val.vso, add);
-        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .so = &so }, stream->source, true);
-    //}
-    //arg_parse_add_source(argx, stream->source);
+    arg_parse_setval_argx(argx, &(Argx_Value_Union){ .so = &so }, stream->source, true);
     return 0;
 }
 
 int arg_parse_argx_vcolor(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    int result = -1;
     Color v;
-    if(!so_as_color(so, &v)) {
-        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .c = &v }, stream->source, true);
-        //if(argx->val.vc) array_push(*argx->val.vc, v);
-        //arg_parse_add_source(argx, stream->source);
-        result = 0;
-    //} else {
-        //arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
-    }
+    int result = so_as_color(so, &v);
+    if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .c = &v }, stream->source, true);
     return result;
 }
 
@@ -321,8 +289,6 @@ int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     bool v;
     int result = so_as_yes_or_no(so, &v);
     if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, false);
-    //if(argx->val.b) *argx->val.b = v;
-    //arg_parse_add_source(argx, stream->source);
     return result;
 }
 
@@ -330,8 +296,6 @@ int arg_parse_argx_int(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int v;
     int result = so_as_int(so, &v, 0);
     if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .i = &v }, stream->source, false);
-    //if(argx->val.i) *argx->val.i = v;
-    //arg_parse_add_source(argx, stream->source);
     return result;
 }
 
@@ -339,16 +303,11 @@ int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ssize_t v;
     int result = so_as_ssize(so, &v, 0);
     if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .z = &v }, stream->source, false);
-    //if(argx->val.z) *argx->val.z = v;
-    //arg_parse_add_source(argx, stream->source);
     return result;
 }
 
 int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    //if(stream->is_config) add = so_clone(so);
     arg_parse_setval_argx(argx, &(Argx_Value_Union){ .so = &so }, stream->source, false);
-    //if(argx->val.vso) *argx->val.so = add;
-    //arg_parse_add_source(argx, stream->source);
     return 0;
 }
 
@@ -356,67 +315,29 @@ int arg_parse_argx_color(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     Color v;
     int result = so_as_color(so, &v);
     if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .c = &v }, stream->source, false);
-    //if(argx->val.z) *argx->val.c = v;
-    //arg_parse_add_source(argx, stream->source);
     return result;
 }
 
 
 int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    //ASSERT_ARG(argx->group_p);
     ASSERT_ARG(so_is_zero(so));
-    //Argx *parent = argx->group_p->parent;
-    //ASSERT_ARG(parent);
-    //ASSERT_ARG(parent->val.i);
     arg_parse_setval_argx(argx, &(Argx_Value_Union){ .i = &argx->attr.val_enum }, stream->source, false);
-    //if(parent->val.i) *parent->val.i = argx->attr.val_enum;
-    //arg_parse_add_source(argx, stream->source);
-    //arg_parse_add_source(parent, stream->source);
     return 0;
 }
 
 int arg_parse_argx_none(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    //printff("TYPE IS NONE!!! [%.*s]",SO_F(argx->opt));
-    //arg_stream_not_consumed(stream);
     return 0;
 }
 
 int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
     ASSERT_ARG(!so_is_zero(so));
-#if 1
     bool flag = false;
     if(so_as_yes_or_no(so, &flag)) {
         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
         return -1;
     }
     arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &flag }, stream->source, false);
-#else
-    ASSERT_ARG(argx->group_p);
-    Argx *parent = argx->group_p->parent;
-    ASSERT_ARG(parent);
-    ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
-    //printff("PARSE FLAG %.*s",SO_F(argx->opt));
-    /* check if there are no sources in any of the associated enums */
-    bool have_sources = argx_flag_is_any_source_set(argx);
-    /* act upon it */
-    if(!have_sources) {
-        //printff("RESET FLAGS %.*s", SO_F(parent->opt));
-        Argx **itE = array_itE(parent->group_s->list);
-        for(Argx **it = parent->group_s->list; it < itE; ++it) {
-            //printff("RESET FLAG %.*s", SO_F((*it)->opt));
-            if((*it)->val.b) *(*it)->val.b = false;
-        }
-    }
-    /* now add source and set flag to true */
-    bool flag;
-    if(so_as_yes_or_no(so, &flag)) {
-        ABORT(ERR_UNREACHABLE("always have to succeed parsing what to set the flag to"));
-    }
-    if(argx->val.b) *argx->val.b = flag;
-    arg_parse_add_source(argx, stream->source);
-    arg_parse_add_source(parent, stream->source);
-#endif
     return 0;
 }
 
