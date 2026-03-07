@@ -46,12 +46,14 @@ void argx_free(Argx *argx) {
         }
     } else {
         if(argx->id == ARGX_TYPE_SWITCH) {
+            printff("FREE SWITCH %.*s", SO_F(argx->opt));
+            printff(">>>FREED: %p",argx->val.sw);
             array_free(argx->val.sw);
         } else if(argx->id == ARGX_TYPE_GROUP) {
             argx_group_free(argx->group_s);
         }
     }
-    array_free_ext(argx->sources, arg_stream_source_free);
+    //array_free_ext(argx->sources, arg_stream_source_free);
 }
 
 void v_argx_free(V_Argx *vargs) {
@@ -361,7 +363,7 @@ bool argx_flag_is_any_source_set(Argx *argx) {
     Argx **itE = array_itE(parent->group_s->list);
     for(Argx **it = parent->group_s->list; it < itE; ++it) {
         if(!(*it)->sources) continue;
-        if(arg_stream_souces_only_contains((*it)->sources, ARGX_SOURCE_REFVAL.path)) continue;
+        //TODO:sources if(arg_stream_souces_only_contains((*it)->sources, ARGX_SOURCE_REFVAL.path)) continue;
         have_sources = true;
         break;
     }

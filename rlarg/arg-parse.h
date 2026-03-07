@@ -36,7 +36,7 @@ union Argx_Value_Union;
 struct Arg_Stream_Source;
 
 void arg_parse_setref_argx(struct Argx *argx);
-void arg_parse_setval_argx(struct Argx *argx, union Argx_Value_Union *ref, struct Arg_Stream_Source src, bool argx_is_array_but_value_is_not);
+void arg_parse_setval_argx(struct Argx *argx, union Argx_Value_Union *ref, int src, bool argx_is_array_but_value_is_not);
 int arg_parse_argx(struct Arg *arg, struct Arg_Stream *stream, struct Argx *argx, So so);
 struct Argx *arg_parse_hierarchy(struct Arg *arg, struct Arg_Stream *stream, So lhs, struct Argx_Group **root_group);
 void arg_parse_error_allow_more(struct Arg_Stream *stream);
