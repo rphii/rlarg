@@ -238,7 +238,6 @@ void argx_fmt_help(So *out, Argx *argx) {
     Arg_Rice *rice = &argx->group_p->arg->rice;
 
     Argx_So xso = {0};
-    Argx_So xsw = {0};
     argx_so(&xso, argx, false, false);
 
     ASSERT_ARG(argx->group_p);
@@ -259,9 +258,6 @@ void argx_fmt_help(So *out, Argx *argx) {
     int spacing_desc = compact_desc
         ? ARG_SPACING_DESCRIPTION_DEFAULT - len_end_hint
         : ARG_SPACING_DESCRIPTION_ALTERNATE;
-
-    size_t len_end_desc = spacing_desc + so_len_nfx(argx->desc) + 1; 
-    //int spacing_
 
     /* format the name */
     if(treat_short_spacing) {

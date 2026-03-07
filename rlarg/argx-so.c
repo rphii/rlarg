@@ -79,7 +79,7 @@ void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, i
             so_fmt_fx(out, rice->val_delim, 0, "\"");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ",");
         }
-        so_fmt(out, "\n%*s", spacing[1], "");
+        if(vE > *val->vso) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
@@ -95,7 +95,7 @@ void argx_so_type_array_int(So *out, Arg_Rice *rice, Argx_Value_Union *val, int 
             so_fmt_fx(out, rice->val, 0, "%d", *v);
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
-        so_fmt(out, "\n%*s", spacing[1], "");
+        if(vE > *val->vi) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
@@ -111,7 +111,7 @@ void argx_so_type_array_size(So *out, Arg_Rice *rice, Argx_Value_Union *val, int
             so_fmt_fx(out, rice->val, 0, "%zi", *v);
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
-        so_fmt(out, "\n%*s", spacing[1], "");
+        if(vE > *val->vz) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
@@ -127,7 +127,7 @@ void argx_so_type_array_bool(So *out, Arg_Rice *rice, Argx_Value_Union *val, int
             so_fmt_fx(out, rice->val, 0, "%s", *v ? "true" : "false");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
-        so_fmt(out, "\n%*s", spacing[1], "");
+        if(vE > *val->vb) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
@@ -144,7 +144,7 @@ void argx_so_type_array_color(So *out, Arg_Rice *rice, Argx_Value_Union *val, in
             else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX|SO_COLOR_PAREN|SO_COLOR_NOFX);
             so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
-        so_fmt(out, "\n%*s", spacing[1], "");
+        if(vE > *val->vc) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
