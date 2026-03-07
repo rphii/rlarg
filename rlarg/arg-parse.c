@@ -768,16 +768,6 @@ void arg_parse_setref_argx(Argx *argx) {
     arg_parse_setval_argx(argx, &argx->ref, ARGX_SOURCE_REFVAL, false);
 }
 
-#if 0
-bool arg_parse_setref_flags_do_clear(Argx *argx) {
-
-    /* check if there are no sources in any of the associated enums */
-    bool have_sources = argx_flag_is_any_source_set(argx);
-    printff(" clear? %u",have_sources);
-    return have_sources;
-
-}
-#endif
 
 void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source src, bool argx_is_array_but_value_is_not) {
     bool single = argx_is_array_but_value_is_not;
@@ -858,7 +848,7 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
                     ASSERT_ARG(parent);
                     ASSERT_ARG(parent->val.i);
                     if(parent->val.i) *parent->val.i = *ref->i;
-                    //arg_parse_add_source(parent, src);
+                    arg_parse_add_source(parent, src);
                 } break;
             }
             arg_parse_setref_sources_mono(argx, src, (int)(bool)(ref->any));

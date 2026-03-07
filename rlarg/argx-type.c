@@ -171,6 +171,7 @@ struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref) {
     NEW(Argx_Group, argx->group_s);
     Argx_Group *group = argx->group_s;
     *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_ENUM, argx);
+    argx->hint.id = ARGX_HINT_OPTIONAL;
     return group;
 }
 
