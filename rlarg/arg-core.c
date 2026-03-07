@@ -74,12 +74,41 @@ void arg_help_argx_group(struct Argx_Group *group) {
     so_free(&out);
 }
 
+void arg_help_fmt_sources(So *out, Argx *argx) {
+
+    size_t len = array_len(argx->sources);
+    if(len) {
+        for(size_t i = 0; i < len; ++i) {
+            Arg_Stream_Source src = array_at(argx->sources, i);
+            switch(src.id) {
+                case ARG_STREAM_SOURCE_CONFIG:
+                    so_fmt(out, "  %.*s:%u%s", SO_F(src.path), src.number, i + 1 < len ? ",\n" : "");
+                    break;
+                case ARG_STREAM_SOURCE_STDIN:
+                    so_fmt(out, "  stdin@%u%s", src.number, i + 1 < len ? ",\n" : "");
+                    break;
+                case ARG_STREAM_SOURCE_ENVVARS:
+                    so_fmt(out, "  envvars%s", i + 1 < len ? ",\n" : "");
+                    break;
+                case ARG_STREAM_SOURCE_REFVAL:
+                    so_fmt(out, "  refval%s", i + 1 < len ? ",\n" : "");
+                    break;
+                default: break;
+            }
+        }
+    }
+
+}
+
 void arg_help_argx(struct Argx *help) {
     So out = SO;
+    So sources = SO;
     Argx_So xso = {0};
     ASSERT_ARG(help->group_p);
     ASSERT_ARG(help->group_p->arg);
     Arg_Rice *rice = &help->group_p->arg->rice;
+
+    so_fmt(&sources, "\nsources:\n");
 
     argx_so(&xso, help, false, false);
     so_fmt(&out, "%.*s", SO_F(xso.hierarchy));
@@ -95,13 +124,17 @@ void arg_help_argx(struct Argx *help) {
         Argx **itE = array_itE(help->group_s->list);
         for(Argx **it = help->group_s->list; it < itE; ++it) {
             argx_fmt_help(&out, *it);
+            arg_help_fmt_sources(&sources, *it);
+            if(so_len(sources) && it + 1 < itE) so_extend(&sources, so(",\n"));
         }
+    } else {
+        arg_help_fmt_sources(&sources, help);
     }
     if(help->id == ARGX_TYPE_SWITCH) {
         So tmp_hier_val = SO;
-        Argx_Switch *swE = array_itE(help->val.sw);
         so_fmt(&out, "\n");
         so_fmt_fx(&out, rice->sw_delim, 0, "  will set:\n");
+        Argx_Switch *swE = array_itE(help->val.sw);
         for(Argx_Switch *sw = help->val.sw; sw < swE; ++sw) {
 #if 0
             argx_fmt_help(&out, sw->argx);
@@ -124,34 +157,18 @@ void arg_help_argx(struct Argx *help) {
         so_free(&tmp_hier_val);
     }
 
-
-    size_t len = array_len(help->sources);
-    if(len) {
-        so_fmt(&out, "\nsources:\n");
-        for(size_t i = 0; i < len; ++i) {
-            Arg_Stream_Source src = array_at(help->sources, i);
-            switch(src.id) {
-                case ARG_STREAM_SOURCE_CONFIG:
-                    so_fmt(&out, "  %.*s:%u%s\n", SO_F(src.path), src.number, i + 1 < len ? "," : "");
-                    break;
-                case ARG_STREAM_SOURCE_STDIN:
-                    so_fmt(&out, "  stdin@%u%s\n", src.number, i + 1 < len ? "," : "");
-                    break;
-                case ARG_STREAM_SOURCE_ENVVARS:
-                    so_fmt(&out, "  envvars%s\n", i + 1 < len ? "," : "");
-                    break;
-                case ARG_STREAM_SOURCE_REFVAL:
-                    so_fmt(&out, "  refval%s\n", i + 1 < len ? "," : "");
-                    break;
-                default: break;
-            }
-        }
-    } else {
-        so_fmt(&out, "\nnot set anywhere\n");
-    }
-
     so_print(out);
+
+    if(!so_len(sources)) {
+        so_fmt(&sources, "\nnot set anywhere\n");
+    } else {
+        so_extend(&sources, so("\n"));
+    }
+    so_print(sources);
+    so_println(SO);
+
     so_free(&out);
+    so_free(&sources);
 }
 
 void arg_enable_config_print(struct Arg *arg, bool enable) {
