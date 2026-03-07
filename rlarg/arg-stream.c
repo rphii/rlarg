@@ -72,6 +72,7 @@ bool arg_stream_get_next(Arg_Stream *stream, So *val, bool *compgen_flags) {
 
 bool arg_stream_advance(Arg_Stream *stream) {
     size_t len = array_len(stream->vso);
+    bool next_i = false;
     if(stream->carg.str && !stream->not_consumed && stream->i < len) {
         So carg = array_at(stream->vso, stream->i);
         if(stream->carg.str == carg.str) {
@@ -80,12 +81,18 @@ bool arg_stream_advance(Arg_Stream *stream) {
                 stream->i_split = stream->carg.len + 1;
             } else {
                 /* full-length token found, e.g. --help */
-                ++stream->i;
+                next_i = true;
             }
         } else {
             /* other side of split, --val=THIS-SIDE */
             stream->i_split = 0;
-            ++stream->i;
+            next_i = true;
+        }
+    }
+    if(next_i) {
+        ++stream->i;
+        if(stream->source.id == ARG_STREAM_SOURCE_STDIN) {
+            ++stream->source.number;
         }
     }
     //printff("i %u < len %zu / not consumed %u", stream->i, len, stream->not_consumed);
