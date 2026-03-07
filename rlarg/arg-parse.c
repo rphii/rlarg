@@ -85,14 +85,21 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
         }
         if(!arg->builtin.compgen) {
-            //TODO:source
-#if 0
-            if(stream->source.line_number) {
-                fprintf(stderr, FF(nc, "%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.line_number);
-            } else {
-                fprintf(stderr, FF(nc, "%.*s: ", FG_MG_B BOLD), SO_F(stream->source.path));
+            switch(stream->source.id) {
+                default: break;
+                case ARG_STREAM_SOURCE_CONFIG: {
+                    fprintf(stderr, FF(nc, "%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.number);
+                } break;
+                case ARG_STREAM_SOURCE_STDIN: {
+                    fprintf(stderr, FF(nc, "stdin@%u: ", FG_MG_B BOLD), stream->source.number);
+                } break;
+                case ARG_STREAM_SOURCE_REFVAL: {
+                    fprintf(stderr, FF(nc, "refval", FG_MG_B BOLD));
+                } break;
+                case ARG_STREAM_SOURCE_ENVVARS: {
+                    fprintf(stderr, FF(nc, "envvars", FG_MG_B BOLD));
+                } break;
             }
-#endif
             switch(id) {
                 case ARG_PARSE_ERROR_UNCONFIGURABLE: {
                     fprintf(stderr, FF(nc, "Cannot configure: '%.*s', tried setting to: '%.*s'", FG_RD_B BOLD), SO_F(argx->opt), SO_F(stream->carg));
@@ -183,14 +190,12 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
 /* error messages }}} */
 
 void arg_parse_add_source(struct Argx *argx, Arg_Stream_Source source) {
-#if 0
-    if(source.line_number) {
+    if(source.id == ARG_STREAM_SOURCE_CONFIG) {
         source.path = so_clone(source.path);
         array_push(argx->sources, source);
     } else {
         array_push(argx->sources, source);
     }
-#endif
 }
 
 /* coarse parsers {{{ */
@@ -353,7 +358,7 @@ int arg_parse_argx_group(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 
 int arg_parse_argx_switch(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
-    //TODO:source arg_parse_add_source(argx, stream->source);
+    arg_parse_add_source(argx, stream->source);
     Argx_Switch *swE = array_itE(argx->val.sw);
     for(Argx_Switch *sw = argx->val.sw; sw < swE; ++sw) {
         //printff(" SETVAL %.*s : src %.*s", SO_F(sw->argx->opt), SO_F(stream->source.path));
@@ -746,13 +751,13 @@ void arg_parse_setref_sources_mono(Argx *argx, Arg_Stream_Source src, size_t n) 
 
 void arg_parse_setref_argx(Argx *argx) {
     if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
-    printff("setref for: %.*s",SO_F(argx->opt));
+    //printff("setref for: %.*s",SO_F(argx->opt));
     arg_parse_setval_argx(argx, &argx->ref, ARGX_SOURCE_REFVAL, false);
 }
 
 void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source src, bool argx_is_array_but_value_is_not) {
     bool single = argx_is_array_but_value_is_not;
-    printff("setval for: %.*s",SO_F(argx->opt));
+    //printff("setval for: %.*s",SO_F(argx->opt));
     if(ref && ref->any) {
         if(argx->attr.is_array) {
             switch(argx->id) {
@@ -810,15 +815,15 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
                     Argx *parent = argx->group_p->parent;
                     ASSERT_ARG(parent);
                     ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
-                    //printff("PARSE FLAG %.*s",SO_F(argx->opt));
+                    printff("PARSE FLAG %.*s",SO_F(argx->opt));
                     /* check if there are no sources in any of the associated enums */
                     bool have_sources = argx_flag_is_any_source_set(argx);
                     /* act upon it */
                     if(!have_sources) {
-                        //printff("RESET FLAGS %.*s", SO_F(parent->opt));
+                        printff("RESET FLAGS %.*s", SO_F(parent->opt));
                         Argx **itE = array_itE(parent->group_s->list);
                         for(Argx **it = parent->group_s->list; it < itE; ++it) {
-                            //printff("RESET FLAG %.*s", SO_F((*it)->opt));
+                            printff("RESET FLAG %.*s", SO_F((*it)->opt));
                             if((*it)->val.b) *(*it)->val.b = false;
                         }
                     }
@@ -857,8 +862,9 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
                 } break;
             }
         }
-    } else {
-        argx->val.any = 0;
+    // TODO: why did I do this below??
+    //} else {
+        //argx->val.any = 0;
     }
 }
 
@@ -970,7 +976,7 @@ void arg_parse_help(Arg *arg) {
             arg->builtin.nocolor = true;
         }
         Arg_Stream stream_help = {
-            //TODO:source .source = { .path = so("help") },
+            .source.id = ARG_STREAM_SOURCE_HELP,
             .is_help_lookup = true,
         };
 

@@ -208,7 +208,6 @@ void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool *value) 
         .val.b = value,
     };
     array_push(switch_argx->val.sw, sw);
-    printff(">>>ALLOCD: %p",switch_argx->val.sw);
 }
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {

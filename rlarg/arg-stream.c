@@ -2,12 +2,12 @@
 #include "../rlarg.h"
 #include "arg-stream.h"
 
-#if 0
-bool arg_stream_souces_only_contains(Arg_Stream_Source *sources, So cmp) {
+#if 1
+bool arg_stream_souces_only_contains(Arg_Stream_Source *sources, Arg_Stream_Source_List id) {
     Arg_Stream_Source *itE = array_itE(sources);
     bool result = false;
     for(Arg_Stream_Source *it = sources; it < itE; ++it) {
-        result = (!it->line_number && !so_cmp(it->path, cmp));
+        result = (it->id != id);
     }
     return result;
 }
@@ -18,9 +18,11 @@ void arg_stream_free(Arg_Stream *stream) {
     memset(stream, 0, sizeof(*stream));
 }
 
-#if 0
+#if 1
 void arg_stream_source_free(Arg_Stream_Source *source) {
-    so_free(&source->path);
+    if(source->id == ARG_STREAM_SOURCE_CONFIG) {
+        so_free(&source->path);
+    }
 }
 #endif
 

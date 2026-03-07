@@ -12,17 +12,23 @@
  *  toml? (configuration file)
  */
 
-#if 0
+typedef enum {
+    ARG_STREAM_SOURCE_NONE,
+    ARG_STREAM_SOURCE_STDIN,
+    ARG_STREAM_SOURCE_REFVAL,
+    ARG_STREAM_SOURCE_CONFIG,
+    ARG_STREAM_SOURCE_ENVVARS,
+    ARG_STREAM_SOURCE_HELP,
+} Arg_Stream_Source_List;
+
 typedef struct Arg_Stream_Source {
     So path;
-    int line_number;
+    int number;
+    Arg_Stream_Source_List id;
 } Arg_Stream_Source;
-#endif
 
-//bool arg_stream_souces_only_contains(Arg_Stream_Source *sources, So cmp);
 
-#define Arg_Stream_Source   int
-//typedef int Arg_Stream_Source;
+bool arg_stream_souces_only_contains(Arg_Stream_Source *sources, Arg_Stream_Source_List id);
 
 typedef struct Arg_Stream {
     VSo vso;
@@ -33,12 +39,12 @@ typedef struct Arg_Stream {
     bool is_help_lookup;
     struct Argx *rest;      /* pointer to an argx of type ARGX_TYPE_REST */
     So carg;
-    int source;
-    Arg_Stream_Source error_id;
+    Arg_Stream_Source source;
+    Arg_Parse_Error_List error_id;
 } Arg_Stream;
 
 void arg_stream_free(Arg_Stream *stream);
-//void arg_stream_source_free(Arg_Stream_Source *source);
+void arg_stream_source_free(Arg_Stream_Source *source);
 void arg_stream_clear(Arg_Stream *stream);
 
 void arg_stream_from_stdin(Arg_Stream *stream, const int argc, const char **argv);

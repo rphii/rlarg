@@ -12,7 +12,7 @@
 #define ARGX_SHORT_MAX      ('~')
 #define ARGX_SHORT_COUNT    (ARGX_SHORT_MAX - ARGX_SHORT_MIN)
 
-typedef int Arg_Stream_Source;
+typedef struct Arg_Stream_Source Arg_Stream_Source;
 
 typedef enum {
     ARGX_TYPE_NONE,
@@ -52,10 +52,11 @@ typedef union Argx_Value_Union {
 #define ARGX_SOURCE_ENVVARS (Arg_Stream_Source){ .path = so("envvars") }
 #define ARGX_SOURCE_NONE    (Arg_Stream_Source){ .path = so("none") }
 #else
-#define ARGX_SOURCE_REFVAL  0
-#define ARGX_SOURCE_STDIN   0
-#define ARGX_SOURCE_ENVVARS 0
-#define ARGX_SOURCE_NONE    0
+#define ARGX_SOURCE_NONE    (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_NONE }
+#define ARGX_SOURCE_STDIN   (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_STDIN }
+#define ARGX_SOURCE_REFVAL  (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_REFVAL }
+#define ARGX_SOURCE_SOURCE  (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_SOURCE }
+#define ARGX_SOURCE_ENVVARS (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_ENVVARS }
 #endif
 
 typedef struct Argx_Switch {
