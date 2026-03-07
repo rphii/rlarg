@@ -108,8 +108,6 @@ void arg_help_argx(struct Argx *help) {
     ASSERT_ARG(help->group_p->arg);
     Arg_Rice *rice = &help->group_p->arg->rice;
 
-    so_fmt(&sources, "\nsources:\n");
-
     argx_so(&xso, help, false, false);
     so_fmt(&out, "%.*s", SO_F(xso.hierarchy));
     so_fmt_fx(&out, rice->group, 0, "%.*s", SO_F(xso.argx->opt));
@@ -157,10 +155,11 @@ void arg_help_argx(struct Argx *help) {
         so_free(&tmp_hier_val);
     }
 
+    so_fmt(&out, "\nsources:\n");
     so_print(out);
 
     if(!so_len(sources)) {
-        so_fmt(&sources, "\nnot set anywhere\n");
+        so_fmt(&sources, "  not set anywhere\n");
     } else {
         so_extend(&sources, so("\n"));
     }
