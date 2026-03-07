@@ -16,9 +16,14 @@ Argument parser for C.
 - supports `bool`, `int`, `ssize_t`, `So` (string), `Color`, `enum`, `flags` (toggle), `group` (sub-options)
 - supports arrays: `bool`, `int`, `ssize_t`, `So`, `Color`
 - supports catch-all via: `rest` (array of `So`)
+- supports switch/macro via: `switch` (parse other options with pre-defined values; e.g. turn all flags on/off)
 - disables all colors when piping (`isatty() == 0`)
 - readable errors, I paid attention to short but descriptive messages
 - tracks where values get set (stdin, config file + line, reference value, ...)
+
+**Switches**
+
+- `argx_switch_flag`
 
 **Builtin**
 
