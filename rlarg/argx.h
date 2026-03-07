@@ -46,9 +46,9 @@ typedef union Argx_Value_Union {
     struct Argx_Switch *sw;
 } Argx_Value_Union;
 
-#define ARGX_SOURCE_REFVAL  so("refval")
-#define ARGX_SOURCE_STDIN   so("stdin")
-#define ARGX_SOURCE_ENVVARS so("envvars")
+#define ARGX_SOURCE_REFVAL  (Arg_Stream_Source){ .path = so("refval") }
+#define ARGX_SOURCE_STDIN   (Arg_Stream_Source){ .path = so("stdin") }
+#define ARGX_SOURCE_ENVVARS (Arg_Stream_Source){ .path = so("envvars") }
 
 typedef struct Argx_Switch {
     struct Argx *argx;

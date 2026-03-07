@@ -251,11 +251,12 @@ int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) 
     int result = -1;
     int v;
     if(!so_as_int(so, &v, 0)) {
-        if(argx->val.vi) array_push(*argx->val.vi, v);
-        arg_parse_add_source(argx, stream->source);
-        result = 0;
-    } else {
-        arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
+        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .i = &v }, stream->source, true);
+        //if(argx->val.vi) array_push(*argx->val.vi, v);
+        //arg_parse_add_source(argx, stream->source);
+        //result = 0;
+    //} else {
+        //arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
     }
     return result;
 }
@@ -264,11 +265,12 @@ int arg_parse_argx_vsize(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     int result = -1;
     ssize_t v;
     if(!so_as_ssize(so, &v, 0)) {
-        if(argx->val.vz) array_push(*argx->val.vz, v);
-        arg_parse_add_source(argx, stream->source);
-        result = 0;
-    } else {
-        arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
+        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .z = &v }, stream->source, true);
+        //if(argx->val.vz) array_push(*argx->val.vz, v);
+        //arg_parse_add_source(argx, stream->source);
+        //result = 0;
+    //} else {
+        //arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
     }
     return result;
 }
@@ -277,33 +279,36 @@ int arg_parse_argx_vbool(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so)
     int result = -1;
     bool v;
     if(!so_as_yes_or_no(so, &v)) {
-        if(argx->val.vi) array_push(*argx->val.vi, v);
-        arg_parse_add_source(argx, stream->source);
+        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, true);
+        //if(argx->val.vi) array_push(*argx->val.vi, v);
+        //arg_parse_add_source(argx, stream->source);
         result = 0;
-    } else {
-        arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
+    //} else {
+        //arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
     }
     return result;
 }
 
 int arg_parse_argx_vso(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    int result = 0;
-    So add = so;
     //if(stream->is_config) add = so_clone(so);
-    if(argx->val.vso) vso_push(argx->val.vso, add);
-    arg_parse_add_source(argx, stream->source);
-    return result;
+    //if(argx->val.vso) {
+        //vso_push(argx->val.vso, add);
+        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .so = &so }, stream->source, true);
+    //}
+    //arg_parse_add_source(argx, stream->source);
+    return 0;
 }
 
 int arg_parse_argx_vcolor(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = -1;
     Color v;
     if(!so_as_color(so, &v)) {
-        if(argx->val.vc) array_push(*argx->val.vc, v);
-        arg_parse_add_source(argx, stream->source);
+        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .c = &v }, stream->source, true);
+        //if(argx->val.vc) array_push(*argx->val.vc, v);
+        //arg_parse_add_source(argx, stream->source);
         result = 0;
-    } else {
-        arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
+    //} else {
+        //arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
     }
     return result;
 }
@@ -315,53 +320,58 @@ int arg_parse_argx_vcolor(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so
 int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     bool v;
     int result = so_as_yes_or_no(so, &v);
-    if(argx->val.b) *argx->val.b = v;
-    arg_parse_add_source(argx, stream->source);
+    if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, false);
+    //if(argx->val.b) *argx->val.b = v;
+    //arg_parse_add_source(argx, stream->source);
     return result;
 }
 
 int arg_parse_argx_int(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int v;
     int result = so_as_int(so, &v, 0);
-    if(argx->val.i) *argx->val.i = v;
-    arg_parse_add_source(argx, stream->source);
+    if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .i = &v }, stream->source, false);
+    //if(argx->val.i) *argx->val.i = v;
+    //arg_parse_add_source(argx, stream->source);
     return result;
 }
 
 int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ssize_t v;
     int result = so_as_ssize(so, &v, 0);
-    if(argx->val.z) *argx->val.z = v;
-    arg_parse_add_source(argx, stream->source);
+    if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .z = &v }, stream->source, false);
+    //if(argx->val.z) *argx->val.z = v;
+    //arg_parse_add_source(argx, stream->source);
     return result;
 }
 
 int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    So add = so;
     //if(stream->is_config) add = so_clone(so);
-    if(argx->val.vso) *argx->val.so = add;
-    arg_parse_add_source(argx, stream->source);
+    arg_parse_setval_argx(argx, &(Argx_Value_Union){ .so = &so }, stream->source, false);
+    //if(argx->val.vso) *argx->val.so = add;
+    //arg_parse_add_source(argx, stream->source);
     return 0;
 }
 
 int arg_parse_argx_color(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     Color v;
     int result = so_as_color(so, &v);
-    if(argx->val.z) *argx->val.c = v;
-    arg_parse_add_source(argx, stream->source);
+    if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .c = &v }, stream->source, false);
+    //if(argx->val.z) *argx->val.c = v;
+    //arg_parse_add_source(argx, stream->source);
     return result;
 }
 
 
 int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    ASSERT_ARG(argx->group_p);
-    ASSERT_ARG(!so.str);
-    Argx *parent = argx->group_p->parent;
-    ASSERT_ARG(parent);
-    ASSERT_ARG(parent->val.i);
-    if(parent->val.i) *parent->val.i = argx->attr.val_enum;
-    arg_parse_add_source(argx, stream->source);
-    arg_parse_add_source(parent, stream->source);
+    //ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(so_is_zero(so));
+    //Argx *parent = argx->group_p->parent;
+    //ASSERT_ARG(parent);
+    //ASSERT_ARG(parent->val.i);
+    arg_parse_setval_argx(argx, &(Argx_Value_Union){ .i = &argx->attr.val_enum }, stream->source, false);
+    //if(parent->val.i) *parent->val.i = argx->attr.val_enum;
+    //arg_parse_add_source(argx, stream->source);
+    //arg_parse_add_source(parent, stream->source);
     return 0;
 }
 
@@ -373,8 +383,16 @@ int arg_parse_argx_none(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 
 int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
+    ASSERT_ARG(!so_is_zero(so));
+#if 1
+    bool flag = false;
+    if(so_as_yes_or_no(so, &flag)) {
+        arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
+        return -1;
+    }
+    arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &flag }, stream->source, false);
+#else
     ASSERT_ARG(argx->group_p);
-    ASSERT_ARG(so.str);
     Argx *parent = argx->group_p->parent;
     ASSERT_ARG(parent);
     ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
@@ -398,6 +416,7 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(argx->val.b) *argx->val.b = flag;
     arg_parse_add_source(argx, stream->source);
     arg_parse_add_source(parent, stream->source);
+#endif
     return 0;
 }
 
@@ -409,6 +428,11 @@ int arg_parse_argx_group(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 int arg_parse_argx_switch(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     int result = 0;
     arg_parse_add_source(argx, stream->source);
+    Argx_Switch *swE = array_itE(argx->val.sw);
+    for(Argx_Switch *sw = argx->val.sw; sw < swE; ++sw) {
+        printff(" SETVAL %.*s : src %.*s", SO_F(sw->argx->opt), SO_F(stream->source.path));
+        arg_parse_setval_argx(sw->argx, &sw->val, stream->source, false);
+    }
     return result;
 }
 
@@ -520,6 +544,9 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             Arg_Parse_Argx_Vector_Callback vcb = static_parse_argx_vector_cbs[argx->id];
             ASSERT_ARG(vcb);
             result = vcb(arg, stream, argx, so, cb);
+            if(result) {
+                arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
+            }
         }
     } else {
         if(argx->sources) {
@@ -785,34 +812,55 @@ error_but_maybe_get_env_help:
 
 /* set reference value {{{ */
 
-void arg_parse_setref_sources_mono(Argx *argx, So src, size_t n) {
+void arg_parse_setref_sources_mono(Argx *argx, Arg_Stream_Source src, size_t n) {
     for(size_t i = 0; i < n; ++i) {
-        Arg_Stream_Source source = { .path = src };
-        arg_parse_add_source(argx, source);
+        arg_parse_add_source(argx, src);
     }
 }
 
 void arg_parse_setref_argx(Argx *argx) {
     if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
-    if(argx->ref.any) {
+    printff("setref for: %.*s",SO_F(argx->opt));
+    arg_parse_setval_argx(argx, &argx->ref, ARGX_SOURCE_REFVAL, false);
+}
+
+void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source src, bool argx_is_array_but_value_is_not) {
+    bool single = argx_is_array_but_value_is_not;
+    printff("setval for: %.*s",SO_F(argx->opt));
+    if(ref && ref->any) {
         if(argx->attr.is_array) {
             switch(argx->id) {
                 default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
                 case ARGX_TYPE_BOOL: {
-                    if(argx->val.vb) array_extend(*argx->val.vb, *argx->ref.vb);
+                    if(argx->val.vb) {
+                        if(!single) array_extend(*argx->val.vb, *ref->vb);
+                        else array_push(*argx->val.vb, *ref->b);
+                    }
                 } break;
                 case ARGX_TYPE_COLOR: {
-                    if(argx->val.vc) array_extend(*argx->val.vc, *argx->ref.vc);
+                    if(argx->val.vc) {
+                        if(!single) array_extend(*argx->val.vc, *ref->vc);
+                        else array_push(*argx->val.vc, *ref->c);
+                    }
                 } break;
                 case ARGX_TYPE_URI:
                 case ARGX_TYPE_STRING: {
-                    if(argx->val.vso) array_extend(*argx->val.vso, *argx->ref.vso);
+                    if(argx->val.vso) {
+                        if(!single) array_extend(*argx->val.vso, *ref->vso);
+                        else array_push(*argx->val.vso, *ref->so);
+                    }
                 } break;
                 case ARGX_TYPE_INT: {
-                    if(argx->val.vi) array_extend(*argx->val.vi, *argx->ref.vi);
+                    if(argx->val.vi) {
+                        if(!single) array_extend(*argx->val.vi, *ref->vi);
+                        else array_push(*argx->val.vi, *ref->i);
+                    }
                 } break;
                 case ARGX_TYPE_SIZE: {
-                    if(argx->val.vz) array_extend(*argx->val.vz, *argx->ref.vz);
+                    if(argx->val.vz) {
+                        if(!single) array_extend(*argx->val.vz, *ref->vz);
+                        else array_push(*argx->val.vz, *ref->z);
+                    }
                 } break;
                 case ARGX_TYPE_NONE: break;
                 case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
@@ -820,44 +868,66 @@ void arg_parse_setref_argx(Argx *argx) {
                 case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("case is handled separately"));
                 case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
-            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, array_len(*argx->ref.vb));
+            if(!single) arg_parse_setref_sources_mono(argx, src, array_len(*ref->vb));
+            else arg_parse_setref_sources_mono(argx, src, 1);
         } else {
             //printff(" v %p = r %p id %u [%.*s]",argx->val,argx->ref,argx->id,SO_F(argx->opt));
-            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_REFVAL, (int)(bool)(argx->ref.any));
+            printff(" setref sources mono %.*s %.*s",SO_F(argx->opt),SO_F(src.path));
+            arg_parse_setref_sources_mono(argx, src, (int)(bool)(ref->any));
             switch(argx->id) {
                 default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
                 case ARGX_TYPE_FLAG: {
-                    bool have_sources = argx_flag_is_any_source_set(argx);
-                    //printff("FLAG->HAVE SOURCE %u",have_sources);
-                    if(have_sources) break;
-                    /* check parent sources as well */
+#if 0
+                    if(argx->val.b) *argx->val.b = *ref->b;
+#else
                     ASSERT_ARG(argx->group_p);
                     Argx *parent = argx->group_p->parent;
                     ASSERT_ARG(parent);
-                    //if(!parent->sources) {
-                        if(argx->val.b) *argx->val.b = *argx->ref.b;
-                    //}
+                    ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
+                    //printff("PARSE FLAG %.*s",SO_F(argx->opt));
+                    /* check if there are no sources in any of the associated enums */
+                    bool have_sources = argx_flag_is_any_source_set(argx);
+                    /* act upon it */
+                    if(!have_sources) {
+                        //printff("RESET FLAGS %.*s", SO_F(parent->opt));
+                        Argx **itE = array_itE(parent->group_s->list);
+                        for(Argx **it = parent->group_s->list; it < itE; ++it) {
+                            //printff("RESET FLAG %.*s", SO_F((*it)->opt));
+                            if((*it)->val.b) *(*it)->val.b = false;
+                        }
+                    }
+                    /* now add source and set flag to true */
+                    if(argx->val.b) *argx->val.b = ref->b;
+                    arg_parse_add_source(argx, src);
+                    arg_parse_add_source(parent, src);
+#endif
                 } break;
                 case ARGX_TYPE_COLOR: {
-                    if(argx->val.c) *argx->val.c = *argx->ref.c;
+                    if(argx->val.c) *argx->val.c = *ref->c;
                 } break;
                 case ARGX_TYPE_BOOL: {
-                    if(argx->val.b) *argx->val.b = *argx->ref.b;
+                    if(argx->val.b) *argx->val.b = *ref->b;
                 } break;
                 case ARGX_TYPE_URI:
                 case ARGX_TYPE_STRING: {
-                    if(argx->val.so) *argx->val.so = *argx->ref.so;
+                    if(argx->val.so) *argx->val.so = *ref->so;
                 } break;
                 case ARGX_TYPE_INT: {
-                    if(argx->val.i) *argx->val.i = *argx->ref.i;
+                    if(argx->val.i) *argx->val.i = *ref->i;
                 } break;
                 case ARGX_TYPE_SIZE: {
-                    if(argx->val.z) *argx->val.z = *argx->ref.z;
+                    if(argx->val.z) *argx->val.z = *ref->z;
                 } break;
                 case ARGX_TYPE_NONE: break;
                 case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
                 case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
-                case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("case is handled separately"));
+                case ARGX_TYPE_ENUM: {
+                    ASSERT_ARG(argx->group_p);
+                    Argx *parent = argx->group_p->parent;
+                    ASSERT_ARG(parent);
+                    ASSERT_ARG(parent->val.i);
+                    if(parent->val.i) *parent->val.i = *ref->i;
+                } break;
             }
         }
     } else {
@@ -909,7 +979,7 @@ int arg_parse_environment(struct Arg *arg) {
     Argx **itE = array_itE(arg->env.list);
     So env = SO, carg = SO;
     Arg_Stream stream_env = {
-        .source.path = ARGX_SOURCE_ENVVARS,
+        .source = ARGX_SOURCE_ENVVARS,
     };
     for(Argx **it = arg->env.list; it < itE && !status; ++it) {
         so_env_get(&env, (*it)->opt);
@@ -927,7 +997,7 @@ int arg_parse_environment(struct Arg *arg) {
 int arg_parse_stdin(struct Arg *arg, const int argc, const char **argv) {
     int status = 0;
     /* parse stdin */
-    arg->stream_in.source.path = ARGX_SOURCE_STDIN,
+    arg->stream_in.source = ARGX_SOURCE_STDIN,
     arg_stream_from_stdin(&arg->stream_in, argc, argv);
     status = arg_parse_stream(arg, &arg->stream_in);
     /* check if there are missing positional values */

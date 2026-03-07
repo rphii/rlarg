@@ -361,7 +361,7 @@ bool argx_flag_is_any_source_set(Argx *argx) {
     Argx **itE = array_itE(parent->group_s->list);
     for(Argx **it = parent->group_s->list; it < itE; ++it) {
         if(!(*it)->sources) continue;
-        if(arg_stream_souces_only_contains((*it)->sources, ARGX_SOURCE_REFVAL)) continue;
+        if(arg_stream_souces_only_contains((*it)->sources, ARGX_SOURCE_REFVAL.path)) continue;
         have_sources = true;
         break;
     }

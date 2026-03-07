@@ -28,7 +28,7 @@ int main(const int argc, const char **argv) {
     //argx_builtin_opt_source(g1, so("$HOME/.config/rphiic/colors.conf"));
     argx_builtin_opt_source(g1, so("all.conf"));
 
-    struct Argx *x, *e1, *e2, *e3, *xs;
+    struct Argx *x, *e1, *e2, *e3, *xs, *xu;
 
     x = argx_opt(g1, 0, so("hi"), so("description"));
         //printff("p %p", x);
@@ -88,17 +88,22 @@ int main(const int argc, const char **argv) {
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
 
-    xs=argx_opt(g1, 0, so("flag-all"), so("test short 2"));
+    xs=argx_opt(g1, 0, so("flag-all"), so("set all flags"));
        argx_type_switch(xs);
+    xu=argx_opt(g1, 0, so("flag-none"), so("unset all flags"));
+       argx_type_switch(xu);
 
     x=argx_opt(g1, 0, so("flag"), so("some flags"));
       g2=argx_group_flags(x);
         e1=argx_flag(g2, &f1, &(bool){true}, so("sfw"), so("safe for work"));
            argx_switch_flag(xs, e1, &(bool){true});
+           argx_switch_flag(xu, e1, &(bool){false});
         e2=argx_flag(g2, &f2, &(bool){false}, so("nsfw"), so("not safe for work"));
            argx_switch_flag(xs, e2, &(bool){true});
+           argx_switch_flag(xu, e2, &(bool){false});
         e3=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));
            argx_switch_flag(xs, e3, &(bool){true});
+           argx_switch_flag(xu, e3, &(bool){false});
 
 
     g1=argx_group(arg, so("other"));

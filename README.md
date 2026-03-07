@@ -268,8 +268,8 @@ vint = [ file("single int"), file("single int 2") ]
     - `static_parse_argx_single_cbs`
     - `static_parse_argx_vector_vals_cbs`
     - `static_parse_argx_vector_cbs`
-4. [`arg-parse.c`](rlarg/arg-parse.c) fix setref support: (expand switches)
-    - `arg_parse_setref_argx`
+4. [`arg-parse.c`](rlarg/arg-parse.c) fix setval support: (expand switches)
+    - `arg_parse_setval_argx`
 5. [`arg-compgen.c`](rlarg/arg-compgen.c) add compgen support: (expand switch)
     - `static_arg_compgen_argx`
 6. [`argx-type.c`](rlarg/argx-type.c) add the actual code to specify your type: (create your function)
