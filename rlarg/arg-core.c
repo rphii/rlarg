@@ -130,14 +130,21 @@ void arg_help_argx(struct Argx *help) {
         so_fmt(&out, "\nsources:\n");
         for(size_t i = 0; i < len; ++i) {
             Arg_Stream_Source src = array_at(help->sources, i);
-            //TODO:source
-#if 0
-            if(src.line_number) {
-                so_fmt(&out, "  %.*s:%u%s\n", SO_F(src.path), src.line_number, i + 1 < len ? "," : "");
-            } else {
-                so_fmt(&out, "  %.*s%s\n", SO_F(src.path), i + 1 < len ? "," : "");
+            switch(src.id) {
+                case ARG_STREAM_SOURCE_CONFIG:
+                    so_fmt(&out, "  %.*s:%u%s\n", SO_F(src.path), src.number, i + 1 < len ? "," : "");
+                    break;
+                case ARG_STREAM_SOURCE_STDIN:
+                    so_fmt(&out, "  stdin@%u%s\n", src.number, i + 1 < len ? "," : "");
+                    break;
+                case ARG_STREAM_SOURCE_ENVVARS:
+                    so_fmt(&out, "  envvars%s\n", i + 1 < len ? "," : "");
+                    break;
+                case ARG_STREAM_SOURCE_REFVAL:
+                    so_fmt(&out, "  refval%s\n", i + 1 < len ? "," : "");
+                    break;
+                default: break;
             }
-#endif
         }
     } else {
         so_fmt(&out, "\nnot set anywhere\n");

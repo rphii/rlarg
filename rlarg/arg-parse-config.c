@@ -16,7 +16,7 @@ Argx *arg_parse_config_get_hierarchy(Arg_Parse_Config *p, Arg_Parse_Config_Head 
     }
     so_extend(tmp, p->hierarchy);
     arg_parse_error_allow_more(&p->stream);
-    //TODO:source p->stream.source.line_number = head->line_number;
+    p->stream.source.number = head->line_number;
     Argx *argx = arg_parse_hierarchy(p->arg, &p->stream, *tmp, 0);
     if(!argx) {
         p->status |= ARG_PARSE_CONFIG_ERR_HIERAR;
@@ -39,7 +39,7 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
     if(so_at0(p->tmp_file_path_wordexp) == PLATFORM_CH_SUBDIR) {
         so_extend(&p->tmp_file_path, p->tmp_file_path_wordexp);
     } else {
-        //TODO:source so_path_join(&p->tmp_file_path, so_get_dir(p->stream.source.path), path);
+        so_path_join(&p->tmp_file_path, so_get_dir(p->stream.source.path), path);
     }
     /* read file */
     //printff("FILE NAMED %.*s", SO_F(p->tmp_file_path));
@@ -192,8 +192,7 @@ bool arg_parse_config_hierarchy(Arg_Parse_Config *p, Arg_Parse_Config_Head *head
         }
     } else {
         Argx pseudo = { .opt = r.so };
-        //TODO:source
-        //p->stream.source.line_number = r.line_number;
+        p->stream.source.number = r.line_number;
         arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_MISSING_HIERARCHY_DELIM, &pseudo);
         p->status |= ARG_PARSE_CONFIG_ERR_SYNTAX;
     }
@@ -255,7 +254,7 @@ bool arg_parse_config_file(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, boo
     }
     if(!ok) {
         Argx pseudo = { .opt = (p->argx ? p->argx->opt : so("???")), .desc = so_split_ch(head->so, '\n', 0) };
-        //TODO:source p->stream.source.line_number = q.line_number - 1; /* we already skipped to the next line, do: - 1 */
+        p->stream.source.number = q.line_number - 1; /* we already skipped to the next line, do: - 1 */
         arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_MISSING_FILE_DELIM, &pseudo);
         p->status |= ARG_PARSE_CONFIG_ERR_SYNTAX;
         /* shift until next line */
@@ -324,7 +323,7 @@ bool arg_parse_config_section(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) 
     } else {
         so_clear(&p->section);
         Argx pseudo = { .opt = so_split_ch(r.so, '\n', 0) };
-        //TODO:source p->stream.source.line_number = r.line_number;
+        p->stream.source.number = r.line_number;
         arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_INVALID_SECTION, &pseudo);
         p->status |= ARG_PARSE_CONFIG_ERR_SYNTAX;
     } 
@@ -361,7 +360,7 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
             if(arg_parse_config_ch(p, &q, ']')) { ok = true; break; }
             if(arg_parse_config_ch(p, &q, ',')) {
                 Argx pseudo = { .opt = so_split_ch(head->so, '\n', 0) };
-                //TODO:source p->stream.source.line_number = q.line_number;
+                p->stream.source.number = q.line_number;
                 arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_MISSING_ARRAY_VALUE, &pseudo);
                 p->status |= ARG_PARSE_CONFIG_ERR_SYNTAX;
                 break;
@@ -454,8 +453,9 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     Arg_Parse_Config p = {
         .arg = arg,
         .stream.is_config = true,
-        //TODO:source .stream.source.path = path,
-        //TODO:source .stream.source.line_number = 1,
+        .stream.source.id = ARG_STREAM_SOURCE_CONFIG,
+        .stream.source.path = path,
+        .stream.source.number = 1,
     };
 
     while(head.so.len) {
