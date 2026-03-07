@@ -216,6 +216,10 @@ struct Argx_Group *argx_builtin_rice(struct Arg *arg) {
             argx_builtin_opt_so_fx(x, &arg->rice.val, 0);
           x=argx_opt(h, 0, so("val-delim"), so("value formatting"));
             argx_builtin_opt_so_fx(x, &arg->rice.val_delim, 0);
+          x=argx_opt(h, 0, so("switch"), so("switch formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.sw, 0);
+          x=argx_opt(h, 0, so("switch-delim"), so("switch formatting"));
+            argx_builtin_opt_so_fx(x, &arg->rice.sw_delim, 0);
     return g;
 }
 
@@ -234,6 +238,7 @@ void argx_fmt_help(So *out, Argx *argx) {
     Arg_Rice *rice = &argx->group_p->arg->rice;
 
     Argx_So xso = {0};
+    Argx_So xsw = {0};
     argx_so(&xso, argx, false, false);
 
     ASSERT_ARG(argx->group_p);

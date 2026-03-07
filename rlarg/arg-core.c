@@ -42,6 +42,8 @@ struct Arg *arg_new(void) {
     result->rice.hint_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
     result->rice.val =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x55, 0xdd, 0x55) };
     result->rice.val_delim =    (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
+    result->rice.sw =           (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xF6, 0x66, 0x66) };
+    result->rice.sw_delim =     (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
 
     return result;
 }
@@ -95,6 +97,33 @@ void arg_help_argx(struct Argx *help) {
             argx_fmt_help(&out, *it);
         }
     }
+    if(help->id == ARGX_TYPE_SWITCH) {
+        So tmp_hier_val = SO;
+        Argx_Switch *swE = array_itE(help->val.sw);
+        so_fmt(&out, "\n");
+        so_fmt_fx(&out, rice->sw_delim, 0, "  will set:\n");
+        for(Argx_Switch *sw = help->val.sw; sw < swE; ++sw) {
+#if 0
+            argx_fmt_help(&out, sw->argx);
+#else
+            so_clear(&tmp_hier_val);
+            argx_so_hierarchy(&tmp_hier_val, rice, sw->argx->group_p);
+            so_fmt_fx(&out, rice->sw_delim, 0, "  --> ");
+            so_fmt(&out, "%.*s", SO_F(tmp_hier_val));
+            so_fmt_fx(&out, rice->sw, 0, "%.*s", SO_F(sw->argx->opt));
+            so_clear(&tmp_hier_val);
+            if(argx_so_val_visible(sw->argx, &sw->val)) {
+                so_push(&out, ' ');
+                so_fmt_fx(&out, rice->val_delim, 0, "=");
+                argx_so_val(&tmp_hier_val, rice, sw->argx, &sw->val, false);
+                so_fmt(&out, "%.*s", SO_F(tmp_hier_val));
+            }
+            so_fmt(&out, "\n");
+#endif
+        }
+        so_free(&tmp_hier_val);
+    }
+
 
     size_t len = array_len(help->sources);
     if(len) {

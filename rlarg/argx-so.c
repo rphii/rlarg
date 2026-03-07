@@ -259,6 +259,99 @@ void argx_so_hint_generic(Argx_So *xso, Arg_Rice *rice, char *hint, So so) {
     so_fmt_fx(&xso->hint, rice->hint_delim, 0, "%c", hint[1]);
 }
 
+void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, bool is_for_config) {
+
+    int array_spacing[2] = {
+        is_for_config ? 2 : ARG_SPACING_VALUE_WRAP_ARRAY,
+        is_for_config ? 0 : ARG_SPACING_VALUE_WRAP_DELIM};
+
+    if(argx->attr.is_array) {
+        switch(argx->id) {
+            default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
+            case ARGX_TYPE_NONE: {
+            } break;
+            case ARGX_TYPE_COLOR: {
+                argx_so_type_array_color(out, rice, val, array_spacing);
+            } break;
+            case ARGX_TYPE_BOOL: {
+                argx_so_type_array_bool(out, rice, val, array_spacing);
+            } break;
+            case ARGX_TYPE_INT: {
+                argx_so_type_array_int(out, rice, val, array_spacing);
+            } break;
+            case ARGX_TYPE_SIZE: {
+                argx_so_type_array_size(out, rice, val, array_spacing);
+            } break;
+            case ARGX_TYPE_REST:
+            case ARGX_TYPE_URI:
+            case ARGX_TYPE_STRING: {
+                argx_so_like_array_string(out, rice, val, array_spacing);
+            } break;
+            case ARGX_TYPE_SWITCH: {
+                ABORT(ERR_UNREACHABLE("vector of SWITCH is not supported, and thus you should never see this message"));
+            } break;
+            case ARGX_TYPE_GROUP: {
+                ABORT(ERR_UNREACHABLE("vector of GROUP is not supported, and thus you should never see this message"));
+            } break;
+            case ARGX_TYPE_ENUM: {
+                ABORT(ERR_UNREACHABLE("vector of ENUM is not supported, and thus you should never see this message"));
+            } break;
+            case ARGX_TYPE_FLAG: {
+                ABORT(ERR_UNREACHABLE("vector of FLAG is not supported, and thus you should never see this message"));
+            } break;
+        }
+    } else {
+        switch(argx->id) {
+            default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
+            case ARGX_TYPE_NONE: {
+            } break;
+            case ARGX_TYPE_COLOR: {
+                argx_so_type_color(out, rice, val);
+            } break;
+            case ARGX_TYPE_FLAG:
+            case ARGX_TYPE_BOOL: {
+                argx_so_type_bool(out, rice, val);
+            } break;
+            case ARGX_TYPE_INT: {
+                argx_so_type_int(out, rice, val);
+            } break;
+            case ARGX_TYPE_SIZE: {
+                argx_so_type_size(out, rice, val);
+            } break;
+            case ARGX_TYPE_URI:
+            case ARGX_TYPE_STRING: {
+                argx_so_like_string(out, rice, val);
+            } break;
+            case ARGX_TYPE_GROUP: {
+            } break;
+            case ARGX_TYPE_SWITCH: {
+            } break;
+            case ARGX_TYPE_ENUM: {
+            } break;
+            case ARGX_TYPE_REST: {
+                ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));
+            } break;
+        }
+    }
+}
+
+bool argx_so_val_visible(Argx *argx, Argx_Value_Union *val) {
+    ASSERT_ARG(argx);
+    bool result = false;
+    if(val) {
+        /* if any value is set, value is visible */
+        result = (bool)(val->any);
+        /* if positional, hide value */
+        bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
+        if(is_pos) result = false;
+        /* if switch, hide */
+        if(argx->id == ARGX_TYPE_SWITCH) result = false;
+        /* if hidden, hide */
+        if(argx->attr.is_hidden) result = false;
+    }
+    return result;
+}
+
 void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
     //printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
     if(!argx) return;
@@ -292,50 +385,34 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
     }
     /* format the value */
     //xso->ref_visible = (bool)(argx->ref);
-    xso->val_visible = (bool)(argx->val.any);
-    xso->val_config = xso->val_visible;
+    //xso->val_visible = ;
+    xso->val_config = (bool)(argx->val.any);
     xso->have_hint = true;
     argx_so_hierarchy(&xso->hierarchy, rice, argx->group_p);
-
-    int array_spacing[2] = {
-        is_for_config ? 2 : ARG_SPACING_VALUE_WRAP_ARRAY,
-        is_for_config ? 0 : ARG_SPACING_VALUE_WRAP_DELIM};
-
-    bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
-    if(is_pos) xso->val_visible = false;
+    argx_so_val(&xso->set_val, rice, argx, &argx->val, is_for_config);
+    argx_so_val(&xso->set_ref, rice, argx, &argx->ref, is_for_config);
 
     if(argx->attr.is_array) {
         switch(argx->id) {
             default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
             case ARGX_TYPE_NONE: {
-                //xso->ref_visible = false;
                 xso->have_hint = false;
             } break;
             case ARGX_TYPE_COLOR: {
-                argx_so_type_array_color(&xso->set_val, rice, &argx->val, array_spacing);
-                argx_so_type_array_color(&xso->set_ref, rice, &argx->ref, array_spacing);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_BOOL: {
-                argx_so_type_array_bool(&xso->set_val, rice, &argx->val, array_spacing);
-                argx_so_type_array_bool(&xso->set_ref, rice, &argx->ref, array_spacing);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_INT: {
-                argx_so_type_array_int(&xso->set_val, rice, &argx->val, array_spacing);
-                argx_so_type_array_int(&xso->set_ref, rice, &argx->ref, array_spacing);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_SIZE: {
-                argx_so_type_array_size(&xso->set_val, rice, &argx->val, array_spacing);
-                argx_so_type_array_size(&xso->set_ref, rice, &argx->ref, array_spacing);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_REST:
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                argx_so_like_array_string(&xso->set_val, rice, &argx->val, array_spacing);
-                argx_so_like_array_string(&xso->set_ref, rice, &argx->ref, array_spacing);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_SWITCH: {
@@ -355,42 +432,24 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
         switch(argx->id) {
             default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
             case ARGX_TYPE_NONE: {
-                //xso->ref_visible = false;
                 xso->have_hint = false;
             } break;
             case ARGX_TYPE_COLOR: {
-                argx_so_type_color(&xso->set_val, rice, &argx->val);
-                argx_so_type_color(&xso->set_ref, rice, &argx->ref);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_FLAG:
             case ARGX_TYPE_BOOL: {
-                argx_so_type_bool(&xso->set_val, rice, &argx->val);
-                argx_so_type_bool(&xso->set_ref, rice, &argx->ref);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_INT: {
-                argx_so_type_int(&xso->set_val, rice, &argx->val);
-                argx_so_type_int(&xso->set_ref, rice, &argx->ref);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_SIZE: {
-                argx_so_type_size(&xso->set_val, rice, &argx->val);
-                argx_so_type_size(&xso->set_ref, rice, &argx->ref);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                argx_so_like_string(&xso->set_val, rice, &argx->val);
-                argx_so_like_string(&xso->set_ref, rice, &argx->ref);
                 argx_so_hint_generic(xso, rice, hint, argx->hint.so);
-            } break;
-            case ARGX_TYPE_SWITCH: {
-                /* TODO: add array of sub-items into hint */
-                Argx_Switch *swE = array_itE(argx->val.sw);
-                for(Argx_Switch *sw = argx->val.sw; sw < swE; ++sw) {
-                    so_fmt(&xso->hint, "%.*s", SO_F(sw->argx->opt));
-                }
             } break;
             case ARGX_TYPE_GROUP: {
                 xso->have_hint = false;
@@ -416,6 +475,12 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
                 }
                 //so_push(&xso->hint, hint[1]);
             } break;
+            case ARGX_TYPE_SWITCH: {
+                size_t n_sw = array_len(argx->val.sw);
+                so_fmt_fx(&xso->hint, rice->sw_delim, 0, "(sets ");
+                so_fmt_fx(&xso->hint, rice->sw, 0, "%zux", n_sw);
+                so_fmt_fx(&xso->hint, rice->sw_delim, 0, " option%s)", n_sw > 1 ? "s" : "");
+            } break;
             case ARGX_TYPE_ENUM: {
                 xso->have_hint = false;
             } break;
@@ -425,9 +490,7 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
         }
     }
 
-    if(argx->attr.is_hidden) {
-        xso->val_visible = false;
-    }
+    xso->val_visible = argx_so_val_visible(argx, &argx->val);
     xso->argx = argx;
     argx->group_p->arg->builtin.nocolor = was_nocolor ; /* TODO this is disgusting */
 }

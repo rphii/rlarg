@@ -4,6 +4,9 @@
 #include <rlc.h>
 
 typedef struct Argx Argx;
+typedef struct Arg_Rice Arg_Rice;
+typedef struct Argx_Group Argx_Group ;
+typedef union Argx_Value_Union Argx_Value_Union ;
 
 typedef struct Argx_So {
     Argx *argx;
@@ -20,6 +23,9 @@ typedef struct Argx_So {
 void argx_so_free(Argx_So *xso);
 void argx_so_clear(Argx_So *xso);
 void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config);
+void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, bool is_for_config);
+bool argx_so_val_visible(Argx *argx, Argx_Value_Union *val);
+void argx_so_hierarchy(So *hierarchy, Arg_Rice *rice, Argx_Group *group);
 
 #define ARGX_SO_H
 #endif /* ARGX_SO_H */

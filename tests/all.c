@@ -88,10 +88,11 @@ int main(const int argc, const char **argv) {
         e2=argx_enum_bind(g2, 1, so("nsfw"), so("not safe for work"));
         e2=argx_enum_bind(g2, 2, so("sketchy"), so("risky for work"));
 
+    xs=argx_opt(g1, 0, so("flag-all"), so("test short 2"));
+       argx_type_switch(xs);
+
     x=argx_opt(g1, 0, so("flag"), so("some flags"));
       g2=argx_group_flags(x);
-        xs=argx_opt(g2, 0, so("all"), so("test shortie"));
-           argx_type_switch(xs);
         e1=argx_flag(g2, &f1, &(bool){true}, so("sfw"), so("safe for work"));
            argx_switch_flag(xs, e1, &(bool){true});
         e2=argx_flag(g2, &f2, &(bool){false}, so("nsfw"), so("not safe for work"));
@@ -99,12 +100,11 @@ int main(const int argc, const char **argv) {
         e3=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));
            argx_switch_flag(xs, e3, &(bool){true});
 
+
     g1=argx_group(arg, so("other"));
 
     Color col = COLOR_AQUA;
 
-    xs=argx_opt(g1, 0, so("all"), so("test short 2"));
-       argx_type_switch(xs);
 
     x=argx_opt(g1, 0, so("color"), so("color support"));
       argx_type_color(x, &col, 0);

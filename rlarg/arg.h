@@ -47,6 +47,8 @@ typedef struct Arg_Rice {
     So_Fx hint_delim;
     So_Fx val;
     So_Fx val_delim;
+    So_Fx sw;
+    So_Fx sw_delim;
 } Arg_Rice;
 
 typedef struct Arg {
