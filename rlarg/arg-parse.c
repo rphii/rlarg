@@ -953,11 +953,13 @@ int arg_queue_post_parsing(Arg *arg) {
     return result;
 }
 
+#if 0
 void arg_parse_help_fmt_rec(So *out, Argx *argx) {
     if(!argx) return;
     arg_parse_help_fmt_rec(out, argx->group_p ? argx->group_p->parent : 0);
     argx_fmt_help(out, argx);
 }
+#endif
 
 void arg_parse_help(Arg *arg) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
