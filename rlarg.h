@@ -65,6 +65,7 @@ void argx_type_array_int(struct Argx *argx, int **val, int **ref);
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref);
 void argx_type_array_color(struct Argx *argx, Color **val, Color **ref);
 
+void argx_switch_none(struct Argx *switch_argx, struct Argx *argx);
 void argx_switch_so(struct Argx *switch_argx, struct Argx *argx, So val);
 void argx_switch_uri(struct Argx *switch_argx, struct Argx *argx, So val);
 void argx_switch_bool(struct Argx *switch_argx, struct Argx *argx, bool val);
