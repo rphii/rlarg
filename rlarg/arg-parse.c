@@ -260,7 +260,6 @@ int arg_parse_argx_vint(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) 
     int v;
     int result = so_as_int(so, &v, 0);
     if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .i = &v }, stream->source, true);
-    
     return result;
 }
 
@@ -417,11 +416,11 @@ int arg_parse_argx_vector(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so
     if(so_at0(so) == '[' && so_atE(so) == ']') {
         so = so_sub(so, 1, so_len(so) - 1);
         for(So sp = SO; so_splice(so, &sp, ','); ) {
-            result = cb(arg, stream, argx, sp);
+            result = cb(arg, stream, argx, so_trim(sp));
             if(result) break;
         }
     } else {
-        result = cb(arg, stream, argx, so);
+        result = cb(arg, stream, argx, so_trim(so));
     }
     return result;
 }

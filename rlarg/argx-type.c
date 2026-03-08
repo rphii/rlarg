@@ -199,17 +199,50 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
     return group;
 }
 
-void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool *value) {
+#define ARGX_SWITCH_FLAG_IMPL(NAME, TYPE, ID, FIELD)   \
+    void argx_switch_##NAME(struct Argx *switch_argx, struct Argx *argx, TYPE value) { \
+        ASSERT_ARG(switch_argx); \
+        ASSERT_ARG(argx); \
+        ASSERT(switch_argx->id == ARGX_TYPE_SWITCH, "switch_argx argument has to be of type ARGX_TYPE_SWITCH"); \
+        ASSERT(argx->id == ID, "argx argument has to be type %u", ID); \
+        Argx_Switch sw = { \
+            .argx = argx, \
+            .val.FIELD = malloc(sizeof(TYPE)), \
+        }; \
+        if(!sw.val.FIELD) ABORT(ERR_MEMORY); \
+        *sw.val.FIELD = value, \
+        array_push(switch_argx->val.sw, sw); \
+    }
+
+ARGX_SWITCH_FLAG_IMPL(int,   int,     ARGX_TYPE_INT, i);
+ARGX_SWITCH_FLAG_IMPL(size,  ssize_t, ARGX_TYPE_SIZE, z);
+ARGX_SWITCH_FLAG_IMPL(bool,  bool,    ARGX_TYPE_BOOL, b);
+ARGX_SWITCH_FLAG_IMPL(so,    So,      ARGX_TYPE_STRING, so);
+ARGX_SWITCH_FLAG_IMPL(uri,   So,      ARGX_TYPE_URI, so);
+ARGX_SWITCH_FLAG_IMPL(enum,  int,     ARGX_TYPE_ENUM, i);
+ARGX_SWITCH_FLAG_IMPL(color, Color,   ARGX_TYPE_COLOR, c);
+
+ARGX_SWITCH_FLAG_IMPL(array_int,   int *,     ARGX_TYPE_INT, vi);
+ARGX_SWITCH_FLAG_IMPL(array_size,  ssize_t *, ARGX_TYPE_SIZE, vz);
+ARGX_SWITCH_FLAG_IMPL(array_bool,  bool *,    ARGX_TYPE_BOOL, vb);
+ARGX_SWITCH_FLAG_IMPL(array_so,    So *,      ARGX_TYPE_STRING, vso);
+ARGX_SWITCH_FLAG_IMPL(array_uri,   So *,      ARGX_TYPE_URI, vso);
+ARGX_SWITCH_FLAG_IMPL(array_enum,  int *,     ARGX_TYPE_ENUM, vi);
+ARGX_SWITCH_FLAG_IMPL(array_color, Color *,   ARGX_TYPE_COLOR, vc);
+
+void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool value) {
     ASSERT_ARG(switch_argx);
     ASSERT_ARG(argx);
     ASSERT(switch_argx->id == ARGX_TYPE_SWITCH, "switch_argx argument has to be of type ARGX_TYPE_SWITCH");
     ASSERT(argx->id == ARGX_TYPE_FLAG && argx->group_p && argx->group_p->id == ARGX_GROUP_FLAGS, "argx argument has to be under ARGX_GROUP_FLAGS");
     Argx_Switch sw = {
         .argx = argx,
-        .val.b = value,
+        .val.b = malloc(sizeof(bool)),
     };
+    *sw.val.b = value,
     array_push(switch_argx->val.sw, sw);
 }
+
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {
     ASSERT_ARG(group);

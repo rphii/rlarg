@@ -65,11 +65,25 @@ void argx_type_array_int(struct Argx *argx, int **val, int **ref);
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref);
 void argx_type_array_color(struct Argx *argx, Color **val, Color **ref);
 
+void argx_switch_so(struct Argx *switch_argx, struct Argx *argx, So val);
+void argx_switch_uri(struct Argx *switch_argx, struct Argx *argx, So val);
+void argx_switch_bool(struct Argx *switch_argx, struct Argx *argx, bool val);
+void argx_switch_int(struct Argx *switch_argx, struct Argx *argx, int val);
+void argx_switch_size(struct Argx *switch_argx, struct Argx *argx, ssize_t val);
+void argx_switch_color(struct Argx *switch_argx, struct Argx *argx, Color val);
+void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool value);
+
+void argx_switch_array_so(struct Argx *switch_argx, struct Argx *argx, VSo val);
+void argx_switch_array_uri(struct Argx *switch_argx, struct Argx *argx, VSo val);
+void argx_switch_array_bool(struct Argx *switch_argx, struct Argx *argx, bool *val);
+void argx_switch_array_int(struct Argx *switch_argx, struct Argx *argx, int *val);
+void argx_switch_array_size(struct Argx *switch_argx, struct Argx *argx, ssize_t *val);
+void argx_switch_array_color(struct Argx *switch_argx, struct Argx *argx, Color *val);
+
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref);
 struct Argx_Group *argx_group_options(struct Argx *argx);
 struct Argx_Group *argx_group_flags(struct Argx *argx);
 
-void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool *value);
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc);
 

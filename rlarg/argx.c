@@ -11,6 +11,12 @@ void argx_free_v(Argx argx) {
     argx_free(&argx);
 }
 
+void argx_switch_free(Argx_Switch *sw) {
+    if(!sw) return;
+    if(!sw->val.any) return;
+    free(sw->val.any);
+}
+
 void argx_free(Argx *argx) {
     //printff("free argx: %.*s",SO_F(argx->opt));
     if(argx->attr.is_array) {
@@ -46,7 +52,7 @@ void argx_free(Argx *argx) {
         }
     } else {
         if(argx->id == ARGX_TYPE_SWITCH) {
-            array_free(argx->val.sw);
+            array_free_ext(argx->val.sw, argx_switch_free);
         } else if(argx->id == ARGX_TYPE_GROUP) {
             argx_group_free(argx->group_s);
         }
