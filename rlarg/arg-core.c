@@ -20,31 +20,6 @@ struct Arg *arg_new(void) {
     result->pos = argx_group_init(result, &result->t_pos, so("positional"), ARGX_GROUP_ROOT, 0);
     result->env = argx_group_init(result, &result->t_env, so("environment"), ARGX_GROUP_ROOT, 0);
 
-    bool *nofx = &result->builtin.color_off;
-
-    result->rice.program =      (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xdd, 0x55, 0x55), .bold = true };
-    result->rice.group =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xcc, 0xcc, 0xcc), .bold = true, .underline = true };
-    result->rice.group_delim =  (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    result->rice.pos =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xaa, 0x55, 0xdd), .italic = true };
-    result->rice.c =            (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xb9, 0x7b, 0x97) };
-    result->rice.opt =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xb9, 0x7b, 0x97), .bold = true };
-    result->rice.env =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x01, 0x01, 0x01), .bold = true, .bg = COLOR_RGB(0x86, 0x58, 0x65) };
-    result->rice.desc =         (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xaa, 0xaa, 0xaa) };
-    result->rice.subopt =       (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x33, 0x66, 0xee) };
-    result->rice.subopt_delim = (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    result->rice.enum_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x55, 0x55, 0xbb) };
-    result->rice.enum_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x77, 0x77, 0xdd), .bold = true, .underline = true };
-    result->rice.enum_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    result->rice.flag_unset =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xbb, 0xbb, 0x55) };
-    result->rice.flag_set =     (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xdd, 0xdd, 0x77), .bold = true, .underline = true };
-    result->rice.flag_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    result->rice.hint =         (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x55, 0xaa, 0xdd) };
-    result->rice.hint_delim =   (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    result->rice.val =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x55, 0xdd, 0x55) };
-    result->rice.val_delim =    (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    result->rice.sw =           (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xF6, 0x66, 0x66) };
-    result->rice.sw_delim =     (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-
     return result;
 }
 
