@@ -3,6 +3,7 @@
 - codify usage examples --> I have garbage code lingering around
 - add option to limit array items (and then just display (+N more)
 - add info to help output if configurable or not!
+- in `argx_so` -> change any " -> \" etc.
 
 - config things:
     - compact help for if flag not found? (this here: stdin: Option not found in root groups: 'ow3efo')

@@ -99,7 +99,7 @@ void arg_compgen_help_group(struct Arg *arg, struct Argx_Group *group) {
 void arg_compgen_help_groups(struct Arg *arg) {
     Argx_Group **itE = array_itE(arg->opts);
     for(Argx_Group **it = arg->opts; it < itE; ++it) {
-        printf("%c%.*s%.*s.", ARG_COMPGEN_DELIM, SO_F((*it)->name));
+        printf("%c%.*s.", ARG_COMPGEN_DELIM, SO_F((*it)->name));
     }
     printf("%c%.*s.", ARG_COMPGEN_DELIM, SO_F(arg->pos.name));
     printf("%c%.*s.", ARG_COMPGEN_DELIM, SO_F(arg->env.name));

@@ -28,7 +28,7 @@ int main(const int argc, const char **argv) {
     //argx_builtin_opt_source(g1, so("$HOME/.config/rphiic/colors.conf"));
     argx_builtin_opt_source(g1, so("all.conf"));
 
-    struct Argx *x, *e1, *e2, *e3, *xs, *xu;
+    struct Argx *x, *e1, *e2, *e3, *xs, *xu, *xx;
 
     bool f1, f2, f3;
     VSo rest = 0;
@@ -40,9 +40,13 @@ int main(const int argc, const char **argv) {
 
     bool p1 = false, p2 = false;
     bool d = true;
+    xs=argx_opt(g1, 0, so("switchtest"), so("set various things"));
+       argx_type_switch(xs);
+
     x = argx_opt(g1, 'x', so("boolr"), so("a required boolean value"));
         //printff("p %p", x);
         argx_type_bool(x, &p1, &d);
+        argx_switch_bool(xs, x, true);
     argx_attr_hide(x, true);
 
     x = argx_opt(g1, 'X', so("boolo"), so("a optional boolean value"));
@@ -53,6 +57,7 @@ int main(const int argc, const char **argv) {
     So name = SO;
     x = argx_opt(g1, 'N', so("name"), so("a name"));
         argx_type_so(x, &name, 0);
+        argx_switch_so(xs, x, so("nioh\""));
 
     int *vi = 0;
 
@@ -62,6 +67,7 @@ int main(const int argc, const char **argv) {
         argx_type_array_so(x, &vec_p, &vec_v);
     x = argx_opt(g1, 'V', so("vi"), so("list of ints"));
         argx_type_array_int(x, &vi, 0);
+        argx_switch_array_int(xs, x, vi);
 
 
     int e_out1, e_out2, e_out3, e_out4, e_default = 1;
@@ -98,14 +104,14 @@ int main(const int argc, const char **argv) {
     x=argx_opt(g1, 0, so("flag"), so("some flags"));
       g2=argx_group_flags(x);
         e1=argx_flag(g2, &f1, &(bool){true}, so("sfw"), so("safe for work"));
-           argx_switch_flag(xs, e1, &(bool){true});
-           argx_switch_flag(xu, e1, &(bool){false});
+           argx_switch_flag(xs, e1, true);
+           argx_switch_flag(xu, e1, false);
         e2=argx_flag(g2, &f2, &(bool){false}, so("nsfw"), so("not safe for work"));
-           argx_switch_flag(xs, e2, &(bool){true});
-           argx_switch_flag(xu, e2, &(bool){false});
+           argx_switch_flag(xs, e2, true);
+           argx_switch_flag(xu, e2, false);
         e3=argx_flag(g2, &f3, &(bool){true}, so("sketchy"), so("risky for work"));
-           argx_switch_flag(xs, e3, &(bool){true});
-           argx_switch_flag(xu, e3, &(bool){false});
+           argx_switch_flag(xs, e3, true);
+           argx_switch_flag(xu, e3, false);
 
 
     g1=argx_group(arg, so("other"));
