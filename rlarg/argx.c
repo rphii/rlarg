@@ -104,9 +104,23 @@ void argx_builtin_env_compgen(struct Arg *arg) {
     argx_type_bool(x, &arg->builtin.compgen, 0);
 }
 
-void argx_builtin_env_nocolor(struct Arg *arg) {
-    Argx *x = argx_env(arg, so("NOCOLOR"), so("disable colors"));
-    argx_type_bool(x, &arg->builtin.nocolor, 0);
+static Arg_Builtin_Color_List g_color_mode_default = ARG_BUILTIN_COLOR_AUTO;
+
+int argx_callback_color(Argx *argx, void *user, So so) {
+    arg_update_color_off(argx->group_p->arg);
+    return 0;
+}
+
+void argx_builtin_opt_color(struct Argx_Group *group) {
+    ASSERT_ARG(group);
+    Arg *arg = group->arg;
+    ASSERT_ARG(arg);
+    Argx *x = argx_opt(group, 0, so("color"), so("change color mode"));
+    argx_callback(x, argx_callback_color, arg, ARGX_PRIORITY_IMMEDIATELY);
+    Argx_Group *g = argx_group_enum(x, (int *)&arg->builtin.color, (int *)&g_color_mode_default);
+    argx_enum_bind(g, ARG_BUILTIN_COLOR_AUTO, so("auto"), so("automatic color mode"));
+    argx_enum_bind(g, ARG_BUILTIN_COLOR_OFF, so("off"), so("never show colors"));
+    argx_enum_bind(g, ARG_BUILTIN_COLOR_ON, so("on"), so("always show colors"));
 }
 
 int argx_callback_config(Argx *argx, void *user, So so) {

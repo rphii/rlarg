@@ -96,7 +96,7 @@ int main(int argc, const char **argv) {
     struct Argx_Group *g = argx_group(arg, so("default"));
     struct Argx *x;
 
-    argx_builtin_env_nocolor(arg);
+    argx_builtin_opt_color(g);
     argx_builtin_opt_help(g);
     arg_enable_config_print(arg, true);
     argx_builtin_opt_source(g, so("readme.conf"));

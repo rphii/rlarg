@@ -34,8 +34,8 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(id);
-    bool nc = arg->builtin.nocolor;
-    arg->builtin.nocolor = true; /* TODO make this better -> argx_so should clear colors for error output? */
+    bool nc = arg->builtin.color_off;
+    arg->builtin.color_off = true; /* TODO make this better -> argx_so should clear colors for error output? */
     Argx_So xso = {0};
     bool newline = false;
     if(arg->builtin.config_print_selected) return;
@@ -184,7 +184,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
         }
     }
     argx_so_free(&xso);
-    arg->builtin.nocolor = nc;
+    arg->builtin.color_off = nc;
 }
 
 /* error messages }}} */
@@ -356,6 +356,22 @@ int arg_parse_argx_group(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return result;
 }
 
+void arg_update_color_off(Arg *arg) {
+    switch(arg->builtin.color) {
+        case ARG_BUILTIN_COLOR_AUTO: {
+            if(!isatty(STDOUT_FILENO)) {
+                arg->builtin.color_off = true;
+            }
+        } break;
+        case ARG_BUILTIN_COLOR_ON: {
+            arg->builtin.color_off = false;
+        } break;
+        case ARG_BUILTIN_COLOR_OFF: {
+            arg->builtin.color_off = true;
+        } break;
+    }
+}
+
 int arg_parse_argx_switch(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 
     int result = 0;
@@ -373,7 +389,6 @@ int arg_parse_argx_switch(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             }
         }
     }
-
 
     if(on) {
         arg_parse_add_source(argx, stream->source);
@@ -996,7 +1011,7 @@ void arg_parse_help(Arg *arg) {
 
     if(help_do) {
         if(help_compgen) {
-            arg->builtin.nocolor = true;
+            arg->builtin.color_off = true;
         }
         Arg_Stream stream_help = {
             .source.id = ARG_STREAM_SOURCE_HELP,
@@ -1139,7 +1154,7 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     /* check if we want config generation support */
     arg_parse_enable_config_print(arg);
 
-    if(!isatty(STDOUT_FILENO)) arg->builtin.nocolor = true;
+    arg_update_color_off(arg);
 
     /* now actually parse */
 
@@ -1154,7 +1169,7 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
 #endif
 
     if(!status) status = arg_parse_environment(arg);
-    if(arg->builtin.config_print_selected) arg->builtin.nocolor = true;
+    if(arg->builtin.color != ARG_BUILTIN_COLOR_ON && arg->builtin.config_print_selected) arg->builtin.color_off = true;
     if(arg->builtin.quit_early) goto defer;
 
     arg_parse_configs(arg);

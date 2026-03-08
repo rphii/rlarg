@@ -30,7 +30,7 @@ Argument parser for C.
 - `argx_builtin_opt_help`: expansive help
 - `argx_builtin_rice`: enable colors
 - `argx_builtin_env_compgen`: auto completion support (see also [`bash/rlc`](bash/rlc))
-- `argx_builtin_env_nocolor`: explicit `NOCOLOR` support 
+- `argx_builtin_opt_color`: color = `auto/on/off` support
 - `argx_builtin_opt_so_fx`: string object effects (kind of like a custom type, it adds sub-options)
 - `argx_builtin_opt_source`: config loading support (+ config can load other configs, and so on)
 - `arg_enable_config_print`: config generation support

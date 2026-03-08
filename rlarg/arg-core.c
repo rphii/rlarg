@@ -20,7 +20,7 @@ struct Arg *arg_new(void) {
     result->pos = argx_group_init(result, &result->t_pos, so("positional"), ARGX_GROUP_ROOT, 0);
     result->env = argx_group_init(result, &result->t_env, so("environment"), ARGX_GROUP_ROOT, 0);
 
-    bool *nofx = &result->builtin.nocolor;
+    bool *nofx = &result->builtin.color_off;
 
     result->rice.program =      (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xdd, 0x55, 0x55), .bold = true };
     result->rice.group =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xcc, 0xcc, 0xcc), .bold = true, .underline = true };
