@@ -1,20 +1,22 @@
 # priority
 
-- codify usage examples --> I have garbage code lingering around
+- (do not) codify usage examples --> I have garbage code lingering around
+
 - add option to limit array items (and then just display (+N more)
 - add info to help output if configurable or not!
-- in `argx_so` -> change any " -> \" etc.
+- in `argx_so` -> `like_string` -> change any " -> \" etc.
 
 - config things:
     - compact help for if flag not found? (this here: stdin: Option not found in root groups: 'ow3efo')
     - add option to disable/enable function execution during compgen (why would I want/not want this...?)
 
-- min/max for numbers and...
-- float/double
-- time
 - sequence (e.g. \<int, string\>)
 
 # later
+
+- min/max for numbers and...
+- ..float/double
+- ..time
 
 - hot/reload
 - better compgen for flags, e.g: +flag,-flag2 and show combinations..
