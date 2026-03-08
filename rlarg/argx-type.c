@@ -243,6 +243,15 @@ void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool value) {
     array_push(switch_argx->val.sw, sw);
 }
 
+void argx_switch_none(struct Argx *switch_argx, struct Argx *argx) {
+    ASSERT_ARG(switch_argx);
+    ASSERT_ARG(argx);
+    ASSERT(switch_argx->id == ARGX_TYPE_SWITCH, "switch_argx argument has to be of type ARGX_TYPE_SWITCH");
+    ASSERT(argx->id == ARGX_TYPE_NONE, "argx argument has to be type %u", ARGX_TYPE_NONE);
+    Argx_Switch sw = { .argx = argx, };
+    array_push(switch_argx->val.sw, sw);
+}
+
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {
     ASSERT_ARG(group);
