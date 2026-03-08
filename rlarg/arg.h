@@ -51,6 +51,12 @@ typedef struct Arg_Rice {
     So_Fx sw_delim;
 } Arg_Rice;
 
+typedef enum {
+    ARG_BUILTIN_COLOR_AUTO,
+    ARG_BUILTIN_COLOR_OFF,
+    ARG_BUILTIN_COLOR_ON,
+} Arg_Builtin_Color_List;
+
 typedef struct Arg {
     Argx *c[ARGX_SHORT_COUNT]; /* short options */
 
@@ -75,7 +81,8 @@ typedef struct Arg {
         bool compgen_done;          /* helps us only printin one single compgen instance */
         bool config_print_selected; // TODO: should probably rename to config_print; or smth. env_config_print?
         bool config_use_builtin;    /* instruct to generate groups of all options right before arg_parse ... */
-        bool nocolor;               /* disable colors */
+        Arg_Builtin_Color_List color;  /* control color mode */
+        bool color_off;             /* need this bool due to So_Fx */
         Argx *sources_argx;
         VSo sources_vso;        /* visible vso sources */
         VSo sources_content;    /* content of sources */

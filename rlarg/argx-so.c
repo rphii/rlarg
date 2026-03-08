@@ -358,8 +358,8 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
     ASSERT_ARG(xso);
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
-    bool was_nocolor = argx->group_p->arg->builtin.nocolor; /* TODO this is disgusting */
-    if(force_nocolor) argx->group_p->arg->builtin.nocolor = true; /* TODO this is disgusting */
+    bool was_nocolor = argx->group_p->arg->builtin.color_off; /* TODO this is disgusting */
+    if(force_nocolor) argx->group_p->arg->builtin.color = ARG_BUILTIN_COLOR_OFF; /* TODO this is disgusting */
     Arg_Rice *rice = &argx->group_p->arg->rice;
 
     argx_so_clear(xso);
@@ -495,7 +495,7 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
 
     xso->val_visible = argx_so_val_visible(argx, &argx->val);
     xso->argx = argx;
-    argx->group_p->arg->builtin.nocolor = was_nocolor ; /* TODO this is disgusting */
+    argx->group_p->arg->builtin.color_off = was_nocolor ; /* TODO this is disgusting */
 }
 
 

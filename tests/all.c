@@ -23,7 +23,7 @@ int main(const int argc, const char **argv) {
     ASSERT(g1 == g2, "should point to the same");
 
     argx_builtin_env_compgen(arg);
-    argx_builtin_env_nocolor(arg);
+    argx_builtin_opt_color(g1);
     argx_builtin_opt_help(g1);
     //argx_builtin_opt_source(g1, so("$HOME/.config/rphiic/colors.conf"));
     argx_builtin_opt_source(g1, so("all.conf"));
@@ -115,7 +115,7 @@ int main(const int argc, const char **argv) {
     Color col = COLOR_AQUA;
 
 
-    x=argx_opt(g1, 0, so("color"), so("color support"));
+    x=argx_opt(g1, 0, so("color1"), so("color support"));
       argx_type_color(x, &col, 0);
 
     So_Fx fx = {0}, fx2 = {0};
