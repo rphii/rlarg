@@ -4,18 +4,23 @@
 
 #define ARG_COMPGEN_DELIM   0   //'\n'
 
+void arg_compgen_argx_hierarchy(struct Argx *argx) {
+    Argx_Group *group = argx->group_p;
+    bool treat_as_options = (group->table == &group->arg->t_opt);
+    printf("%c", ARG_COMPGEN_DELIM);
+    if(treat_as_options) printf("--");
+    printf("%.*s", SO_F(argx->opt));
+    if(argx->c) {
+        ASSERT(treat_as_options, "should always have an option, if we do short opts");
+        printf("%c-%c", ARG_COMPGEN_DELIM, argx->c);
+    }
+}
+
 void arg_compgen_group(Argx_Group *group) {
     if(!group) return;
-    bool treat_as_options = (group->table == &group->arg->t_opt);
     Argx **itE = array_itE(group->list);
     for(Argx **it = group->list; it < itE; ++it) {
-        printf("%c", ARG_COMPGEN_DELIM);
-        if(treat_as_options) printf("--");
-        printf("%.*s", SO_F((*it)->opt));
-        if((*it)->c) {
-            ASSERT(treat_as_options, "should always have an option, if we do short opts");
-            printf("%c-%c", ARG_COMPGEN_DELIM, (*it)->c);
-        }
+        arg_compgen_argx_hierarchy(*it);
     }
 }
 
