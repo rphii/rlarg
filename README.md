@@ -23,7 +23,7 @@ Argument parser for C.
 
 **Switches**
 
-- `argx_switch_{flag,none,so,uri,bool,int,size,color,flag}`
+- `argx_switch_{none,so,uri,bool,int,size,color,flag}`
 - `argx_switch_array_{so,uri,bool,int,size,color}`
 
 **Builtin**
