@@ -731,48 +731,6 @@ error_but_maybe_get_env_help:
         //if(!status) continue;
         if(arg->help.wanted) stream->skip_flag_check = true;
         if(status) break;
-#if 0
-        if(stream->is_help_lookup) {
-            if(get_env_help) {
-                Argx *argx = arg->help.last;
-                if(argx->id == ARGX_TYPE_GROUP) {
-                    ASSERT_ARG(argx->group_s);
-                    argx = t_argx_get(argx->group_s->table, carg);
-                    if(argx) {
-                        arg_parse_set_help_any(arg, argx);
-                        get_env_help = true;
-                    } else {
-                        arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_GROUP, arg->help.last);
-                        status = -1;
-                    }
-                } else {
-                    arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_GROUP, argx);
-                    status = -1;
-                }
-            } else {
-                Argx *argx_env = t_argx_get(&arg->t_env, carg);
-                if(argx_env) {
-                    arg_parse_set_help_any(arg, argx_env);
-                    get_env_help = true;
-                }
-                Argx *argx_pos = t_argx_get(&arg->t_pos, carg);
-                if(argx_pos) {
-                    arg_parse_set_help_any(arg, argx_pos);
-                    get_env_help = true;
-                }
-                if(!argx_env && !argx_pos && !arg->help.last) {
-                    Argx pseudo = { .opt = carg };
-                    arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_ROOT, &pseudo);
-                    status = -1;
-                }
-            }
-        } else {
-            break;
-        }
-        //if(!get_env_help) {
-        //    break;
-        //}
-#endif
     }
 
 
