@@ -257,6 +257,19 @@ vint = [ file("single int"), file("single int 2") ]
 
 </details>
 
+## Auto Completion Support
+
+Tested with bash.
+
+If you have a program that wants to make use of this autocompletion, be sure to provide a file in the bash completions directory [(e.g. for me: `/usr/share/bash-completions/completions/<YOUR-PROGRAM-NAME>`)](meson.options) that contains this:
+
+```sh
+# generic completion function using rlc
+_completion_loader rlc
+complete -o bashdefault -o default -F _complete_rlc <YOUR-PROGRAM-NAME>
+```
+
+Replace **`<YOUR-PROGRAM-NAME>`** with your *actual* program name.
 
 ## Note to self
 
