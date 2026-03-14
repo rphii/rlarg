@@ -87,7 +87,6 @@ typedef struct Arg {
         VSo sources_vso;        /* visible vso sources */
         VSo sources_content;    /* content of sources */
         VSo sources_paths;      /* paths to sources */
-        Argx **usages;          /* array of argx usages */
     } builtin;
 
     struct {
