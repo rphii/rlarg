@@ -3,6 +3,7 @@
 - sequence (e.g. \<int, string\>)
 - IMMEDIATELY_PRE / POST
 - custom hints for basic things
+- parse arbitrary config hierarchy -> `arg-parse-config.c:30`
 
 # later
 
