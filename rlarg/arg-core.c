@@ -129,7 +129,7 @@ void arg_help_argx(struct Argx *help) {
         so_free(&tmp_hier_val);
     }
 
-    so_fmt(&out, "\nconfigurable: %s", help->attr.is_unconfigurable ? "no" : "yes");
+    so_fmt(&out, "\nconfigurable via config file: %s", help->attr.is_unconfigurable ? "no" : "yes");
     so_fmt(&out, "\nsources:\n");
     so_print(out);
 
