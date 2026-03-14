@@ -1,9 +1,5 @@
 # priority
 
-- config things:
-    - compact help for if flag not found? (this here: stdin: Option not found in root groups: 'ow3efo')
-    - add option to disable/enable function execution during compgen (why would I want/not want this...?)
-
 - sequence (e.g. \<int, string\>)
 
 # later
@@ -21,4 +17,6 @@
 - don't output 'not set anywhere' .. if a group? what if callback? or just list sources of all sub-items?
 
 - roff (man page) generation?
+
+- add option to disable/enable function execution during compgen (why would I want/not want this...?)
 

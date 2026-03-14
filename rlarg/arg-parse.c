@@ -980,6 +980,7 @@ void arg_parse_help(Arg *arg) {
             stream_help.error_id = 0;
             Argx_Group *group = 0;
             Argx *help = arg_parse_hierarchy(arg, &stream_help, search, &group);
+
             if(help) {
                 if(arg->builtin.compgen) {
                     arg_compgen_help_argx(arg, help);
@@ -999,8 +1000,8 @@ void arg_parse_help(Arg *arg) {
                     Argx pseudo = { .opt = search };
                     arg_parse_error(arg, &stream_help, ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG, &pseudo);
                 }
-                continue;
             }
+
         }
 
     } else {
@@ -1013,9 +1014,11 @@ void arg_parse_help(Arg *arg) {
             }
         } else if(help == arg->help.argx) {
             if(arg->builtin.compgen) {
-                arg_compgen_global(arg); /* TODO never reached */
-            } else {
+                arg_compgen_global(arg); /* TODO never reached (why did I flag this as never reached???) */
+            } else if(!arg->help.error) {
                 arg_help(arg);
+            } else {
+                arg_help_short(arg);
             }
         } else {
             if(arg->builtin.compgen) {
