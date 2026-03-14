@@ -28,7 +28,11 @@ void argx_so_like_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     if(val->so) {
         so_fmt_fx(out, rice->val_delim, 0, "\"");
-        so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(*val->so));
+        for(size_t i = 0; i < so_len(*val->so); ++i) {
+            char c = so_at(*val->so, i);
+            if(c == '"') so_fmt_fx(out, rice->val, 0, "\\");
+            so_fmt_fx(out, rice->val, 0, "%c", c);
+        }
         so_fmt_fx(out, rice->val_delim, 0, "\"");
     }
 }
@@ -76,7 +80,11 @@ void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, i
         for(So *v = *val->vso; v < vE2; ++v) {
             so_fmt(out, "\n%*s", spacing[0], "");
             so_fmt_fx(out, rice->val_delim, 0, "\"");
-            so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(*v));
+            for(size_t i = 0; i < so_len(*v); ++i) {
+                char c = so_at(*v, i);
+                if(c == '"') so_fmt_fx(out, rice->val, 0, "\\");
+                so_fmt_fx(out, rice->val, 0, "%c", c);
+            }
             so_fmt_fx(out, rice->val_delim, 0, "\"");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ",");
         }

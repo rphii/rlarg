@@ -205,7 +205,6 @@ bool arg_parse_config_string(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, b
     bool ok = false;
     Arg_Parse_Config_Head q = *head;
     So origin = q.so;
-    //So val = SO;
     if(!arg_parse_config_ch(p, &q, '"')) return false;
     size_t n_unescaped = 0;
     so_clear(&p->tmp_string);
