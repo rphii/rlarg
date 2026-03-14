@@ -1,6 +1,5 @@
 # priority
 
-- add info to help output if configurable or not!
 - in `argx_so` -> `like_string` -> change any " -> \" etc.
 
 - config things:

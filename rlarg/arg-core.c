@@ -83,6 +83,7 @@ void arg_help_argx(struct Argx *help) {
     ASSERT_ARG(help->group_p);
     ASSERT_ARG(help->group_p->arg);
     Arg_Rice *rice = &help->group_p->arg->rice;
+    bool full_help = true;
 
     argx_so(&xso, help, &opts);
     so_fmt(&out, "%.*s", SO_F(xso.hierarchy));
@@ -91,7 +92,7 @@ void arg_help_argx(struct Argx *help) {
     so_push(&out, '\n');
     argx_so_free(&xso);
 
-    arg_help_argx_rec(&out, help, true);
+    arg_help_argx_rec(&out, help, full_help);
     if(help->id == ARGX_TYPE_GROUP) {
         so_push(&out, '\n');
         ASSERT_ARG(help->group_s);
@@ -128,6 +129,7 @@ void arg_help_argx(struct Argx *help) {
         so_free(&tmp_hier_val);
     }
 
+    so_fmt(&out, "\nconfigurable: %s", help->attr.is_unconfigurable ? "no" : "yes");
     so_fmt(&out, "\nsources:\n");
     so_print(out);
 
@@ -138,6 +140,7 @@ void arg_help_argx(struct Argx *help) {
         so_extend(&sources, so("\n"));
     }
     so_print(sources);
+
     so_println(SO);
 
     so_free(&out);
