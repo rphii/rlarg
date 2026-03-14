@@ -64,11 +64,14 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 break;
             case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_SHORTOPT: /* pseudo */
-            case ARG_PARSE_ERROR_NO_REST_ALLOWED:
+            case ARG_PARSE_ERROR_NO_REST_ALLOWED: {
                 arg_parse_set_help_error(arg, arg->help.argx);
-                argx_so(&xso, arg->help.argx, true, false);
+                Argx_So_Options opts = {
+                    .force_nocolor = true,
+                };
+                argx_so(&xso, arg->help.argx, &opts);
                 newline = (bool)(arg->help.argx);
-                break;
+            } break;
             case ARG_PARSE_ERROR_UNCONFIGURABLE:
             case ARG_PARSE_ERROR_INVALID_CONVERSION:
             case ARG_PARSE_ERROR_INVALID_OPTION_GROUP:
@@ -77,11 +80,15 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_MISSING_VALUE:
             case ARG_PARSE_ERROR_INVALID_STRING:
             case ARG_PARSE_ERROR_INVALID_STRING_END:
-            case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL:
+            case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL: {
                 arg_parse_set_help_error(arg, argx);
-                argx_so(&xso, argx, true, true);
+                Argx_So_Options opts = {
+                    .force_nocolor = true,
+                    .is_for_config = true,
+                };
+                argx_so(&xso, argx, &opts);
                 newline = (bool)(argx);
-                break;
+            } break;
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
         }
         if(!arg->builtin.compgen) {

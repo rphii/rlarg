@@ -72,10 +72,13 @@ void arg_compgen_argx(struct Arg *arg, struct Argx *argx) {
 
 void arg_compgen_help_argx(struct Arg *arg, struct Argx *argx) {
     Argx_So xso = {0};
+    Argx_So_Options opts = {
+        .force_nocolor = true,
+    };
     if(argx->id == ARGX_TYPE_GROUP) {
         arg_compgen_help_group(arg, argx->group_s);
     } else {
-        argx_so(&xso, argx, true, false);
+        argx_so(&xso, argx, &opts);
         printf("%c%.*s%.*s", ARG_COMPGEN_DELIM, SO_F(xso.hierarchy), SO_F(argx->opt));
     }
     argx_so_free(&xso);
@@ -83,10 +86,13 @@ void arg_compgen_help_argx(struct Arg *arg, struct Argx *argx) {
 
 void arg_compgen_help_group(struct Arg *arg, struct Argx_Group *group) {
     Argx_So xso = {0};
+    Argx_So_Options opts = {
+        .force_nocolor = true,
+    };
     Argx **itE = array_itE(group->list);
     for(Argx **it = group->list; it < itE; ++it) {
         argx_so_clear(&xso);
-        argx_so(&xso, *it, true, false);
+        argx_so(&xso, *it, &opts);
         printf("%c%.*s%.*s", ARG_COMPGEN_DELIM, SO_F(xso.hierarchy), SO_F((*it)->opt));
         if((*it)->id == ARGX_TYPE_GROUP) {
             printf(".");
