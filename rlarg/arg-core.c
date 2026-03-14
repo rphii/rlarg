@@ -35,6 +35,35 @@ void arg_help(struct Arg *arg) {
     so_free(&out);
 }
 
+void arg_help_short(struct Arg *arg) {
+    ASSERT_ARG(arg);
+    So out = SO;
+    /* format long options */
+    so_fmt(&out, "Options: ");
+    for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
+        Argx **xE = array_itE((*group)->list);
+        for(Argx **xI = (*group)->list; xI < xE; ++xI) {
+            so_fmt_fx(&out, arg->rice.opt, 0, "--%.*s", SO_F((*xI)->opt));
+            so_fmt(&out, " ");
+        }
+    }
+    
+    /* format short options, TODO: if no short opts, it will still print the - without anything.. */
+    so_fmt(&out, "\n\nShort options: ");
+    so_fmt_fx(&out, arg->rice.opt, 0, "-");
+    for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
+        Argx **xE = array_itE((*group)->list);
+        for(Argx **xI = (*group)->list; xI < xE; ++xI) {
+            if((*xI)->c) {
+                so_fmt_fx(&out, arg->rice.opt, 0, "%c", (*xI)->c);
+            }
+        }
+    }
+
+    so_println(out);
+    so_free(&out);
+}
+
 void arg_help_argx_rec(So *out, Argx *argx, bool full_help) {
     if(!argx) return;
     arg_help_argx_rec(out, argx->group_p ? argx->group_p->parent : 0, false);

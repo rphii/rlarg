@@ -374,9 +374,6 @@ bool argx_so_val_visible(Argx *argx, Argx_Value_Union *val) {
     if(val) {
         /* if any value is set, value is visible */
         result = (bool)(val->any);
-        /* if positional, hide value */
-        bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
-        if(is_pos) result = false;
         /* if switch, hide */
         if(argx->id == ARGX_TYPE_SWITCH) result = false;
         /* if hidden, hide */
