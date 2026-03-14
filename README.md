@@ -9,6 +9,8 @@ Argument parser for C.
 
 ## Features
 
+For a full overview of provided functions by the library, see [`rlarg.g`](rlarg.h).
+
 **Core**
 
 - directly assign parsed values to your variables (no need to do a lookup on the argument parser)
