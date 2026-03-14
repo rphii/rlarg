@@ -294,6 +294,8 @@ void argx_so_hint_generic(Argx_So *xso, Arg_Rice *rice, char *hint, So so) {
 
 void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Argx_So_Options *opts) {
 
+    ASSERT_ARG(opts);
+
     int array_spacing[2] = {
         opts->is_for_config ? 2 : ARG_SPACING_VALUE_WRAP_ARRAY,
         opts->is_for_config ? 0 : ARG_SPACING_VALUE_WRAP_DELIM};

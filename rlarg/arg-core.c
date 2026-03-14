@@ -150,7 +150,7 @@ void arg_help_argx(struct Argx *help) {
             if(argx_so_val_visible(sw->argx, &sw->val)) {
                 so_push(&out, ' ');
                 so_fmt_fx(&out, rice->val_delim, 0, "=");
-                argx_so_val(&tmp_hier_val, rice, sw->argx, &sw->val, false);
+                argx_so_val(&tmp_hier_val, rice, sw->argx, &sw->val, &opts);
                 so_fmt(&out, "%.*s", SO_F(tmp_hier_val));
             }
             so_fmt(&out, "\n");
