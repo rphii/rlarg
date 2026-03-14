@@ -20,10 +20,16 @@ typedef struct Argx_So {
     bool have_hint;
 } Argx_So;
 
+typedef struct Argx_So_Options {
+    bool force_nocolor;
+    bool is_for_config;
+    size_t array_max_items;
+} Argx_So_Options;
+
 void argx_so_free(Argx_So *xso);
 void argx_so_clear(Argx_So *xso);
-void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config);
-void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, bool is_for_config);
+void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts);
+void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Argx_So_Options *opts);
 bool argx_so_val_visible(Argx *argx, Argx_Value_Union *val);
 void argx_so_hierarchy(So *hierarchy, Arg_Rice *rice, Argx_Group *group);
 

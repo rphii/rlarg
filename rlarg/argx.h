@@ -83,7 +83,7 @@ LUT_INCLUDE(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL);
 
 void v_argx_free(V_Argx *vargs);
 
-void argx_fmt_help(So *out, Argx *argx);
+void argx_fmt_help(So *out, Argx *argx, bool full_help);
 void argx_fmt_config(So *out, Argx *argx);
 
 void arg_update_color_off(struct Arg *arg); // TODO: move this somewhere else (also source)

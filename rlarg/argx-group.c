@@ -50,7 +50,7 @@ void argx_group_fmt_help(So *out, Argx_Group *group) {
     so_fmt_fx(out, group->arg->rice.group_delim, 0, ":");
     so_push(out, '\n');
     for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
-        argx_fmt_help(out, *argx);
+        argx_fmt_help(out, *argx, false);
     }
 }
 

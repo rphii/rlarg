@@ -274,7 +274,7 @@ void argx_builtin_usage_example(struct Argx *x) {
     array_push(x->group_p->arg->builtin.usages, x);
 }
 
-void argx_fmt_help(So *out, Argx *argx) {
+void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     ASSERT_ARG(out);
     ASSERT_ARG(argx);
     ASSERT_ARG(argx->group_p);
@@ -282,7 +282,9 @@ void argx_fmt_help(So *out, Argx *argx) {
     Arg_Rice *rice = &argx->group_p->arg->rice;
 
     Argx_So xso = {0};
-    argx_so(&xso, argx, false, false);
+    Argx_So_Options opts = {0};
+    if(!full_help) opts.array_max_items = 4;
+    argx_so(&xso, argx, &opts);
 
     ASSERT_ARG(argx->group_p);
     bool treat_as_options = (argx->group_p->table == &argx->group_p->arg->t_opt);
@@ -360,7 +362,10 @@ void argx_fmt_config(So *out, Argx *argx) {
 
     /* now format */
     Argx_So xso = {0};
-    argx_so(&xso, argx, false, true);
+    Argx_So_Options opts = {
+        .is_for_config = true,
+    };
+    argx_so(&xso, argx, &opts);
     So hierarchy = SO;
     so_split_ch(xso.hierarchy, '.', &hierarchy);
 

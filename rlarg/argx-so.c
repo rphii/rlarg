@@ -66,83 +66,108 @@ void argx_so_type_color(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
 
 /* vector types {{{ */
 
-void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing) {
+void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing, size_t max_items) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vso) {
         so_fmt_fx(out, rice->val_delim, 0, "[");
         So *vE = array_itE(*val->vso);
-        for(So *v = *val->vso; v < vE; ++v) {
+        So *vE2 = (max_items && array_len(*val->vso) > max_items) ? array_it(*val->vso, max_items) : vE;
+        for(So *v = *val->vso; v < vE2; ++v) {
             so_fmt(out, "\n%*s", spacing[0], "");
             so_fmt_fx(out, rice->val_delim, 0, "\"");
             so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(*v));
             so_fmt_fx(out, rice->val_delim, 0, "\"");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ",");
         }
+        if(vE2 < vE) {
+            so_fmt(out, "\n%*s", spacing[0], "");
+            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
+        }
         if(vE > *val->vso) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
 
-void argx_so_type_array_int(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing) {
+void argx_so_type_array_int(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing, size_t max_items) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vi) {
         so_fmt_fx(out, rice->val_delim, 0, "[");
         int *vE = array_itE(*val->vi);
-        for(int *v = *val->vi; v < vE; ++v) {
+        int *vE2 = (max_items && array_len(*val->vi) > max_items) ? array_it(*val->vi, max_items) : vE;
+        for(int *v = *val->vi; v < vE2; ++v) {
             so_fmt(out, "\n%*s", spacing[0], "");
             so_fmt_fx(out, rice->val, 0, "%d", *v);
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
+        }
+        if(vE2 < vE) {
+            so_fmt(out, "\n%*s", spacing[0], "");
+            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
         }
         if(vE > *val->vi) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
 
-void argx_so_type_array_size(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing) {
+void argx_so_type_array_size(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing, size_t max_items) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vz) {
         so_fmt_fx(out, rice->val_delim, 0, "[");
         ssize_t *vE = array_itE(*val->vz);
-        for(ssize_t *v = *val->vz; v < vE; ++v) {
+        ssize_t *vE2 = (max_items && array_len(*val->vz) > max_items) ? array_it(*val->vz, max_items) : vE;
+        for(ssize_t *v = *val->vz; v < vE2; ++v) {
             so_fmt(out, "\n%*s", spacing[0], "");
             so_fmt_fx(out, rice->val, 0, "%zi", *v);
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
+        }
+        if(vE2 < vE) {
+            so_fmt(out, "\n%*s", spacing[0], "");
+            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
         }
         if(vE > *val->vz) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
 
-void argx_so_type_array_bool(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing) {
+void argx_so_type_array_bool(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing, size_t max_items) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vb) {
         so_fmt_fx(out, rice->val_delim, 0, "[");
         bool *vE = array_itE(*val->vb);
-        for(bool *v = *val->vb; v < vE; ++v) {
+        bool *vE2 = (max_items && array_len(*val->vso) > max_items) ? array_it(*val->vb, max_items) : vE;
+        for(bool *v = *val->vb; v < vE2; ++v) {
             so_fmt(out, "\n%*s", spacing[0], "");
             so_fmt_fx(out, rice->val, 0, "%s", *v ? "true" : "false");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
+        }
+        if(vE2 < vE) {
+            so_fmt(out, "\n%*s", spacing[0], "");
+            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
         }
         if(vE > *val->vb) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
     }
 }
 
-void argx_so_type_array_color(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing) {
+void argx_so_type_array_color(So *out, Arg_Rice *rice, Argx_Value_Union *val, int *spacing, size_t max_items) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vc) {
         so_fmt_fx(out, rice->val_delim, 0, "[");
         Color *vE = array_itE(*val->vc);
-        for(Color *v = *val->vc; v < vE; ++v) {
+        Color *vE2 = (max_items && array_len(*val->vc) > max_items) ? array_it(*val->vc, max_items) : vE;
+        for(Color *v = *val->vc; v < vE2; ++v) {
             so_fmt(out, "\n%*s", spacing[0], "");
             if(rice) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX|SO_COLOR_PAREN);
             else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX|SO_COLOR_PAREN|SO_COLOR_NOFX);
             so_fmt_fx(out, rice->val_delim, 0, ", ");
+        }
+        if(vE2 < vE) {
+            so_fmt(out, "\n%*s", spacing[0], "");
+            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
         }
         if(vE > *val->vc) so_fmt(out, "\n%*s", spacing[1], "");
         so_fmt_fx(out, rice->val_delim, 0, "]");
@@ -259,11 +284,11 @@ void argx_so_hint_generic(Argx_So *xso, Arg_Rice *rice, char *hint, So so) {
     so_fmt_fx(&xso->hint, rice->hint_delim, 0, "%c", hint[1]);
 }
 
-void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, bool is_for_config) {
+void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Argx_So_Options *opts) {
 
     int array_spacing[2] = {
-        is_for_config ? 2 : ARG_SPACING_VALUE_WRAP_ARRAY,
-        is_for_config ? 0 : ARG_SPACING_VALUE_WRAP_DELIM};
+        opts->is_for_config ? 2 : ARG_SPACING_VALUE_WRAP_ARRAY,
+        opts->is_for_config ? 0 : ARG_SPACING_VALUE_WRAP_DELIM};
 
     if(argx->attr.is_array) {
         switch(argx->id) {
@@ -271,21 +296,21 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, boo
             case ARGX_TYPE_NONE: {
             } break;
             case ARGX_TYPE_COLOR: {
-                argx_so_type_array_color(out, rice, val, array_spacing);
+                argx_so_type_array_color(out, rice, val, array_spacing, opts->array_max_items);
             } break;
             case ARGX_TYPE_BOOL: {
-                argx_so_type_array_bool(out, rice, val, array_spacing);
+                argx_so_type_array_bool(out, rice, val, array_spacing, opts->array_max_items);
             } break;
             case ARGX_TYPE_INT: {
-                argx_so_type_array_int(out, rice, val, array_spacing);
+                argx_so_type_array_int(out, rice, val, array_spacing, opts->array_max_items);
             } break;
             case ARGX_TYPE_SIZE: {
-                argx_so_type_array_size(out, rice, val, array_spacing);
+                argx_so_type_array_size(out, rice, val, array_spacing, opts->array_max_items);
             } break;
             case ARGX_TYPE_REST:
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                argx_so_like_array_string(out, rice, val, array_spacing);
+                argx_so_like_array_string(out, rice, val, array_spacing, opts->array_max_items);
             } break;
             case ARGX_TYPE_SWITCH: {
                 ABORT(ERR_UNREACHABLE("vector of SWITCH is not supported, and thus you should never see this message"));
@@ -352,14 +377,15 @@ bool argx_so_val_visible(Argx *argx, Argx_Value_Union *val) {
     return result;
 }
 
-void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
+void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
     //printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
     if(!argx) return;
     ASSERT_ARG(xso);
+    ASSERT_ARG(opts);
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
     bool was_nocolor = argx->group_p->arg->builtin.color_off; /* TODO this is disgusting */
-    if(force_nocolor) argx->group_p->arg->builtin.color = ARG_BUILTIN_COLOR_OFF; /* TODO this is disgusting */
+    if(opts->force_nocolor) argx->group_p->arg->builtin.color = ARG_BUILTIN_COLOR_OFF; /* TODO this is disgusting */
     Arg_Rice *rice = &argx->group_p->arg->rice;
 
     argx_so_clear(xso);
@@ -389,8 +415,8 @@ void argx_so(Argx_So *xso, Argx *argx, bool force_nocolor, bool is_for_config) {
     xso->val_config = (bool)(argx->val.any);
     xso->have_hint = true;
     argx_so_hierarchy(&xso->hierarchy, rice, argx->group_p);
-    argx_so_val(&xso->set_val, rice, argx, &argx->val, is_for_config);
-    argx_so_val(&xso->set_ref, rice, argx, &argx->ref, is_for_config);
+    argx_so_val(&xso->set_val, rice, argx, &argx->val, opts);
+    argx_so_val(&xso->set_ref, rice, argx, &argx->ref, opts);
 
     if(argx->attr.is_array) {
         switch(argx->id) {
