@@ -4,6 +4,7 @@
 - IMMEDIATELY_PRE / POST
 - custom hints for basic things
 - parse arbitrary config hierarchy -> `arg-parse-config.c:30`
+- compgen for, e.g. `prog --help<tab>` does not finish the word :(
 
 # later
 

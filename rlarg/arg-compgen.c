@@ -12,6 +12,10 @@ void arg_compgen_group(Argx_Group *group) {
         printf("%c", ARG_COMPGEN_DELIM);
         if(treat_as_options) printf("--");
         printf("%.*s", SO_F((*it)->opt));
+        if((*it)->c) {
+            ASSERT(treat_as_options, "should always have an option, if we do short opts");
+            printf("%c-%c", ARG_COMPGEN_DELIM, (*it)->c);
+        }
     }
 }
 
@@ -25,13 +29,11 @@ static void static_arg_compgen_argx(struct Arg *arg, struct Argx *argx) {
         case ARGX_TYPE_COLOR:
         case ARGX_TYPE_STRING: break; /* can not provide compgen */
         case ARGX_TYPE_BOOL: {
-            printf("%c", 0);
-            printf("true%cfalse", ARG_COMPGEN_DELIM);
+            printf("%ctrue%cfalse", ARG_COMPGEN_DELIM, ARG_COMPGEN_DELIM);
         } break;
         case ARGX_TYPE_FLAG:
         case ARGX_TYPE_ENUM: {
-            printf("%c", 0);
-            printf("%.*s", SO_F(argx->opt));
+            printf("%c%.*s", ARG_COMPGEN_DELIM, SO_F(argx->opt));
         } break;
         case ARGX_TYPE_GROUP: {
             Argx_Group *sub = argx->group_s;
