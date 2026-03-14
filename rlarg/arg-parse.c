@@ -958,14 +958,6 @@ int arg_queue_post_parsing(Arg *arg) {
     return result;
 }
 
-#if 0
-void arg_parse_help_fmt_rec(So *out, Argx *argx) {
-    if(!argx) return;
-    arg_parse_help_fmt_rec(out, argx->group_p ? argx->group_p->parent : 0);
-    argx_fmt_help(out, argx);
-}
-#endif
-
 void arg_parse_help(Arg *arg) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
 
@@ -1075,36 +1067,6 @@ void arg_parse_configs(Arg *arg) {
     arg->help.last = 0;
 }
 
-/* these set the sources if there is NOT a refval present -- opposite of setref */
-void arg_parse_setup_sources_argx(Argx *argx) {
-    printff(" sources: %p",argx->sources);
-    if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
-    if(!argx->ref.any) {
-        if(argx->attr.is_array) {
-            /* TODO .. what the fuck is this below .. why use vb array ??? what if it is vz ??? or something else ????? */
-            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_NONE, array_len(*argx->val.vb));
-        } else {
-            arg_parse_setref_sources_mono(argx, ARGX_SOURCE_NONE, 1);
-        }
-    }
-}
-
-/* these set the sources if there is NOT a refval present -- opposite of setref */
-void arg_parse_setup_sources_group(Argx_Group *group) {
-    if(!group) return;
-    for(Argx **it = group->list; it < array_itE(group->list); ++it) {
-        printff("setup for: %.*s",SO_F((*it)->opt));
-        ASSERT_ARG(it);
-        Argx *argx = *it;
-        ASSERT_ARG(argx);
-        if(argx->id == ARGX_TYPE_GROUP) {
-            arg_parse_setup_sources_group(argx->group_s); 
-        } else {
-            arg_parse_setup_sources_argx(argx);
-        }
-    }
-}
-
 void arg_parse_enable_config_print(Arg *arg) {
     ASSERT_ARG(arg);
     if(!arg->builtin.config_use_builtin) return;
@@ -1123,14 +1085,6 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     /* now actually parse */
 
     int status = 0;
-
-#if 0
-    for(Argx_Group **it = arg->opts; it < array_itE(arg->opts); ++it) {
-        arg_parse_setup_sources_group(*it);
-    }
-    arg_parse_setup_sources_group(&arg->env);
-    arg_parse_setup_sources_group(&arg->pos);
-#endif
 
     if(!status) status = arg_parse_environment(arg);
     if(arg->builtin.color != ARG_BUILTIN_COLOR_ON && arg->builtin.config_print_selected) arg->builtin.color_off = true;
