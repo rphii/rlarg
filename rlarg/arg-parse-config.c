@@ -461,7 +461,11 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         if(!arg_parse_config_section(&p, &head)) {
             if(!arg_parse_config_settings(&p, &head)) {
                 arg_parse_config_other(&p, &head, &comment, false);
+            } else {
+                //printff("hello %.*s", SO_F(p.hierarchy));
             }
+        } else {
+            //printff("hello %.*s", SO_F(p.hierarchy));
         }
     }
 
