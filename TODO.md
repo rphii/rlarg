@@ -1,6 +1,8 @@
 # priority
 
 - sequence (e.g. \<int, string\>)
+- IMMEDIATELY_PRE / POST
+- custom hints for basic things
 
 # later
 
