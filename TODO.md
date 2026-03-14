@@ -6,6 +6,8 @@
 
 # later
 
+- arbitrary hierarchy = file
+
 - min/max for numbers and...
 - ..float/double
 - ..time
