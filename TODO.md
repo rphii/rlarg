@@ -1,7 +1,5 @@
 # priority
 
-- (do not) codify usage examples --> I have garbage code lingering around
-
 - add info to help output if configurable or not!
 - in `argx_so` -> `like_string` -> change any " -> \" etc.
 
@@ -24,4 +22,6 @@
 - note that if URI wasn't found? optional enable/disable?
 
 - don't output 'not set anywhere' .. if a group? what if callback? or just list sources of all sub-items?
+
+- roff (man page) generation?
 
