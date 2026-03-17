@@ -1,28 +1,34 @@
 # priority
 
 - sequence (e.g. \<int, string\>)
-- IMMEDIATELY_PRE / POST
-- custom hints for basic things
-- parse arbitrary config hierarchy -> `arg-parse-config.c:30`
-- compgen for, e.g. `prog --help<tab>` does not finish the word :(
+- custom hints for basic things, and remove the optional hint thing
+- better compgen for flags, e.g: +flag,-flag2 and show combinations..
+- add interface to get a config string during runtime..
+- sources get listed VERY weird (e.g. ./a.out -h rice.arg.program)
+
+- more tests, e.g.
+    - CONFIG_PRINT=section -> input to same thing -> expect same CONFIG_PRINT=section output
+    - parse basic types
 
 # later
-
-- arbitrary hierarchy = file
 
 - min/max for numbers and...
 - ..float/double
 - ..time
 
 - hot/reload
-- better compgen for flags, e.g: +flag,-flag2 and show combinations..
 - organize so_fmt_fx better..... (they all over the place)
-- add option to set parser error... in arg_runtime?
 - note that if URI wasn't found? optional enable/disable?
-
 - don't output 'not set anywhere' .. if a group? what if callback? or just list sources of all sub-items?
 
-- roff (man page) generation?
+# later later
 
+*what should some these even be ??*
+
+- IMMEDIATELY_PRE / POST
+- compgen for, e.g. `prog --help<tab>` does not finish the word :(
+- parse arbitrary config hierarchy -> `arg-parse-config.c:30`
+- add option to set parser error... in arg_runtime?
+- roff (man page) generation?
 - add option to disable/enable function execution during compgen (why would I want/not want this...?)
 
