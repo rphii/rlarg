@@ -536,7 +536,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(!result && argx->callback.func) {
         if(argx->callback.priority == ARGX_PRIORITY_IMMEDIATELY) {
             result = argx->callback.func(argx, argx->callback.user, so);
-        } else {
+        } else if(argx->callback.priority == ARGX_PRIORITY_WHEN_ALL_VALID) {
             Argx_Callback_Queue q = { .argx = argx, .so = so };
             array_push(arg->queue, q);
         }

@@ -409,6 +409,10 @@ bool argx_flag_is_any_source_set(Argx *argx) {
 bool argx_is_configurable(Argx *argx) {
     if(!argx) return false;
     if(argx->attr.is_unconfigurable) return false;
+    ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(argx->group_p->arg);
+    if(argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos)) return false;
+    if(argx_is_subgroup_of_root(argx, &argx->group_p->arg->env)) return false;
     if(argx->callback.func) return true;
     if(argx->id == ARGX_TYPE_NONE) return false;
     return true;

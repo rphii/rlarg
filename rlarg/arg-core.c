@@ -158,18 +158,20 @@ void arg_help_argx(struct Argx *help) {
         so_free(&tmp_hier_val);
     }
 
-    so_fmt(&out, "\nconfigurable via config file: %s", help->attr.is_unconfigurable ? "no" : "yes");
-
-    if(!help->attr.is_unconfigurable) {
-        so_fmt(&out, "\nsources:\n");
-        if(!so_len(sources)) {
-            so_fmt(&sources, "  not set anywhere\n");
-        } else {
-            /* TODO: maybe add a: '<-- this is the last/actual source' thingy..? */
-            so_extend(&sources, so("\n"));
+    if(argx_is_configurable(help)) {
+        if(!help->attr.is_unconfigurable) {
+            so_fmt(&out, "\nsources:\n");
+            if(!so_len(sources)) {
+                so_fmt(&sources, "  not set anywhere");
+            } else {
+                /* TODO: maybe add a: '<-- this is the last/actual source' thingy..? */
+            }
+            so_extend(&out, sources);
         }
-        so_extend(&out, sources);
+    } else {
+        so_fmt(&out, "\nunconfigurable via config file");
     }
+
     so_print(out);
 
     so_println(SO);
