@@ -266,31 +266,37 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             so_split = so;
         }
         subx = t_argx_get(argx->group_s->table, so_split);
+        printff("GOT SUBX %.*s",SO_F(subx->opt));
         if(subx) {
-            arg_parse_set_help_any(arg, subx);
-            switch(argx->group_s->id) {
-                case ARGX_GROUP_ENUM: {
-                    result = arg_parse_argx(arg, stream, subx, SO);
-                    done = true;
-                } break;
-                case ARGX_GROUP_FLAGS: {
-                    result = arg_parse_argx(arg, stream, subx, flagv);
-                } break;
-                case ARGX_GROUP_SEQUENCE: {
-                    //arg_stream_not_consumed(stream);
-                    //Argx **itE = array_itE(argx);
-                } break;
-                case ARGX_GROUP_ROOT:
-                case ARGX_GROUP_OPTIONS: {
-                    So next = SO;
-                    if(arg_stream_get_next(stream, &next, &arg->builtin.compgen_flags)) {
-                        //printff("GOT NEXT");
-                        result = arg_parse_argx(arg, stream, subx, next);
+            if(subx->id != ARGX_TYPE_NONE) {
+                arg_parse_set_help_any(arg, subx);
+                switch(argx->group_s->id) {
+                    case ARGX_GROUP_ENUM: {
+                        result = arg_parse_argx(arg, stream, subx, SO);
                         done = true;
-                    } else {
-                        arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_POSITIONAL, subx);
-                    }
-                } break;
+                    } break;
+                    case ARGX_GROUP_FLAGS: {
+                        result = arg_parse_argx(arg, stream, subx, flagv);
+                    } break;
+                    case ARGX_GROUP_SEQUENCE: {
+                        //arg_stream_not_consumed(stream);
+                        //Argx **itE = array_itE(argx);
+                    } break;
+                    case ARGX_GROUP_ROOT:
+                    case ARGX_GROUP_OPTIONS: {
+                        So next = SO;
+                        if(arg_stream_get_next(stream, &next, &arg->builtin.compgen_flags)) {
+                            printff("GOT NEXT");
+                            result = arg_parse_argx(arg, stream, subx, next);
+                            done = true;
+                        } else {
+                            arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_POSITIONAL, subx);
+                        }
+                    } break;
+                }
+            } else {
+                done = true;
+                result = arg_parse_argx(arg, stream, subx, SO);
             }
         } else {
             arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_GROUP, argx);
@@ -382,6 +388,8 @@ int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 }
 
 int arg_parse_argx_none(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
+    printff("ARGX NONE! %.*s",SO_F(argx->opt));
+    //arg_stream_not_consumed(stream);
     return 0;
 }
 
@@ -544,7 +552,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
-    //printff("PARSE: %.*s",SO_F(argx->opt));
+    printff("PARSE: %.*s",SO_F(argx->opt));
     int result = -1;
     arg_parse_set_help_any(arg, argx); /* set help BEFORE doing any further parsing */
     if(stream->is_config && !argx_is_configurable(argx)) {
