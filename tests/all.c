@@ -114,8 +114,8 @@ int main(const int argc, const char **argv) {
            argx_switch_flag(xu, e3, false);
 
 
-    int seqi = 0;
-    So seqs = SO;
+    int seqi = 0, seqe = 0;
+    So seqs = SO, seqs2 = SO;
     bool seqb = false;
     x=argx_opt(g1, 0, so("seq"), so("a sequence"));
       g1=argx_group_sequence(x);
@@ -124,10 +124,11 @@ int main(const int argc, const char **argv) {
         xs=argx_opt(g1, 0, so("string"), so("a string"));
            argx_type_so(xs, &seqs, 0);
         xs=argx_opt(g1, 0, so("option"), so("an option"));
-        //   g2=argx_group_options(x);
-        //      argx_opt(g2, 0, so("a"), so("a"));
-        //      argx_opt(g2, 0, so("b"), so("b"));
-        //      argx_opt(g2, 0, so("c"), so("c"));
+           g2=argx_group_options(xs);
+              xs=argx_opt(g2, 0, so("a"), so("a"));
+              xs=argx_opt(g2, 0, so("b"), so("b"));
+                 argx_type_so(xs, &seqs2, 0);
+              xs=argx_opt(g2, 0, so("c"), so("c"));
         xs=argx_opt(g1, 0, so("bool"), so("a bool"));
            argx_type_bool(xs, &seqb, 0);
 
