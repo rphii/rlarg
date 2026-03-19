@@ -4,6 +4,8 @@
 #include "arg-compgen.h"
 #include <unistd.h>
 
+int arg_parse_positional(struct Arg *arg, Arg_Stream *stream, Argx *argx);
+
 /* error messages {{{ */
 
 void arg_parse_set_help_any(struct Arg *arg, Argx *argx) {
@@ -75,6 +77,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_UNCONFIGURABLE:
             case ARG_PARSE_ERROR_INVALID_CONVERSION:
             case ARG_PARSE_ERROR_INVALID_OPTION_GROUP:
+            case ARG_PARSE_ERROR_MISSING_SEQUENCE:
             case ARG_PARSE_ERROR_MISSING_POSITIONAL:
             case ARG_PARSE_ERROR_CONFIG:
             case ARG_PARSE_ERROR_MISSING_VALUE:
@@ -162,6 +165,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
                     fprintf(stderr, FF(nc, "Missing positional values: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));
                 } break;
+                case ARG_PARSE_ERROR_MISSING_SEQUENCE: {
+                    fprintf(stderr, FF(nc, "Missing sequential values: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));
+                } break;
                 case ARG_PARSE_ERROR_CONFIG: {
                     fprintf(stderr, FF(nc, "Error(s) occured while configuring: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));
                 } break;
@@ -205,6 +211,34 @@ void arg_parse_add_source(struct Argx *argx, Arg_Stream_Source source) {
     }
 }
 
+int arg_parse_sequence(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
+    ASSERT_ARG(arg);
+    ASSERT_ARG(stream);
+    int status = 0;
+    size_t i_pos = 0;
+    So carg = SO;
+
+    size_t len = array_len(argx->group_s->list);
+    while(i_pos < len) {
+        Argx *pos = array_at(argx->group_s->list, i_pos);
+        //printff("GOT SEQUENTIAL ARGX: %.*s", SO_F(pos->opt));
+        if(!arg_stream_get_next(stream, &carg, &arg->builtin.compgen_flags)) {
+            arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_SEQUENCE, pos);
+            status = -1;
+            break;
+        }
+        if(arg_parse_argx(arg, stream, pos, carg)) {
+            arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNHANDLED_POSITIONAL, 0);
+            status = -1;
+            break;
+        } else {
+            ++i_pos;
+        }
+    }
+
+    return status;
+}
+
 /* coarse parsers {{{ */
 
 int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
@@ -224,10 +258,13 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 so_split = so_i0(so_split, 1);
                 flagv = so("0");
             }
+        } else if(argx->group_s->id == ARGX_GROUP_SEQUENCE) {
+            arg_stream_not_consumed(stream);
+            result = arg_parse_sequence(arg, stream, argx);
+            break; /* quit to loop */
         } else {
             so_split = so;
         }
-        //printff("GET SUB %.*s",SO_F(so_split));
         subx = t_argx_get(argx->group_s->table, so_split);
         if(subx) {
             arg_parse_set_help_any(arg, subx);
@@ -238,6 +275,10 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 } break;
                 case ARGX_GROUP_FLAGS: {
                     result = arg_parse_argx(arg, stream, subx, flagv);
+                } break;
+                case ARGX_GROUP_SEQUENCE: {
+                    //arg_stream_not_consumed(stream);
+                    //Argx **itE = array_itE(argx);
                 } break;
                 case ARGX_GROUP_ROOT:
                 case ARGX_GROUP_OPTIONS: {
