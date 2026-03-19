@@ -49,6 +49,8 @@ typedef struct Arg_Rice {
     So_Fx val_delim;
     So_Fx sw;
     So_Fx sw_delim;
+    So_Fx sequence;
+    So_Fx sequence_delim;
 } Arg_Rice;
 
 typedef enum {

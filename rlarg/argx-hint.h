@@ -8,6 +8,7 @@ typedef enum {
     ARGX_HINT_OPTIONAL, /* (type) */
     ARGX_HINT_OPTION,   /* {type} */
     ARGX_HINT_FLAGS,    /* [type] */
+    ARGX_HINT_SEQUENCE, /* |sequence| */
 } Argx_Hint_List;
 
 typedef struct Argx_Hint {

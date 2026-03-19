@@ -259,7 +259,7 @@ struct Argx_Group *argx_group_sequence(struct Argx *argx) {
     NEW(T_Argx, table);
     NEW(Argx_Group, argx->group_s);
     Argx_Group *group = argx->group_s;
-    argx->hint.id = ARGX_HINT_OPTION;
+    argx->hint.id = ARGX_HINT_SEQUENCE;
     *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_SEQUENCE, argx);
     return group;
 }
