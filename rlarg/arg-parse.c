@@ -881,6 +881,7 @@ void arg_parse_setref_group(Argx_Group *group) {
                         }
                     }
                 } break;
+                case ARGX_GROUP_SEQUENCE:
                 case ARGX_GROUP_OPTIONS:
                 case ARGX_GROUP_ROOT: {
                     arg_parse_setref_group(argx->group_s); 
