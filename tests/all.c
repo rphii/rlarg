@@ -114,6 +114,18 @@ int main(const int argc, const char **argv) {
            argx_switch_flag(xu, e3, false);
 
 
+    int seqi = 0;
+    So seqs = SO;
+    bool seqb = false;
+    x=argx_opt(g1, 0, so("seq"), so("a sequence"));
+      g1=argx_group_sequence(x);
+        xs=argx_opt(g1, 0, so("int"), so("an int"));
+           argx_type_int(xs, &seqi, 0);
+        xs=argx_opt(g1, 0, so("string"), so("a string"));
+           argx_type_so(xs, &seqs, 0);
+        xs=argx_opt(g1, 0, so("bool"), so("a bool"));
+           argx_type_bool(xs, &seqb, 0);
+
     g1=argx_group(arg, so("other"));
 
 

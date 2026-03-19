@@ -7,6 +7,7 @@ typedef enum {
     ARGX_GROUP_ENUM,
     ARGX_GROUP_OPTIONS,
     ARGX_GROUP_FLAGS,
+    ARGX_GROUP_SEQUENCE,
 } Argx_Group_List;
 
 typedef struct Argx_Group {
