@@ -123,6 +123,11 @@ int main(const int argc, const char **argv) {
            argx_type_int(xs, &seqi, 0);
         xs=argx_opt(g1, 0, so("string"), so("a string"));
            argx_type_so(xs, &seqs, 0);
+        xs=argx_opt(g1, 0, so("option"), so("an option"));
+        //   g2=argx_group_options(x);
+        //      argx_opt(g2, 0, so("a"), so("a"));
+        //      argx_opt(g2, 0, so("b"), so("b"));
+        //      argx_opt(g2, 0, so("c"), so("c"));
         xs=argx_opt(g1, 0, so("bool"), so("a bool"));
            argx_type_bool(xs, &seqb, 0);
 

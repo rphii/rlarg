@@ -284,20 +284,9 @@ void argx_so_sequence(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
     ASSERT_ARG(argx);
     so_fmt_fx(&xso->hint, rice->sequence_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
-    size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
-        /* check if iterator matches selected value */
-        if((*it)->val.any) {
-            if(iv++) so_push(&xso->set_val, ',');
-            so_fmt_fx(&xso->set_val, rice->sequence, 0, "%.*s", SO_F((*it)->opt));
-        }
-        if((*it)->ref.any) {
-            if(ir++) so_push(&xso->set_ref, ',');
-            so_fmt_fx(&xso->set_ref, rice->sequence, 0, "%.*s", SO_F((*it)->opt));
-        }
-        /* format hint */
         so_fmt_fx(&xso->hint, rice->sequence, 0, "%.*s", SO_F((*it)->opt));
-        if(it + 1 < itE) so_fmt_fx(&xso->hint, rice->sequence_delim, 0, "|");
+        if(it + 1 < itE) so_fmt_fx(&xso->hint, rice->sequence_delim, 0, ",");
     }
     so_fmt_fx(&xso->hint, rice->sequence_delim, 0, "%c", hints[1]);
 }
@@ -441,8 +430,8 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
             hint[1] = '>';
         } break;
         case ARGX_HINT_SEQUENCE: {
-            hint[0] = '|';
-            hint[1] = '|';
+            hint[0] = '<';
+            hint[1] = '>';
         } break;
     }
     /* format the value */
