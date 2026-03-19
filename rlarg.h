@@ -84,7 +84,7 @@ void argx_switch_array_color(struct Argx *switch_argx, struct Argx *argx, Color 
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref);
 struct Argx_Group *argx_group_options(struct Argx *argx);
 struct Argx_Group *argx_group_flags(struct Argx *argx);
-
+struct Argx_Group *argx_group_sequence(struct Argx *argx);
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc);
 

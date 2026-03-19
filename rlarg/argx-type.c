@@ -252,6 +252,18 @@ void argx_switch_none(struct Argx *switch_argx, struct Argx *argx) {
     array_push(switch_argx->val.sw, sw);
 }
 
+struct Argx_Group *argx_group_sequence(struct Argx *argx) {
+    ASSERT_ARG(argx);
+    argx->id = ARGX_TYPE_GROUP;
+    T_Argx *table;
+    NEW(T_Argx, table);
+    NEW(Argx_Group, argx->group_s);
+    Argx_Group *group = argx->group_s;
+    argx->hint.id = ARGX_HINT_OPTION;
+    *group = argx_group_init(argx->group_p->arg, table, argx->opt, ARGX_GROUP_SEQUENCE, argx);
+    return group;
+}
+
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {
     ASSERT_ARG(group);
