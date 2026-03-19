@@ -221,7 +221,7 @@ int arg_parse_sequence(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
     size_t len = array_len(argx->group_s->list);
     while(i_pos < len) {
         Argx *pos = array_at(argx->group_s->list, i_pos);
-        //printff("GOT SEQUENTIAL ARGX: %.*s", SO_F(pos->opt));
+        printff("GOT SEQUENTIAL ARGX: %.*s", SO_F(pos->opt));
         if(!arg_stream_get_next(stream, &carg, &arg->builtin.compgen_flags)) {
             arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_SEQUENCE, pos);
             status = -1;
