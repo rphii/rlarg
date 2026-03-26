@@ -182,7 +182,7 @@ void arg_help_argx(struct Argx *help) {
                     so_extend(&out, so("  "));
                     so_extend(&out, *it);
                     if(it + 1 < itE) so_extend(&out, so(",\n"));
-                    else so_extend(&out, so(" <-- most recent one"));
+                    else if(it > sources) so_extend(&out, so(" <-- most recent one"));
                 }
             }
         }
