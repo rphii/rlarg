@@ -413,6 +413,7 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
     /* remember the hint */
     char hint[2] = {0};
     switch(argx->hint.id) {
+        case ARGX_HINT_NONE: break;
         case ARGX_HINT_FLAGS: {
             hint[0] = '[';
             hint[1] = ']';
