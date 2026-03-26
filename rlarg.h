@@ -1,7 +1,6 @@
 #ifndef RLARG_H
 
 #include <rlso.h>
-#include "rlarg/argx-hint.h"
 
 struct Arg;
 struct Argx;
@@ -107,6 +106,7 @@ void argx_callback(struct Argx *argx, Argx_Function func, void *user, Argx_Prior
 
 void argx_attr_hide(struct Argx *argx, bool hide);
 void argx_attr_configurable(struct Argx *argx, bool configurable);
+void argx_attr_callback_skip_compgen(struct Argx *argx, bool configurable);
 
 /* rlarg/arg-after.c */
 

@@ -28,8 +28,6 @@ typedef struct Arg_Stream_Source {
 } Arg_Stream_Source;
 
 
-bool arg_stream_souces_only_contains(Arg_Stream_Source *sources, Arg_Stream_Source_List id);
-
 typedef struct Arg_Stream {
     VSo vso;
     int i, i_split;

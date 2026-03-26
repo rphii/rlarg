@@ -100,6 +100,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 case ARG_STREAM_SOURCE_CONFIG: {
                     fprintf(stderr, FF(nc, "%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.number);
                 } break;
+                case ARG_STREAM_SOURCE_HELP: {
+                    fprintf(stderr, FF(nc, "help@%u: ", FG_MG_B BOLD), stream->source.number);
+                } break;
                 case ARG_STREAM_SOURCE_STDIN: {
                     fprintf(stderr, FF(nc, "stdin@%u: ", FG_MG_B BOLD), stream->source.number);
                 } break;
@@ -396,6 +399,32 @@ int arg_parse_argx_none(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 
 int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
+    if(stream->source.id == ARG_STREAM_SOURCE_STDIN) {
+        bool reset_related = false;
+        Argx_Group *related = argx->group_p;
+        Argx **itE = array_itE(related->list);
+        for(Argx **it = related->list; it < itE; ++it) {
+            Arg_Stream_Source *jtE = array_itE((*it)->sources);
+            for(Arg_Stream_Source *jt = (*it)->sources; jt < jtE; ++jt) {
+                if(jt->id == ARG_STREAM_SOURCE_CONFIG ||
+                   jt->id == ARG_STREAM_SOURCE_REFVAL) {
+                    reset_related = true;
+                } else if(jt->id == ARG_STREAM_SOURCE_STDIN) {
+                    reset_related = false;
+                    goto break2;
+                }
+            }
+        }
+        break2:;
+        /* now reset, if need */
+        if(reset_related) {
+            bool off = false;
+            for(Argx **it = related->list; it < itE; ++it) {
+                arg_parse_setval_argx(*it, &(Argx_Value_Union){ .b = &off }, (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_REFVAL }, false);
+            }
+        }
+    }
+
     ASSERT_ARG(!so_is_zero(so));
     bool flag = false;
     //printff("FLAG OF %.*s: %.*s", SO_F(argx->opt), SO_F(so));
@@ -584,11 +613,15 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
         }
     }
     if(!result && argx->callback.func) {
-        if(argx->callback.priority == ARGX_PRIORITY_IMMEDIATELY) {
-            result = argx->callback.func(argx, argx->callback.user, so);
-        } else if(argx->callback.priority == ARGX_PRIORITY_WHEN_ALL_VALID) {
-            Argx_Callback_Queue q = { .argx = argx, .so = so };
-            array_push(arg->queue, q);
+        bool skip = false;
+        if(arg->builtin.compgen && argx->attr.callback_skip_compgen) skip = true;
+        if(!skip) {
+            if(argx->callback.priority == ARGX_PRIORITY_IMMEDIATELY) {
+                result = argx->callback.func(argx, argx->callback.user, so);
+            } else if(argx->callback.priority == ARGX_PRIORITY_WHEN_ALL_VALID) {
+                Argx_Callback_Queue q = { .argx = argx, .so = so };
+                array_push(arg->queue, q);
+            }
         }
     }
     return result;
@@ -1020,6 +1053,7 @@ void arg_parse_help(Arg *arg, bool do_not_recurse) {
         };
 
         for(size_t i = 0; i < help_len || help_compgen; ++i) {
+            ++stream_help.source.number;
             help_compgen = false;
             So search = i < help_len ? array_at(arg->help.sub, i) : SO;
             stream_help.error_id = 0;
@@ -1149,10 +1183,11 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     if(!status) status = arg_parse_stdin(arg, argc, argv);
     if(arg->builtin.quit_early) goto defer;
 
+    arg_parse_setref(arg);
+
     if(!status) status = arg_queue_post_parsing(arg);
     if(arg->builtin.quit_early) goto defer;
 
-    arg_parse_setref(arg);
     if(arg->builtin.quit_early || arg->builtin.quit_when_all_parsed) goto defer;
 
 defer:
