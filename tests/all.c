@@ -115,6 +115,7 @@ int main(const int argc, const char **argv) {
 
 
     int seqi = 0, seqe = 0;
+    bool seqf0 = 0, seqf1 = 0, seqf2 = 0;
     So seqs = SO, seqs2 = SO;
     bool seqb = false;
     x=argx_opt(g1, 0, so("seq"), so("a sequence"));
@@ -129,6 +130,11 @@ int main(const int argc, const char **argv) {
               xs=argx_opt(g2, 0, so("b"), so("b"));
                  argx_type_so(xs, &seqs2, 0);
               xs=argx_opt(g2, 0, so("c"), so("c"));
+        xs=argx_opt(g1, 0, so("flag"), so("a flag"));
+           g2=argx_group_flags(xs);
+              argx_flag(g2, &seqf0, &(bool){false}, so("x"), so("xxx"));
+              argx_flag(g2, &seqf1, &(bool){false}, so("y"), so("yyy"));
+              argx_flag(g2, &seqf2, &(bool){false}, so("z"), so("zzz"));
         xs=argx_opt(g1, 0, so("bool"), so("a bool"));
            argx_type_bool(xs, &seqb, 0);
 
