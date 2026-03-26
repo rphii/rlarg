@@ -16,7 +16,7 @@ void arg_free(struct Arg **arg) {
 
 void arg_init_al(struct Arg *arg) {
     arg->print.bounds.c = 2;
-    arg->print.bounds.opt = 6;
+    arg->print.bounds.opt = 8;
     arg->print.bounds.desc = 50;
     arg->print.bounds.max = 80;
 
@@ -175,18 +175,19 @@ void arg_help_argx(struct Argx *help) {
     ASSERT_ARG(help->group_p);
     ASSERT_ARG(help->group_p->arg);
     Arg_Rice *rice = &help->group_p->arg->rice;
+    So_Align al_ws = help->group_p->arg->print.whitespace;
     bool full_help = true;
 
     argx_so(&xso, help, &opts);
-    so_fmt(&out, "%.*s", SO_F(xso.hierarchy));
+    so_fmt_al(&out, rice->group.align, 0, "%.*s", SO_F(xso.hierarchy));
     so_fmt_fx(&out, rice->group, 0, "%.*s", SO_F(xso.argx->opt));
     so_fmt_fx(&out, rice->group_delim, 0, ":");
-    so_push(&out, '\n');
+    so_al_nl(&out, al_ws, 1);
     argx_so_free(&xso);
 
     arg_help_argx_rec(&out, help, full_help);
     if(help->id == ARGX_TYPE_GROUP) {
-        so_push(&out, '\n');
+        so_al_nl(&out, al_ws, 1);
         ASSERT_ARG(help->group_s);
         Argx **itE = array_itE(help->group_s->list);
         for(Argx **it = help->group_s->list; it < itE; ++it) {
@@ -199,23 +200,23 @@ void arg_help_argx(struct Argx *help) {
 
     if(help->id == ARGX_TYPE_SWITCH) {
         So tmp_hier_val = SO;
-        so_fmt(&out, "\n");
+        so_al_nl(&out, al_ws, 1);
         so_fmt_fx(&out, rice->sw_delim, 0, "  will set:\n");
         Argx_Switch *swE = array_itE(help->val.sw);
         for(Argx_Switch *sw = help->val.sw; sw < swE; ++sw) {
             so_clear(&tmp_hier_val);
             argx_so_hierarchy(&tmp_hier_val, rice, sw->argx->group_p);
             so_fmt_fx(&out, rice->sw_delim, 0, "  --> ");
-            so_fmt(&out, "%.*s", SO_F(tmp_hier_val));
+            so_fmt_al(&out, rice->sw_delim.align, 0, "%.*s", SO_F(tmp_hier_val));
             so_fmt_fx(&out, rice->sw, 0, "%.*s", SO_F(sw->argx->opt));
             so_clear(&tmp_hier_val);
             if(argx_so_val_visible(sw->argx, &sw->val)) {
-                so_push(&out, ' ');
+                //so_push(&out, ' ');
                 so_fmt_fx(&out, rice->val_delim, 0, "=");
                 argx_so_val(&tmp_hier_val, rice, sw->argx, &sw->val, &opts);
-                so_fmt(&out, "%.*s", SO_F(tmp_hier_val));
+                so_fmt_al(&out, rice->val_delim.align, 0, "%.*s", SO_F(tmp_hier_val));
             }
-            so_fmt(&out, "\n");
+            so_al_nl(&out, al_ws, 1);
         }
         so_free(&tmp_hier_val);
     }
