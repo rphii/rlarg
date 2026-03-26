@@ -48,7 +48,7 @@ void argx_group_fmt_help(So *out, Argx_Group *group) {
     ASSERT_ARG(group->arg);
     so_fmt_fx(out, group->arg->rice.group, 0, "%.*s", SO_F(group->name));
     so_fmt_fx(out, group->arg->rice.group_delim, 0, ":");
-    so_push(out, '\n');
+    so_al_nl(out, group->arg->print.whitespace, 1);
     for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
         argx_fmt_help(out, *argx, false);
     }

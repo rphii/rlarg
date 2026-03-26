@@ -284,6 +284,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
     Arg_Rice *rice = &argx->group_p->arg->rice;
+    So_Align al_ws = argx->group_p->arg->print.whitespace;
 
     Argx_So xso = {0};
     Argx_So_Options opts = {0};
@@ -309,9 +310,12 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
         ? ARG_SPACING_DESCRIPTION_DEFAULT - len_end_hint
         : ARG_SPACING_DESCRIPTION_ALTERNATE;
 
+    spacing_desc = 0;
+    spacing_hint = 0;
+
     /* format the name */
     if(treat_short_spacing) {
-        so_extend(out, so("  "));
+        //so_extend(out, so("  "));
         if(argx->group_p == &argx->group_p->arg->env) {
             so_fmt_fx(out, rice->env, 0, "%.*s", SO_F(argx->opt));
         } else {
@@ -320,37 +324,38 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     } else {
         /* format the short opt */
         if(argx->c) {
-            so_extend(out, so("  "));
+            //so_extend(out, so("  "));
             so_fmt_fx(out, rice->c, 0, "-%c", argx->c);
         } else {
-            so_extend(out, so("    ")); 
+            //so_extend(out, so("    ")); 
         }
         if(treat_as_options) {
-            so_extend(out, so("  ")); 
+            //so_extend(out, so("  ")); 
             so_fmt_fx(out, rice->opt, 0, "--%.*s", SO_F(argx->opt));
         } else {
-            so_extend(out, so("    ")); 
+            //so_extend(out, so("    ")); 
             so_fmt_fx(out, rice->opt, 0, "%.*s", SO_F(argx->opt));
         }
     }
 
     if(xso.have_hint) {
-        if(!compact_hint) so_push(out, '\n');
-        so_fmt(out, "%*s%.*s", spacing_hint, "", SO_F(xso.hint));
+        if(!compact_hint) so_al_nl(out, al_ws, 1);
+        so_fmt_al(out, rice->hint.align, 0, "%.*s", SO_F(xso.hint));
+        so_fmt_al(out, rice->hint.align, 0, "%.*s", SO_F(xso.hint));
     }
 
-    if(!compact_desc) so_push(out, '\n');
+    if(!compact_desc) so_al_nl(out, al_ws, 1);
     
-    so_fmt(out, "%*s", spacing_desc, "");
+    //so_fmt(out, "%*s", spacing_desc, "");
     so_fmt_fx(out, rice->desc, 0, "%.*s", SO_F(argx->desc));
 
     if(xso.val_visible) {
-        so_push(out, ' ');
+        //so_push(out, ' ');
         so_fmt_fx(out, rice->val_delim, 0, "=");
-        so_fmt(out, "%.*s", SO_F(xso.set_val));
+        so_fmt_al(out, rice->val.align, 0, "%.*s", SO_F(xso.set_val));
     }
 
-    so_fmt(out, "\n");
+    so_al_nl(out, al_ws, 1);
 
     argx_so_free(&xso);
 
