@@ -65,3 +65,18 @@ void argx_group_fmt_config(So *out, Argx_Group *group) {
     so_push(out, '\n');
 }
 
+Argx_Group *argx_group_get_opt(struct Arg *arg, So name) {
+    ASSERT_ARG(arg);
+
+    Argx_Group *result = 0;
+    Argx_Group **itE = array_itE(arg->opts);
+    for(Argx_Group **it = arg->opts; it < itE; ++it) {
+        if(!so_cmp((*it)->name, name)) {
+            result = *it;
+            break;
+        }
+    }
+
+    return result;
+}
+

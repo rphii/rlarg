@@ -1,6 +1,28 @@
 #include "../rlarg.h"
 #include <rlc.h>
 
+int config_print_avail(struct Argx *x, void *user, So so) {
+    printff("PRINT AVAIL");
+    arg_runtime_quit_when_all_parsed(x, true);
+    struct Arg *arg = user;
+    So out = SO;
+    arg_after_fmt_config_available(&out, arg);
+    so_println(out);
+    so_free(&out);
+    return 0;
+}
+
+int config_print_them(struct Argx *x, void *user, So so) {
+    printff("PRINT THEM");
+    arg_runtime_quit_when_all_parsed(x, true);
+    struct Arg *arg = user;
+    So out = SO;
+    arg_after_fmt_config(&out, arg, so, ARG_BUILTIN_COLOR_AUTO);
+    so_print(out);
+    so_free(&out);
+    return 0;
+}
+
 int cbtest(struct Argx *argx, void *user, So so) {
     printff(F("HELLO WORLD [%.*s]", FG_GN_B), SO_F(so));
     if(!so_cmp(so, so("111"))) {
@@ -204,6 +226,13 @@ int main(const int argc, const char **argv) {
     x=argx_opt(g1, 0, so("func"), so("function call"));
       argx_type_int(x, 0, 0);
       argx_callback(x, cbtest, 0, ARGX_PRIORITY_WHEN_ALL_VALID);
+
+    So config_print = SO;
+    x=argx_opt(g1, 0, so("config-print-avail"), so("print config, reimagined"));
+      argx_callback(x, config_print_avail, arg, ARGX_PRIORITY_IMMEDIATELY);
+    x=argx_opt(g1, 0, so("config-print"), so("print config, reimagined"));
+      argx_type_so(x, &config_print, 0);
+      argx_callback(x, config_print_them, arg, ARGX_PRIORITY_IMMEDIATELY);
 
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));
