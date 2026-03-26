@@ -421,7 +421,7 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
             hint[0] = '{';
             hint[1] = '}';
         } break;
-        case ARGX_HINT_OPTIONAL: {
+        case ARGX_HINT_ENUM: {
             hint[0] = '(';
             hint[1] = ')';
         } break;
@@ -430,8 +430,8 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
             hint[1] = '>';
         } break;
         case ARGX_HINT_SEQUENCE: {
-            hint[0] = '<';
-            hint[1] = '>';
+            hint[0] = '|';
+            hint[1] = '|';
         } break;
     }
     /* format the value */

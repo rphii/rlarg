@@ -90,7 +90,6 @@ struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc)
 
 struct Argx *argx_flag(struct Argx_Group *group, bool *val, bool *ref, So name, So desc);
 
-void argx_hint_kind(struct Argx *argx, Argx_Hint_List id);
 void argx_hint_text(struct Argx *argx, So text);
 
 /* rlarg/argx-callback.h */

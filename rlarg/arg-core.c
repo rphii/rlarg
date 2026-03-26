@@ -80,8 +80,14 @@ void arg_help_argx_group(struct Argx_Group *group) {
 
 void argx_extend_sources(VSo *srces, Argx *argx) {
 
+    ASSERT_ARG(argx);
+    ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(argx->group_p->arg);
+
     size_t len = array_len(argx->sources);
     So tmp = SO;
+    So hierarchy = SO;
+    Arg_Rice *rice = &argx->group_p->arg->rice;
     if(len) {
         for(size_t i = 0; i < len; ++i) {
             so_zero(&tmp);
@@ -89,22 +95,27 @@ void argx_extend_sources(VSo *srces, Argx *argx) {
             switch(src.id) {
                 case ARG_STREAM_SOURCE_CONFIG:
                     so_fmt(&tmp, "%.*s:%u", SO_F(src.path), src.number);
-                    vso_push(srces, tmp);
                     break;
                 case ARG_STREAM_SOURCE_STDIN:
                     so_fmt(&tmp, "stdin@%u", src.number);
-                    vso_push(srces, tmp);
                     break;
                 case ARG_STREAM_SOURCE_ENVVARS:
-                    vso_push(srces, so("envvars"));
+                    so_fmt(&tmp, "envvars");
                     break;
                 case ARG_STREAM_SOURCE_REFVAL:
-                    vso_push(srces, so("refval"));
+                    so_fmt(&tmp, "envvars");
                     break;
                 default: break;
             }
+            if(so_len(tmp)) {
+                so_clear(&hierarchy);
+                argx_so_hierarchy(&hierarchy, rice, argx->group_p);
+                so_fmt(&tmp, " :: %.*s%.*s", SO_F(hierarchy), SO_F(argx->opt));
+                vso_push(srces, tmp);
+            }
         }
     }
+    so_free(&hierarchy);
 }
 
 void arg_help_argx(struct Argx *help) {
