@@ -26,5 +26,4 @@
 - parse arbitrary config hierarchy -> `arg-parse-config.c:30`
 - add option to set parser error... in arg_runtime?
 - roff (man page) generation?
-- add option to disable/enable function execution during compgen (why would I want/not want this...?)
 

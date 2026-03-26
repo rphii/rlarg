@@ -390,24 +390,6 @@ void argx_fmt_config(So *out, Argx *argx) {
     argx_so_free(&xso);
 }
 
-/* TODO: this has to be reworked anyways, (removed) if I want to have +flags work as I want */
-bool argx_flag_is_any_source_set(Argx *argx) {
-    ASSERT_ARG(argx->group_p);
-    Argx *parent = argx->group_p->parent;
-    ASSERT_ARG(parent);
-    ASSERT(parent->group_s == argx->group_p, "groups should really be the same");
-    /* check if there are no sources in any of the associated enums */
-    bool have_sources = false;
-    Argx **itE = array_itE(parent->group_s->list);
-    for(Argx **it = parent->group_s->list; it < itE; ++it) {
-        if(!(*it)->sources) continue;
-        if(arg_stream_souces_only_contains((*it)->sources, ARG_STREAM_SOURCE_REFVAL)) continue;
-        have_sources = true;
-        break;
-    }
-    return have_sources;
-}
-
 bool argx_is_configurable(Argx *argx) {
     if(!argx) return false;
     if(argx->attr.is_unconfigurable) return false;

@@ -103,7 +103,7 @@ void argx_extend_sources(VSo *srces, Argx *argx) {
                     so_fmt(&tmp, "envvars");
                     break;
                 case ARG_STREAM_SOURCE_REFVAL:
-                    so_fmt(&tmp, "envvars");
+                    so_fmt(&tmp, "refval");
                     break;
                 default: break;
             }

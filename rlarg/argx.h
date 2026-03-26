@@ -88,7 +88,7 @@ void argx_fmt_config(So *out, Argx *argx);
 
 void arg_update_color_off(struct Arg *arg); // TODO: move this somewhere else (also source)
 
-bool argx_flag_is_any_source_set(Argx *argx);
+//bool argx_is_any_source_
 bool argx_is_configurable(Argx *argx);
 bool argx_is_subgroup_of_root(Argx *argx, struct Argx_Group *group);
 //bool argx_is_multiline_config(Argx *argx);
