@@ -986,12 +986,6 @@ int arg_parse_stdin(struct Arg *arg, const int argc, const char **argv) {
     arg->stream_in.source = ARGX_SOURCE_STDIN,
     arg_stream_from_stdin(&arg->stream_in, argc, argv);
     status = arg_parse_stream(arg, &arg->stream_in);
-    /* check if there are missing positional values */
-    if(arg->i_pos < array_len(arg->pos.list)) {
-        //arg_parse_errmsg_missing_positionals(arg);
-        arg_parse_error(arg, &arg->stream_in, ARG_PARSE_ERROR_MISSING_POSITIONAL, array_at(arg->pos.list, arg->i_pos));
-        status = -1;
-    }
     arg_stream_free(&arg->stream_in);
     return status;
 }
@@ -1009,7 +1003,7 @@ int arg_queue_post_parsing(Arg *arg) {
     return result;
 }
 
-void arg_parse_help(Arg *arg) {
+void arg_parse_help(Arg *arg, bool do_not_recurse) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
 
     size_t help_len = array_len(arg->help.sub);
@@ -1062,6 +1056,12 @@ void arg_parse_help(Arg *arg) {
                 arg_compgen_global(arg);
             } else if(arg->builtin.config_print_selected) {
                 arg_config(arg);
+            } else if(!do_not_recurse) {
+                if(arg->i_pos < array_len(arg->pos.list)) {
+                    //arg_parse_errmsg_missing_positionals(arg);
+                    arg_parse_error(arg, &arg->stream_in, ARG_PARSE_ERROR_MISSING_POSITIONAL, array_at(arg->pos.list, arg->i_pos));
+                    arg_parse_help(arg, true);
+                }
             }
         } else if(help == arg->help.argx) {
             if(arg->builtin.compgen) {
@@ -1153,12 +1153,14 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     if(arg->builtin.quit_early) goto defer;
 
     arg_parse_setref(arg);
+    if(arg->builtin.quit_early || arg->builtin.quit_when_all_parsed) goto defer;
 
 defer:
 
-    arg_parse_help(arg);
-
     *quit_early = arg->builtin.quit_early || arg->builtin.quit_when_all_parsed;
+
+    arg_parse_help(arg, *quit_early);
+
     return status;
 }
 

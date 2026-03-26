@@ -53,12 +53,6 @@ typedef struct Arg_Rice {
     So_Fx sequence_delim;
 } Arg_Rice;
 
-typedef enum {
-    ARG_BUILTIN_COLOR_AUTO,
-    ARG_BUILTIN_COLOR_OFF,
-    ARG_BUILTIN_COLOR_ON,
-} Arg_Builtin_Color_List;
-
 typedef struct Arg {
     Argx *c[ARGX_SHORT_COUNT]; /* short options */
 

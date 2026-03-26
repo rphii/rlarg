@@ -27,6 +27,7 @@ void argx_groups_free(Argx_Groups group);
 
 void argx_group_fmt_help(So *out, Argx_Group *group);
 void argx_group_fmt_config(So *out, Argx_Group *group);
+Argx_Group *argx_group_get_opt(struct Arg *arg, So name);
 
 #define RLARG_ARGX_GROUP_H
 #endif /* RLARG_ARGX_GROUP_H */
