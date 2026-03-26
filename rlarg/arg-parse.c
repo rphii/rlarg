@@ -221,7 +221,7 @@ int arg_parse_sequence(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
     size_t len = array_len(argx->group_s->list);
     while(i_pos < len) {
         Argx *pos = array_at(argx->group_s->list, i_pos);
-        printff("GOT SEQUENTIAL ARGX: %.*s", SO_F(pos->opt));
+        //printff("GOT SEQUENTIAL ARGX: %.*s", SO_F(pos->opt));
         if(!arg_stream_get_next(stream, &carg, &arg->builtin.compgen_flags)) {
             arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_SEQUENCE, pos);
             status = -1;
@@ -266,8 +266,8 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             so_split = so;
         }
         subx = t_argx_get(argx->group_s->table, so_split);
-        printff("GOT SUBX %.*s",SO_F(subx->opt));
         if(subx) {
+            //printff("GOT SUBX %.*s",SO_F(subx->opt));
             if(subx->id != ARGX_TYPE_NONE) {
                 arg_parse_set_help_any(arg, subx);
                 switch(argx->group_s->id) {
@@ -276,6 +276,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                         done = true;
                     } break;
                     case ARGX_GROUP_FLAGS: {
+                        //printff("PARSE FLAGV %.*s -> %.*s = %.*s",SO_F(argx->opt),SO_F(subx->opt),SO_F(flagv));
                         result = arg_parse_argx(arg, stream, subx, flagv);
                     } break;
                     case ARGX_GROUP_SEQUENCE: {
@@ -286,7 +287,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                     case ARGX_GROUP_OPTIONS: {
                         So next = SO;
                         if(arg_stream_get_next(stream, &next, &arg->builtin.compgen_flags)) {
-                            printff("GOT NEXT");
+                            //printff("GOT NEXT");
                             result = arg_parse_argx(arg, stream, subx, next);
                             done = true;
                         } else {
@@ -388,7 +389,7 @@ int arg_parse_argx_enum(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 }
 
 int arg_parse_argx_none(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    printff("ARGX NONE! %.*s",SO_F(argx->opt));
+    //printff("ARGX NONE! %.*s",SO_F(argx->opt));
     //arg_stream_not_consumed(stream);
     return 0;
 }
@@ -552,7 +553,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
-    printff("PARSE: %.*s",SO_F(argx->opt));
+    //printff("PARSE: %.*s",SO_F(argx->opt));
     int result = -1;
     arg_parse_set_help_any(arg, argx); /* set help BEFORE doing any further parsing */
     if(stream->is_config && !argx_is_configurable(argx)) {

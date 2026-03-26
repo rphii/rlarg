@@ -1,10 +1,8 @@
 # priority
 
-- sequence (e.g. \<int, string\>)
 - custom hints for basic things, and remove the optional hint thing
 - better compgen for flags, e.g: +flag,-flag2 and show combinations..
 - add interface to get a config string during runtime..
-- sources get listed VERY weird (e.g. ./a.out -h rice.arg.program)
 
 - more tests, e.g.
     - CONFIG_PRINT=section -> input to same thing -> expect same CONFIG_PRINT=section output

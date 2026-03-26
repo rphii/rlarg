@@ -78,35 +78,38 @@ void arg_help_argx_group(struct Argx_Group *group) {
     so_free(&out);
 }
 
-void arg_help_fmt_sources(So *out, Argx *argx) {
+void argx_extend_sources(VSo *srces, Argx *argx) {
 
     size_t len = array_len(argx->sources);
+    So tmp = SO;
     if(len) {
         for(size_t i = 0; i < len; ++i) {
+            so_zero(&tmp);
             Arg_Stream_Source src = array_at(argx->sources, i);
             switch(src.id) {
                 case ARG_STREAM_SOURCE_CONFIG:
-                    so_fmt(out, "  %.*s:%u%s", SO_F(src.path), src.number, i + 1 < len ? ",\n" : "");
+                    so_fmt(&tmp, "%.*s:%u", SO_F(src.path), src.number);
+                    vso_push(srces, tmp);
                     break;
                 case ARG_STREAM_SOURCE_STDIN:
-                    so_fmt(out, "  stdin@%u%s", src.number, i + 1 < len ? ",\n" : "");
+                    so_fmt(&tmp, "stdin@%u", src.number);
+                    vso_push(srces, tmp);
                     break;
                 case ARG_STREAM_SOURCE_ENVVARS:
-                    so_fmt(out, "  envvars%s", i + 1 < len ? ",\n" : "");
+                    vso_push(srces, so("envvars"));
                     break;
                 case ARG_STREAM_SOURCE_REFVAL:
-                    so_fmt(out, "  refval%s", i + 1 < len ? ",\n" : "");
+                    vso_push(srces, so("refval"));
                     break;
                 default: break;
             }
         }
     }
-
 }
 
 void arg_help_argx(struct Argx *help) {
     So out = SO;
-    So sources = SO;
+    VSo sources = 0;
     Argx_So xso = {0};
     Argx_So_Options opts = {0};
     ASSERT_ARG(help->group_p);
@@ -128,11 +131,10 @@ void arg_help_argx(struct Argx *help) {
         Argx **itE = array_itE(help->group_s->list);
         for(Argx **it = help->group_s->list; it < itE; ++it) {
             argx_fmt_help(&out, *it, true);
-            arg_help_fmt_sources(&sources, *it);
-            if(so_len(sources) && it + 1 < itE) so_extend(&sources, so(",\n"));
+            argx_extend_sources(&sources, *it);
         }
     } else {
-        arg_help_fmt_sources(&sources, help);
+        argx_extend_sources(&sources, help);
     }
 
     if(help->id == ARGX_TYPE_SWITCH) {
@@ -161,12 +163,17 @@ void arg_help_argx(struct Argx *help) {
     if(argx_is_configurable(help)) {
         if(!help->attr.is_unconfigurable) {
             so_fmt(&out, "\nsources:\n");
-            if(!so_len(sources)) {
-                so_fmt(&sources, "  not set anywhere");
+            if(!array_len(sources)) {
+                so_fmt(&out, "  not set anywhere");
             } else {
-                /* TODO: maybe add a: '<-- this is the last/actual source' thingy..? */
+                So *itE = array_itE(sources);
+                for(So *it = sources; it < itE; ++it) {
+                    so_extend(&out, so("  "));
+                    so_extend(&out, *it);
+                    if(it + 1 < itE) so_extend(&out, so(",\n"));
+                    else so_extend(&out, so(" <-- most recent one"));
+                }
             }
-            so_extend(&out, sources);
         }
     } else {
         so_fmt(&out, "\nunconfigurable via config file");
@@ -177,7 +184,7 @@ void arg_help_argx(struct Argx *help) {
     so_println(SO);
 
     so_free(&out);
-    so_free(&sources);
+    vso_free(&sources);
 }
 
 void arg_enable_config_print(struct Arg *arg, bool enable) {
