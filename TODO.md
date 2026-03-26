@@ -1,6 +1,5 @@
 # priority
 
-- custom hints for basic things, and remove the optional hint thing
 - better compgen for flags, e.g: +flag,-flag2 and show combinations..
 
 - more tests, e.g.

@@ -3,8 +3,15 @@
 #include <rlso.h>
 #include "rlarg/argx-hint.h"
 
+struct Arg;
 struct Argx;
 struct Argx_Group;
+
+typedef enum {
+    ARG_BUILTIN_COLOR_AUTO,
+    ARG_BUILTIN_COLOR_OFF,
+    ARG_BUILTIN_COLOR_ON,
+} Arg_Builtin_Color_List;
 
 /* rlarg/arg-core.c */
 struct Arg *arg_new(void);
@@ -102,12 +109,6 @@ void argx_attr_hide(struct Argx *argx, bool hide);
 void argx_attr_configurable(struct Argx *argx, bool configurable);
 
 /* rlarg/arg-after.c */
-
-typedef enum {
-    ARG_BUILTIN_COLOR_AUTO,
-    ARG_BUILTIN_COLOR_OFF,
-    ARG_BUILTIN_COLOR_ON,
-} Arg_Builtin_Color_List;
 
 int arg_after_fmt_config(So *out, struct Arg *arg, So configs, Arg_Builtin_Color_List color);
 void arg_after_fmt_config_available(So *out, struct Arg *arg);
