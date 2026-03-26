@@ -78,6 +78,7 @@ int main(const int argc, const char **argv) {
     So name = SO;
     x = argx_opt(g1, 'N', so("name"), so("a name"));
         argx_type_so(x, &name, 0);
+        argx_hint_text(x, so("nioh"));
         argx_switch_so(xs, x, so("nioh\""));
 
     int *vi = 0;
