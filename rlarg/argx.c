@@ -190,6 +190,15 @@ void argx_builtin_opt_so_fx(struct Argx *x, So_Fx *fmt, So_Fx *ref) {
         argx_type_bool(x, &fmt->underline, ref ? &ref->underline : 0);
 }
 
+static void static_argx_builtin_set_rice(So_Fx *fx, bool *nocolor, Color *fg, Color *bg, bool bold, bool italic, bool underline) {
+    fx->bold = bold;
+    fx->italic = italic;
+    fx->underline = underline;
+    fx->nocolor = nocolor;
+    fx->fg = fg ? *fg : (Color){0};
+    fx->bg = bg ? *bg : (Color){0};
+}
+
 struct Argx_Group *argx_builtin_rice(struct Arg *arg) {
     struct Argx_Group *g = 0, *h = 0;
     Argx *x = 0;
@@ -242,30 +251,30 @@ struct Argx_Group *argx_builtin_rice(struct Arg *arg) {
             argx_builtin_opt_so_fx(x, &arg->rice.sw_delim, 0);
 
     bool *nofx = &arg->builtin.color_off;
-    arg->rice.program =         (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xdd, 0x55, 0x55), .bold = true };
-    arg->rice.group =           (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xcc, 0xcc, 0xcc), .bold = true, .underline = true };
-    arg->rice.group_delim =     (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    arg->rice.pos =             (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xaa, 0x55, 0xdd), .italic = true };
-    arg->rice.c =               (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xb9, 0x7b, 0x97) };
-    arg->rice.opt =             (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xb9, 0x7b, 0x97), .bold = true };
-    arg->rice.env =             (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x01, 0x01, 0x01), .bold = true, .bg = COLOR_RGB(0x86, 0x58, 0x65) };
-    arg->rice.desc =            (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xaa, 0xaa, 0xaa) };
-    arg->rice.subopt =          (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x33, 0x66, 0xee) };
-    arg->rice.subopt_delim =    (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    arg->rice.enum_unset =      (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x55, 0x55, 0xbb) };
-    arg->rice.enum_set =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x77, 0x77, 0xdd), .bold = true, .underline = true };
-    arg->rice.enum_delim =      (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    arg->rice.flag_unset =      (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xbb, 0xbb, 0x55) };
-    arg->rice.flag_set =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xdd, 0xdd, 0x77), .bold = true, .underline = true };
-    arg->rice.flag_delim =      (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    arg->rice.hint =            (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x55, 0xaa, 0xdd) };
-    arg->rice.hint_delim =      (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    arg->rice.val =             (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x55, 0xdd, 0x55) };
-    arg->rice.val_delim =       (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    arg->rice.sw =              (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xF6, 0x66, 0x66) };
-    arg->rice.sw_delim =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
-    arg->rice.sequence =        (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0xF6, 0x66, 0xF6) };
-    arg->rice.sequence_delim =  (So_Fx){ .nocolor = nofx, .fg = COLOR_RGB(0x66, 0x66, 0x66) };
+    static_argx_builtin_set_rice(&arg->rice.program,        nofx, &COLOR_RGB(0xdd, 0x55, 0x55), 0, true, false, false);
+    static_argx_builtin_set_rice(&arg->rice.group,          nofx, &COLOR_RGB(0xcc, 0xcc, 0xcc), 0, true, false, true );
+    static_argx_builtin_set_rice(&arg->rice.group_delim,    nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.pos,            nofx, &COLOR_RGB(0xaa, 0x55, 0xdd), 0, false, true, false );
+    static_argx_builtin_set_rice(&arg->rice.c,              nofx, &COLOR_RGB(0xb9, 0x7b, 0x97), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.opt,            nofx, &COLOR_RGB(0xb9, 0x7b, 0x97), 0, true, false, false );
+    static_argx_builtin_set_rice(&arg->rice.env,            nofx, &COLOR_RGB(0x01, 0x01, 0x01), &COLOR_RGB(0x86, 0x58, 0x65), true, false, false );
+    static_argx_builtin_set_rice(&arg->rice.desc,           nofx, &COLOR_RGB(0xaa, 0xaa, 0xaa), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.subopt,         nofx, &COLOR_RGB(0x33, 0x66, 0xee), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.subopt_delim,   nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.enum_unset,     nofx, &COLOR_RGB(0x55, 0x55, 0xbb), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.enum_set,       nofx, &COLOR_RGB(0x77, 0x77, 0xdd), 0, true, false, true );
+    static_argx_builtin_set_rice(&arg->rice.enum_delim,     nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.flag_unset,     nofx, &COLOR_RGB(0xbb, 0xbb, 0x55), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.flag_set,       nofx, &COLOR_RGB(0xdd, 0xdd, 0x77), 0, true, false, true );
+    static_argx_builtin_set_rice(&arg->rice.flag_delim,     nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.hint,           nofx, &COLOR_RGB(0x55, 0xaa, 0xdd), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.hint_delim,     nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.val,            nofx, &COLOR_RGB(0x55, 0xdd, 0x55), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.val_delim,      nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.sw,             nofx, &COLOR_RGB(0xF6, 0x66, 0x66), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.sw_delim,       nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.sequence,       nofx, &COLOR_RGB(0xF6, 0x66, 0xF6), 0, false, false, false );
+    static_argx_builtin_set_rice(&arg->rice.sequence_delim, nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, false, false, false );
     return g;
 }
 

@@ -14,11 +14,60 @@ void arg_free(struct Arg **arg) {
     *arg = 0;
 }
 
+void arg_init_al(struct Arg *arg) {
+    arg->print.bounds.c = 2;
+    arg->print.bounds.opt = 6;
+    arg->print.bounds.desc = 50;
+    arg->print.bounds.max = 80;
+
+    const size_t bc = arg->print.bounds.c;
+    const size_t bo = arg->print.bounds.opt;
+    const size_t bd = arg->print.bounds.desc;
+    const size_t bm = arg->print.bounds.max;
+
+    so_al_config(&arg->rice.group.align,          0,    bc,   bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.group_delim.align,    0,    bc,   bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.hint.align,           bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.hint_delim.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.enum_set.align,       bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.enum_delim.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.enum_unset.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.flag_set.align,       bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.flag_delim.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.flag_unset.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.sw.align,             bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.sw_delim.align,       bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.sequence.align,       bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.sequence_delim.align, bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.subopt.align,         bo,  bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.subopt_delim.align,   bo,   bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.val.align,            bo+8, bo+8, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.val_delim.align,      bo+8, bo+8, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.c.align,              bc,   bc,   bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.opt.align,            bo,   bo+2, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.env.align,            bc,   bc+2, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.desc.align,           bd,   bo+6, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.pos.align,            bc,   bc+2, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.program.align,        0,    0,    bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->print.whitespace,          0,    0,    bm, 0, &arg->print.p_al2);
+    if(bm - bd >= 80 - bo) {
+        arg->rice.val_delim.align.i0 = bd;
+        arg->rice.val_delim.align.iNL = bd;
+        arg->rice.val.align.i0 = bd + 2;
+        arg->rice.val.align.iNL = bd + 2;
+        arg->rice.desc.align.i0 = bd;
+        arg->rice.desc.align.iNL = bd;
+    }
+}
+
+
 struct Arg *arg_new(void) {
     Arg *result;
     NEW(Arg, result);
     result->pos = argx_group_init(result, &result->t_pos, so("positional"), ARGX_GROUP_ROOT, 0);
     result->env = argx_group_init(result, &result->t_env, so("environment"), ARGX_GROUP_ROOT, 0);
+
+    arg_init_al(result);
 
     return result;
 }

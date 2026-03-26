@@ -53,8 +53,21 @@ typedef struct Arg_Rice {
     So_Fx sequence_delim;
 } Arg_Rice;
 
+typedef struct ArgPrint {
+    struct {
+        int max;    // max width
+        int desc;   // spacing until description
+        int c;      // spacing until short option
+        int opt;    // spacing until long option
+    } bounds;
+    So_Align_Cache p_al2;
+    So_Align whitespace;
+    bool compgen_nfirst;
+} Arg_Print;
+
 typedef struct Arg {
     Argx *c[ARGX_SHORT_COUNT]; /* short options */
+    Arg_Print print;
 
     Argx_Groups opts;   /* groups of long options */
     Argx_Group pos;     /* positional arguments */
