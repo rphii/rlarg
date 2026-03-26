@@ -3,9 +3,9 @@
 #include "rlso.h"
 
 typedef enum {
-    ARGX_HINT_NONE,     /*   [[[literally empty]]] */
+    ARGX_HINT_NONE,     /* [[[literally empty]]] */
     ARGX_HINT_REQUIRED, /* <type> */
-    ARGX_HINT_OPTIONAL, /* (type) */
+    ARGX_HINT_ENUM,     /* (type) */
     ARGX_HINT_OPTION,   /* {type} */
     ARGX_HINT_FLAGS,    /* [type] */
     ARGX_HINT_SEQUENCE, /* |sequence| */

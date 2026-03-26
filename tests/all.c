@@ -74,7 +74,6 @@ int main(const int argc, const char **argv) {
     x = argx_opt(g1, 'X', so("boolo"), so("a optional boolean value"));
         //printff("p %p", x);
         argx_type_bool(x, &p2, &d);
-        argx_hint_kind(x, ARGX_HINT_OPTIONAL);
 
     So name = SO;
     x = argx_opt(g1, 'N', so("name"), so("a name"));
