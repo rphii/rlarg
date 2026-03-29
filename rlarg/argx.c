@@ -286,7 +286,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
     Arg_Rice *rice = &argx->group_p->arg->rice;
-    So_Align al_ws = argx->group_p->arg->print.whitespace;
+    So_Align al_ws = rice->whitespace;
 
     //Argx_So xso = {0};
     Argx_So_Options opts = {0};
@@ -355,7 +355,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     }
 }
 
-void argx_fmt_config(So *out, Argx *argx) {
+void argx_fmt_config(So *out, Arg_Rice *rice, Argx *argx) {
     ASSERT_ARG(out);
     ASSERT_ARG(argx);
 
@@ -367,43 +367,39 @@ void argx_fmt_config(So *out, Argx *argx) {
     Argx_So_Options opts = {
         .is_for_config = true,
     };
-    Arg_Rice rice = {0};
 
-    So hierarchy = SO;
-    argx_so_hierarchy(&hierarchy, &argx->group_p->arg->rice, argx->group_p);
-    // TODO ??? wtf is this ??? so_split_ch(hierarchy, '.', &hierarchy);
+    So hierarchy_full = SO, hierarchy = SO;
+    argx_so_hierarchy(&hierarchy_full, rice, argx->group_p);
+    so_split_ch(hierarchy_full, '.', &hierarchy); // remove first stem -> we are in [group]
 
-#if 0
     if(argx->id == ARGX_TYPE_GROUP) {
         if(argx->group_p) {
-            //ASSERT(argx->id == ARGX_TYPE_GROUP && argx->group_s, "expected to have a group");
             Argx **itE = array_itE(argx->group_s->list);
             for(Argx **it = argx->group_s->list; it < itE; ++it) {
-                argx_fmt_config(out, *it);
+                argx_fmt_config(out, rice, *it);
             }
         }
-    } else {
-#endif
+    }
 
     if(argx_so_val_config(argx, &argx->val)) {
         so_fmt(out, "%.*s%.*s = ", SO_F(hierarchy), SO_F(argx->opt));
-        argx_so_val(out, &rice, argx, &argx->val, &opts);
+        argx_so_val(out, rice, argx, &argx->val, &opts);
         if(argx_so_hint_visible(argx, &argx->val)) {
             so_fmt(out, " # ");
-            argx_so_hint(out, &rice, argx, &argx->val, &opts);
+            argx_so_hint(out, rice, argx, &argx->val, &opts);
         }
     } else {
         so_fmt(out, "# %.*s%.*s", SO_F(hierarchy), SO_F(argx->opt));
         if(argx_so_hint_visible(argx, &argx->val)) {
             so_fmt(out, " = ");
-            argx_so_hint(out, &rice, argx, &argx->val, &opts);
+            argx_so_hint(out, rice, argx, &argx->val, &opts);
         } else {
             so_fmt(out, "# %.*s", SO_F(argx->opt));
         }
     }
     so_push(out, '\n');
 
-    so_free(&hierarchy);
+    so_free(&hierarchy_full);
     //////}
 }
 

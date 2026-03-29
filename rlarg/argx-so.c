@@ -222,17 +222,9 @@ void argx_so_hint_enum(So *out, Arg_Rice *rice, char *hints, Argx *argx) {
     Argx **itE = array_itE(argx->group_s->list);
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
-#if 1
         if(argx->val.i && *argx->val.i == (*it)->attr.val_enum) {
             current_is_selected = !is_pos;
         }
-#else
-        /* check if iterator matches selected value */
-        if(argx->val.i && *argx->val.i == (*it)->attr.val_enum) {
-            so_fmt_fx(&xso->set_val, rice->val, 0, "%.*s", SO_F((*it)->opt));
-            current_is_selected = !is_pos;
-        }
-#endif
         /* format hint */
         if(current_is_selected && rice) {
             so_fmt_fx(out, rice->enum_set, 0, "%.*s", SO_F((*it)->opt));
@@ -254,21 +246,12 @@ void argx_so_hint_flags(So *out, Arg_Rice *rice, char *hints, Argx *argx) {
     bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
     so_fmt_fx(out, rice->flag_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
-    size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
         /* check if iterator matches selected value */
-#if 1
         if((*it)->val.b && *(*it)->val.b) {
             current_is_selected = !is_pos;
         }
-#else
-        if((*it)->val.b && *(*it)->val.b) {
-            if(iv++) so_push(&xso->set_val, ',');
-            so_extend(&xso->set_val, (*it)->opt);
-            current_is_selected = !is_pos;
-        }
-#endif
         /* format hint */
         if(current_is_selected) {
             so_fmt_fx(out, rice->flag_set, 0, "%.*s", SO_F((*it)->opt));
@@ -287,16 +270,7 @@ void argx_so_hint_options(So *out, Arg_Rice *rice, char *hints, Argx *argx) {
     ASSERT_ARG(argx);
     so_fmt_fx(out, rice->subopt_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
-    size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
-        //printff("IT VAL %p %.*s",(*it)->val.b, SO_F((*it)->opt));
-        /* check if iterator matches selected value */
-#if 0
-        if((*it)->val.any) {
-            if(iv++) so_push(&xso->set_val, ',');
-            so_fmt_fx(&xso->set_val, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
-        }
-#endif
         /* format hint */
         so_fmt_fx(out, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
         if(it + 1 < itE) so_fmt_fx(out, rice->subopt_delim, 0, "|");
@@ -337,7 +311,7 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Arg
 
     ASSERT_ARG(opts);
 
-    So_Align al_ws = argx->group_p->arg->print.whitespace;
+    So_Align al_ws = rice->whitespace;
 
     //int array_spacing[2] = {
     //    opts->is_for_config ? 2 : ARG_SPACING_VALUE_WRAP_ARRAY,
@@ -401,6 +375,46 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Arg
                 argx_so_like_string(out, rice, val);
             } break;
             case ARGX_TYPE_GROUP: {
+                if(argx->group_s) {
+                    switch(argx->group_s->id) {
+                        case ARGX_GROUP_FLAGS: {
+                            bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
+                            bool first = true;
+                            Argx **itE = array_itE(argx->group_s->list);
+                            for(Argx **it = argx->group_s->list; it < itE; ++it) {
+                                bool current_is_selected = false;
+                                /* check if iterator matches selected value */
+                                if((*it)->val.b && *(*it)->val.b) {
+                                    current_is_selected = !is_pos;
+                                }
+                                if(current_is_selected) {
+                                    if(!first) so_fmt_fx(out, rice->val_delim, 0, ",");
+                                    so_fmt_fx(out, rice->val, 0, "%.*s", SO_F((*it)->opt));
+                                    first = false;
+                                }
+                            }
+                        } break;
+                        case ARGX_GROUP_ENUM: {
+                            bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
+                            bool first = true;
+                            Argx **itE = array_itE(argx->group_s->list);
+                            for(Argx **it = argx->group_s->list; it < itE; ++it) {
+                                bool current_is_selected = false;
+                                /* check if iterator matches selected value */
+                                if(argx->val.i && *argx->val.i == (*it)->attr.val_enum) {
+                                    current_is_selected = !is_pos;
+                                }
+                                if(current_is_selected) {
+                                    if(!first) so_fmt_fx(out, rice->val_delim, 0, ",");
+                                    so_fmt_fx(out, rice->val, 0, "%.*s", SO_F((*it)->opt));
+                                    first = false;
+                                }
+                            }
+                        } break;
+                        default: break;
+                        //case ARGX_GROUP_
+                    }
+                }
             } break;
             case ARGX_TYPE_SWITCH: {
             } break;

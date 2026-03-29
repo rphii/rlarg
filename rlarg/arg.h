@@ -21,6 +21,8 @@
 
 enum Arg_Parse_Error_List;
 
+void arg_init_al(Arg_Rice *rice, struct Arg *arg, So_Align_Cache *alc, bool no_default); // TODO: should go into arg-core.h
+
 typedef struct Arg_Config {
     So program;
     So description;
@@ -65,11 +67,11 @@ typedef struct Arg_Rice {
     So_Fx sw_delim;
     So_Fx sequence;
     So_Fx sequence_delim;
+    So_Align whitespace;
 } Arg_Rice;
 
 typedef struct ArgPrint {
     So_Align_Cache p_al2;
-    So_Align whitespace;
     bool compgen_nfirst;
 } Arg_Print;
 

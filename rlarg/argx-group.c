@@ -48,10 +48,10 @@ void argx_group_fmt_help(So *out, Argx_Group *group) {
     ASSERT_ARG(group->arg);
     so_fmt_fx(out, group->arg->rice.group, 0, "%.*s", SO_F(group->name));
     so_fmt_fx(out, group->arg->rice.group_delim, 0, ":");
-    so_al_nl(out, group->arg->print.whitespace, 1);
+    so_al_nl(out, group->arg->rice.whitespace, 1);
     for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
         argx_fmt_help(out, *argx, false);
-        so_al_nl(out, group->arg->print.whitespace, 1);
+        so_al_nl(out, group->arg->rice.whitespace, 1);
     }
 }
 
@@ -59,11 +59,21 @@ void argx_group_fmt_config(So *out, Argx_Group *group) {
     ASSERT_ARG(out);
     ASSERT_ARG(group);
     so_fmt(out, "[%.*s]\n", SO_F(group->name));
+    Arg_Rice rice = {0};
+    So_Align_Cache alc = {0};
+    arg_init_al(&rice, group->arg, 0, true);
+
+    rice.val.align.i0 = 2;
+    rice.val.align.iNL = 2;
+    rice.val_delim.align.i0 = 2;
+    rice.val_delim.align.iNL = 2;
+
     for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
         //so_fmt(out, "%.*s.", SO_F(group->name));
-        argx_fmt_config(out, *argx);
+        argx_fmt_config(out, &rice, *argx);
     }
     so_push(out, '\n');
+    so_al_cache_free(&alc);
 }
 
 Argx_Group *argx_group_get_opt(struct Arg *arg, So name) {

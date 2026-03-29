@@ -18,51 +18,58 @@ void arg_free(struct Arg **parg) {
     *parg = 0;
 }
 
-void arg_init_al(struct Arg *arg) {
+void arg_init_al(Arg_Rice *rice, struct Arg *arg, So_Align_Cache *alc, bool no_default) {
 
-    const size_t bc = arg->config.bounds.c;
-    const size_t bo = arg->config.bounds.opt;
-    const size_t bd = arg->config.bounds.desc;
-    const size_t bm = arg->config.bounds.max;
+#define RLARG_SO_AL_CFG(x, no_default, a, b, c, d, alc) do { \
+        if(!no_default) so_al_config(x, a, b, c, d, alc); \
+        else            so_al_config(x, 0, 0, SIZE_MAX, 0, alc); \
+    } while(0)
 
-    so_al_config(&arg->rice.group.align,          0,    bc,   bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.group_delim.align,    0,    bc,   bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.hint.align,           bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.hint_delim.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.enum_set.align,       bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.enum_delim.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.enum_unset.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.flag_set.align,       bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.flag_delim.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.flag_unset.align,     bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.sw.align,             bc,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.sw_delim.align,       bc,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.sequence.align,       bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.sequence_delim.align, bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.subopt.align,         bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.subopt_delim.align,   bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.val.align,            bo+8, bo+8, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.val_delim.align,      bo+8, bo+8, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.c.align,              bc,   bc,   bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.opt.align,            bo,   bo+2, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.env.align,            bc,   bc+2, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.desc.align,           bd,   bo+6, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.pos.align,            bc,   bc+2, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.program.align,        0,    0,    bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.program_delim.align,  0,    0,    bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.program_desc.align,   0,    0,    bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->print.whitespace,          0,    0,    bm, 0, &arg->print.p_al2);
+    const size_t bc = arg ? arg->config.bounds.c : 0;
+    const size_t bo = arg ? arg->config.bounds.opt : 0;
+    const size_t bd = arg ? arg->config.bounds.desc : 0;
+    const size_t bm = arg ? arg->config.bounds.max : 0;
 
+    RLARG_SO_AL_CFG(&rice->group.align,          no_default, 0,    bc,   bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->group_delim.align,    no_default, 0,    bc,   bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->hint.align,           no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->hint_delim.align,     no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->enum_set.align,       no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->enum_delim.align,     no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->enum_unset.align,     no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->flag_set.align,       no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->flag_delim.align,     no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->flag_unset.align,     no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->sw.align,             no_default, bc,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->sw_delim.align,       no_default, bc,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->sequence.align,       no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->sequence_delim.align, no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->subopt.align,         no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->subopt_delim.align,   no_default, bo,   bo+4, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->val.align,            no_default, bo+8, bo+8, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->val_delim.align,      no_default, bo+8, bo+8, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->c.align,              no_default, bc,   bc,   bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->opt.align,            no_default, bo,   bo+2, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->env.align,            no_default, bc,   bc+2, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->desc.align,           no_default, bd,   bo+6, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->pos.align,            no_default, bc,   bc+2, bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->program.align,        no_default, 0,    0,    bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->program_delim.align,  no_default, 0,    0,    bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->program_desc.align,   no_default, 0,    0,    bm, 0, alc);
+    RLARG_SO_AL_CFG(&rice->whitespace,           no_default, 0,    0,    bm, 0, alc);
+
+    if(!no_default) {
 #if 1
-    if(bm - bd >= 100 - bo) {
-        arg->rice.val_delim.align.i0 = bd;
-        arg->rice.val_delim.align.iNL = bd;
-        arg->rice.val.align.i0 = bd + 2;
-        arg->rice.val.align.iNL = bd + 2;
-        arg->rice.desc.align.i0 = bd;
-        arg->rice.desc.align.iNL = bd;
-    }
+        if(bm - bd >= 100 - bo) {
+            rice->val_delim.align.i0 = bd;
+            rice->val_delim.align.iNL = bd;
+            rice->val.align.i0 = bd + 2;
+            rice->val.align.iNL = bd + 2;
+            rice->desc.align.i0 = bd;
+            rice->desc.align.iNL = bd;
+        }
 #endif
+    }
 }
 
 
@@ -79,7 +86,7 @@ struct Arg *arg_new(Arg_Config *cfg) {
     }
 
     result->config = *cfg;
-    arg_init_al(result);
+    arg_init_al(&result->rice, result, &result->print.p_al2, false);
 
     arg_config_free(&free_cfg);
     return result;
@@ -96,7 +103,7 @@ void arg_help(struct Arg *arg) {
     if(have_prog) so_fmt_fx(&out, arg->rice.program, 0, "%.*s", SO_F(arg->config.program));
     if(have_desc && have_prog) so_fmt_fx(&out, arg->rice.program_delim, 0, ": ");
     if(have_desc) so_fmt_fx(&out, arg->rice.program_desc, 0, "%.*s", SO_F(arg->config.description));
-    if(have_prog || have_desc) so_al_nl(&out, arg->print.whitespace, 1);
+    if(have_prog || have_desc) so_al_nl(&out, arg->rice.whitespace, 1);
 
     argx_group_fmt_help(&out, &arg->pos);
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
@@ -106,7 +113,7 @@ void arg_help(struct Arg *arg) {
 
     if(have_epil) {
         so_fmt_fx(&out, arg->rice.program_desc, 0, "%.*s", SO_F(arg->config.epilog));
-        so_al_nl(&out, arg->print.whitespace, 1);
+        so_al_nl(&out, arg->rice.whitespace, 1);
     }
 
     so_print(out);
@@ -123,7 +130,7 @@ void arg_help_short(struct Arg *arg) {
         Argx **xE = array_itE((*group)->list);
         for(Argx **xI = (*group)->list; xI < xE; ++xI) {
             so_fmt_fx(&out, arg->rice.opt, 0, "--%.*s", SO_F((*xI)->opt));
-            so_fmt_al(&out, arg->print.whitespace, 0, " ");
+            so_fmt_al(&out, arg->rice.whitespace, 0, " ");
         }
     }
     
@@ -206,7 +213,7 @@ void arg_help_argx(struct Argx *help) {
     ASSERT_ARG(help->group_p);
     ASSERT_ARG(help->group_p->arg);
     Arg_Rice *rice = &help->group_p->arg->rice;
-    So_Align al_ws = help->group_p->arg->print.whitespace;
+    So_Align al_ws = rice->whitespace;
     bool full_help = true;
 
     argx_so_hierarchy(&out, rice, help->group_p);
