@@ -1,7 +1,7 @@
 #include "../rlarg.h"
 
 int main(const int argc, const char **argv) {
-    struct Arg *arg = arg_new();
+    struct Arg *arg = arg_new(0);
     int status = 0;
     ASSERT(arg, "expect to have pointer");
 

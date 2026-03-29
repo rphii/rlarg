@@ -8,6 +8,7 @@
 
 # later
 
+- printing colors... remove the color.. in CONFIG_PRINT..
 - min/max for numbers and...
 - ..float/double
 - ..time
