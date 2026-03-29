@@ -33,8 +33,14 @@ int cbtest(struct Argx *argx, void *user, So so) {
 }
 
 int main(const int argc, const char **argv) {
-    struct Arg *arg = arg_new();
 
+    struct Arg_Config *cfg = arg_config_new();
+    arg_config_set_width(cfg, 0);
+    arg_config_set_program(cfg, so_l(argv[0]));
+    arg_config_set_description(cfg, so("a description goes here"));
+    arg_config_set_epilog(cfg, so("an epilog goes here"));
+
+    struct Arg *arg = arg_new(cfg);
     ASSERT(arg, "expect to have pointer");
     arg_enable_config_print(arg, true);
 
@@ -266,6 +272,7 @@ clean:
     so_free(&content);
 
     arg_free(&arg);
+    arg_config_free(&cfg);
     vso_free(&vec_v);
     return status;
 }
