@@ -5,8 +5,8 @@
 
 typedef struct Argx Argx;
 typedef struct Arg_Rice Arg_Rice;
-typedef struct Argx_Group Argx_Group ;
-typedef union Argx_Value_Union Argx_Value_Union ;
+typedef struct Argx_Group Argx_Group;
+typedef union Argx_Value_Union Argx_Value_Union;
 
 typedef struct Argx_So_Options {
     bool force_nocolor;
