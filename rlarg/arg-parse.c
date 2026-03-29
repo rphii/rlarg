@@ -37,6 +37,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     ASSERT_ARG(stream);
     ASSERT_ARG(id);
     bool nc = arg->builtin.color_off;
+    Arg_Rice no_rice = {0};
     arg->builtin.color_off = true; /* TODO make this better -> argx_so should clear colors for error output? */
     So hint = SO;
     bool newline = false;
@@ -69,7 +70,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_NO_REST_ALLOWED: {
                 arg_parse_set_help_error(arg, arg->help.argx);
                 Argx_So_Options opts = {0};
-                argx_so_hint(&hint, &arg->rice, arg->help.argx, &arg->help.argx->val, &opts);
+                argx_so_hint(&hint, &no_rice, arg->help.argx, &arg->help.argx->val, &opts);
                 newline = (bool)(arg->help.argx);
             } break;
             case ARG_PARSE_ERROR_UNCONFIGURABLE:
@@ -84,7 +85,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL: {
                 arg_parse_set_help_error(arg, argx);
                 Argx_So_Options opts = {0};
-                argx_so_hint(&hint, &arg->rice, arg->help.argx, &arg->help.argx->val, &opts);
+                argx_so_hint(&hint, &no_rice, argx, &argx->val, &opts);
                 newline = (bool)(argx);
             } break;
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
