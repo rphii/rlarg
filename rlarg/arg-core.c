@@ -117,6 +117,7 @@ void arg_help_short(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
     /* format long options */
+    so_al_cache_clear(&arg->print.p_al2);
     so_fmt(&out, "Options:\n");
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
         Argx **xE = array_itE((*group)->list);
@@ -127,6 +128,7 @@ void arg_help_short(struct Arg *arg) {
     }
     
     /* format short options, TODO: if no short opts, it will still print the - without anything.. */
+    so_al_cache_clear(&arg->print.p_al2);
     so_fmt(&out, "\n\nShort options:\n");
     so_fmt_fx(&out, arg->rice.opt, 0, "-");
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
@@ -200,7 +202,6 @@ void argx_extend_sources(VSo *srces, Argx *argx) {
 void arg_help_argx(struct Argx *help) {
     So out = SO;
     VSo sources = 0;
-    Argx_So xso = {0};
     Argx_So_Options opts = {0};
     ASSERT_ARG(help->group_p);
     ASSERT_ARG(help->group_p->arg);
@@ -208,12 +209,12 @@ void arg_help_argx(struct Argx *help) {
     So_Align al_ws = help->group_p->arg->print.whitespace;
     bool full_help = true;
 
-    argx_so(&xso, help, &opts);
-    so_fmt_al(&out, rice->group.align, 0, "%.*s", SO_F(xso.hierarchy));
-    so_fmt_fx(&out, rice->group, 0, "%.*s", SO_F(xso.argx->opt));
+    argx_so_hierarchy(&out, rice, help->group_p);
+    //so_fmt_al(&out, rice->group.align, 0, "%.*s", SO_F(xso.hierarchy));
+    so_fmt_fx(&out, rice->group, 0, "%.*s", SO_F(help->opt));
     so_fmt_fx(&out, rice->group_delim, 0, ":");
     so_al_nl(&out, al_ws, 1);
-    argx_so_free(&xso);
+    //argx_so_free(&xso);
 
     arg_help_argx_rec(&out, help, full_help);
     if(help->id == ARGX_TYPE_GROUP) {

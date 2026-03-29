@@ -288,10 +288,10 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     Arg_Rice *rice = &argx->group_p->arg->rice;
     So_Align al_ws = argx->group_p->arg->print.whitespace;
 
-    Argx_So xso = {0};
+    //Argx_So xso = {0};
     Argx_So_Options opts = {0};
     if(!full_help) opts.array_max_items = 4;
-    argx_so(&xso, argx, &opts);
+    //argx_so(&xso, argx, &opts);
 
     ASSERT_ARG(argx->group_p);
     bool treat_as_options = (argx->group_p->table == &argx->group_p->arg->t_opt);
@@ -299,6 +299,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
             argx->group_p == &argx->group_p->arg->env
          || argx->group_p == &argx->group_p->arg->pos);
 
+#if 0
     /* aligning... gather lengths and spacing (( +1 because of spaces between things )) */
     size_t len_end_opt = (treat_short_spacing ? 2 : 8) + so_len(argx->opt); /* 8 because of this: '  -x  --' */
     bool compact_hint = !xso.have_hint || (xso.have_hint && len_end_opt < ARG_SPACING_HINT_WRAP);
@@ -314,6 +315,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
 
     spacing_desc = 0;
     spacing_hint = 0;
+#endif
 
     /* format the name */
     if(treat_short_spacing) {
@@ -335,24 +337,22 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
         }
     }
 
-    if(xso.have_hint) {
-        if(!compact_hint) so_al_nl(out, al_ws, 1);
-        so_fmt_al(out, rice->hint.align, rice->hint.align.cache->progress + 1, "%.*s", SO_F(xso.hint));
+    if(argx_so_hint_visible(argx, &argx->val)) {
+        //if(!compact_hint) so_al_nl(out, al_ws, 1);
+        //So hint = SO;
+        so_fmt_al(out, rice->hint.align, rice->hint.align.cache->progress + 1, "");
+        argx_so_hint(out, rice, argx, &argx->val, &opts);
+        //so_fmt_al(out, rice->hint.align, rice->hint.align.cache->progress + 1, "%.*s", SO_F(hint));
+        //so_free(&hint);
     }
-
-    //if(!compact_desc) so_al_nl(out, al_ws, 1);
     
     so_fmt_fx(out, rice->desc, 0, "%.*s", SO_F(argx->desc));
 
     if(argx_so_val_visible(argx, &argx->val)) {
         so_fmt_fx(out, rice->val_delim, al_ws.cache->progress + 1, "=");
-        so_fmt_al(out, rice->val.align, 0, "%.*s", SO_F(xso.set_val));
+        argx_so_val(out, rice, argx, &argx->val, &opts);
+        //so_fmt_al(out, rice->val.align, 0, "%.*s", SO_F(xso.set_val));
     }
-
-    //so_fmt_fx(out, rice->opt, 0, "\n");
-
-    argx_so_free(&xso);
-
 }
 
 void argx_fmt_config(So *out, Argx *argx) {
@@ -364,38 +364,47 @@ void argx_fmt_config(So *out, Argx *argx) {
     if(argx->attr.is_hidden) return;
 
     /* now format */
-    Argx_So xso = {0};
     Argx_So_Options opts = {
         .is_for_config = true,
     };
-    argx_so(&xso, argx, &opts);
-    So hierarchy = SO;
-    so_split_ch(xso.hierarchy, '.', &hierarchy);
+    Arg_Rice rice = {0};
 
-    if(xso.val_group) {
-        ASSERT(argx->id == ARGX_TYPE_GROUP && argx->group_s, "expected to have a group");
-        Argx **itE = array_itE(argx->group_s->list);
-        for(Argx **it = argx->group_s->list; it < itE; ++it) {
-            argx_fmt_config(out, *it);
+    So hierarchy = SO;
+    argx_so_hierarchy(&hierarchy, &argx->group_p->arg->rice, argx->group_p);
+    // TODO ??? wtf is this ??? so_split_ch(hierarchy, '.', &hierarchy);
+
+#if 0
+    if(argx->id == ARGX_TYPE_GROUP) {
+        if(argx->group_p) {
+            //ASSERT(argx->id == ARGX_TYPE_GROUP && argx->group_s, "expected to have a group");
+            Argx **itE = array_itE(argx->group_s->list);
+            for(Argx **it = argx->group_s->list; it < itE; ++it) {
+                argx_fmt_config(out, *it);
+            }
         }
     } else {
-        if(xso.val_config) {
-            so_fmt(out, "%.*s%.*s = %.*s", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.set_val));
-            if(xso.have_hint) {
-                so_fmt(out, " # %.*s", SO_F(xso.hint));
-            }
-        } else {
-            if(xso.have_hint) {
-                so_fmt(out, "# %.*s%.*s = %.*s", SO_F(hierarchy), SO_F(argx->opt), SO_F(xso.hint));
-            } else {
-                so_fmt(out, "# %.*s", SO_F(argx->opt));
-            }
-        }
-        //so_fmt(out, " ### %.*s\n", SO_F(argx->desc));
-        so_push(out, '\n');
-    }
+#endif
 
-    argx_so_free(&xso);
+    if(argx_so_val_config(argx, &argx->val)) {
+        so_fmt(out, "%.*s%.*s = ", SO_F(hierarchy), SO_F(argx->opt));
+        argx_so_val(out, &rice, argx, &argx->val, &opts);
+        if(argx_so_hint_visible(argx, &argx->val)) {
+            so_fmt(out, " # ");
+            argx_so_hint(out, &rice, argx, &argx->val, &opts);
+        }
+    } else {
+        so_fmt(out, "# %.*s%.*s", SO_F(hierarchy), SO_F(argx->opt));
+        if(argx_so_hint_visible(argx, &argx->val)) {
+            so_fmt(out, " = ");
+            argx_so_hint(out, &rice, argx, &argx->val, &opts);
+        } else {
+            so_fmt(out, "# %.*s", SO_F(argx->opt));
+        }
+    }
+    so_push(out, '\n');
+
+    so_free(&hierarchy);
+    //////}
 }
 
 bool argx_is_configurable(Argx *argx) {
