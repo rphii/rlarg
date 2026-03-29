@@ -54,7 +54,7 @@ void arg_init_al(struct Arg *arg) {
     so_al_config(&arg->print.whitespace,          0,    0,    bm, 0, &arg->print.p_al2);
 
 #if 1
-    if(bm - bd >= 80 - bo) {
+    if(bm - bd >= 100 - bo) {
         arg->rice.val_delim.align.i0 = bd;
         arg->rice.val_delim.align.iNL = bd;
         arg->rice.val.align.i0 = bd + 2;
@@ -89,10 +89,14 @@ void arg_help(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
 
-    so_fmt_fx(&out, arg->rice.program, 0, "%.*s", SO_F(arg->config.program));
-    so_fmt_fx(&out, arg->rice.program_delim, 0, ": ");
-    so_fmt_fx(&out, arg->rice.program_desc, 0, "%.*s", SO_F(arg->config.description));
-    so_al_nl(&out, arg->print.whitespace, 1);
+    bool have_prog = so_len(arg->config.program);
+    bool have_desc = so_len(arg->config.description);
+    bool have_epil = so_len(arg->config.epilog);
+
+    if(have_prog) so_fmt_fx(&out, arg->rice.program, 0, "%.*s", SO_F(arg->config.program));
+    if(have_desc && have_prog) so_fmt_fx(&out, arg->rice.program_delim, 0, ": ");
+    if(have_desc) so_fmt_fx(&out, arg->rice.program_desc, 0, "%.*s", SO_F(arg->config.description));
+    if(have_prog || have_desc) so_al_nl(&out, arg->print.whitespace, 1);
 
     argx_group_fmt_help(&out, &arg->pos);
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
@@ -100,8 +104,10 @@ void arg_help(struct Arg *arg) {
     }
     argx_group_fmt_help(&out, &arg->env);
 
-    so_fmt_fx(&out, arg->rice.program_desc, 0, "%.*s", SO_F(arg->config.epilog));
-    so_al_nl(&out, arg->print.whitespace, 1);
+    if(have_epil) {
+        so_fmt_fx(&out, arg->rice.program_desc, 0, "%.*s", SO_F(arg->config.epilog));
+        so_al_nl(&out, arg->print.whitespace, 1);
+    }
 
     so_print(out);
     so_free(&out);
@@ -293,8 +299,8 @@ struct Arg_Config *arg_config_new(void) {
     NEW(Arg_Config, cfg);
     cfg->bounds.c = 2;
     cfg->bounds.opt = 8;
-    cfg->bounds.desc = 50;
-    cfg->bounds.max = 80;
+    cfg->bounds.desc = 62;
+    cfg->bounds.max = 100;
     return cfg;
 }
 
