@@ -214,21 +214,21 @@ struct Argx_Group *argx_group_flags(struct Argx *argx) {
         array_push(switch_argx->val.sw, sw); \
     }
 
-ARGX_SWITCH_FLAG_IMPL(int,   int,     ARGX_TYPE_INT, i);
-ARGX_SWITCH_FLAG_IMPL(size,  ssize_t, ARGX_TYPE_SIZE, z);
-ARGX_SWITCH_FLAG_IMPL(bool,  bool,    ARGX_TYPE_BOOL, b);
-ARGX_SWITCH_FLAG_IMPL(so,    So,      ARGX_TYPE_STRING, so);
-ARGX_SWITCH_FLAG_IMPL(uri,   So,      ARGX_TYPE_URI, so);
-ARGX_SWITCH_FLAG_IMPL(enum,  int,     ARGX_TYPE_ENUM, i);
-ARGX_SWITCH_FLAG_IMPL(color, Color,   ARGX_TYPE_COLOR, c);
+ARGX_SWITCH_FLAG_IMPL(int,   int,     ARGX_TYPE_INT, i)
+ARGX_SWITCH_FLAG_IMPL(size,  ssize_t, ARGX_TYPE_SIZE, z)
+ARGX_SWITCH_FLAG_IMPL(bool,  bool,    ARGX_TYPE_BOOL, b)
+ARGX_SWITCH_FLAG_IMPL(so,    So,      ARGX_TYPE_STRING, so)
+ARGX_SWITCH_FLAG_IMPL(uri,   So,      ARGX_TYPE_URI, so)
+ARGX_SWITCH_FLAG_IMPL(enum,  int,     ARGX_TYPE_ENUM, i)
+ARGX_SWITCH_FLAG_IMPL(color, Color,   ARGX_TYPE_COLOR, c)
 
-ARGX_SWITCH_FLAG_IMPL(array_int,   int *,     ARGX_TYPE_INT, vi);
-ARGX_SWITCH_FLAG_IMPL(array_size,  ssize_t *, ARGX_TYPE_SIZE, vz);
-ARGX_SWITCH_FLAG_IMPL(array_bool,  bool *,    ARGX_TYPE_BOOL, vb);
-ARGX_SWITCH_FLAG_IMPL(array_so,    So *,      ARGX_TYPE_STRING, vso);
-ARGX_SWITCH_FLAG_IMPL(array_uri,   So *,      ARGX_TYPE_URI, vso);
-ARGX_SWITCH_FLAG_IMPL(array_enum,  int *,     ARGX_TYPE_ENUM, vi);
-ARGX_SWITCH_FLAG_IMPL(array_color, Color *,   ARGX_TYPE_COLOR, vc);
+ARGX_SWITCH_FLAG_IMPL(array_int,   int *,     ARGX_TYPE_INT, vi)
+ARGX_SWITCH_FLAG_IMPL(array_size,  ssize_t *, ARGX_TYPE_SIZE, vz)
+ARGX_SWITCH_FLAG_IMPL(array_bool,  bool *,    ARGX_TYPE_BOOL, vb)
+ARGX_SWITCH_FLAG_IMPL(array_so,    So *,      ARGX_TYPE_STRING, vso)
+ARGX_SWITCH_FLAG_IMPL(array_uri,   So *,      ARGX_TYPE_URI, vso)
+ARGX_SWITCH_FLAG_IMPL(array_enum,  int *,     ARGX_TYPE_ENUM, vi)
+ARGX_SWITCH_FLAG_IMPL(array_color, Color *,   ARGX_TYPE_COLOR, vc)
 
 void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool value) {
     ASSERT_ARG(switch_argx);
