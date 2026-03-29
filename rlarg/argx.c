@@ -287,6 +287,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     ASSERT_ARG(argx->group_p->arg);
     Arg_Rice *rice = &argx->group_p->arg->rice;
     So_Align al_ws = argx->group_p->arg->print.whitespace;
+    so_al_cache_rewind(al_ws.cache);
 
     Argx_So xso = {0};
     Argx_So_Options opts = {0};
