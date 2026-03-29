@@ -3,49 +3,6 @@
 #include "argx-group.h"
 #include "arg.h"
 
-void argx_so_al_toggle(So_Align_Cache **cache, Arg_Rice *rice, bool on) {
-    ASSERT_ARG(cache);
-
-    if(!rice) return;
-
-    So_Fx *fxs[] = {
-        &rice->program,
-        &rice->program_delim,
-        &rice->program_desc,
-        &rice->group,
-        &rice->group_delim,
-        &rice->pos,
-        &rice->c,
-        &rice->opt,
-        &rice->env,
-        &rice->desc,
-        &rice->subopt,
-        &rice->subopt_delim,
-        &rice->enum_unset,
-        &rice->enum_set,
-        &rice->enum_delim,
-        &rice->flag_unset,
-        &rice->flag_set,
-        &rice->flag_delim,
-        &rice->hint,
-        &rice->hint_delim,
-        &rice->val,
-        &rice->val_delim,
-        &rice->sw,
-        &rice->sw_delim,
-        &rice->sequence,
-        &rice->sequence_delim,
-    };
-
-    if(!on) {
-        *cache = rice->c.align.cache;
-    }
-
-    for(size_t i = 0; i < SIZE_ARRAY(fxs); ++i) {
-        fxs[i]->align.cache = on ? (cache ? *cache : 0) : 0;
-    }
-}
-
 /* non vector types {{{ */
 
 void argx_so_like_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
@@ -408,7 +365,6 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Arg
                             }
                         } break;
                         default: break;
-                        //case ARGX_GROUP_
                     }
                 }
             } break;
@@ -543,32 +499,23 @@ void argx_so_hint(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Ar
                 argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_GROUP: {
-                //bool have_hint = false;
-                //so_push(&xso->hint, hint[0]);
-                //printff("SUBGROUP %p,id %u,table %p,list %p,%.*s",argx->group_s,argx->group_s->id,argx->group_s->table,argx->group_s->list,SO_F(argx->opt));
                 if(argx->group_s) {
-                    //have_hint = true;
                     switch(argx->group_s->id) {
                         case ARGX_GROUP_ENUM: {
                             argx_so_hint_enum(out, rice, hint, argx);
-                            //xso->val_config = (bool)(xso->set_val.len);
                         } break;
                         case ARGX_GROUP_FLAGS: {
                             argx_so_hint_flags(out, rice, hint, argx);
-                            //xso->val_config = (bool)(xso->set_val.len);
                         } break;
                         case ARGX_GROUP_OPTIONS: {
                             argx_so_hint_options(out, rice, hint, argx);
-                            //xso->val_group = true;
                         } break;
                         case ARGX_GROUP_SEQUENCE: {
                             argx_so_hint_sequence(out, rice, hint, argx);
-                            //xso->val_group = true;
                         } break;
                         case ARGX_GROUP_ROOT: ABORT(ERR_UNREACHABLE("case has to be handled from the outside"));
                     }
                 }
-                //so_push(&xso->hint, hint[1]);
             } break;
             case ARGX_TYPE_SWITCH: {
                 size_t n_sw = array_len(argx->val.sw);
