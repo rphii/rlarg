@@ -363,6 +363,27 @@ void argx_fmt_config(So *out, Arg_Rice *rice, Argx *argx) {
     if(!argx_is_configurable(argx)) return;
     if(argx->attr.is_hidden) return;
 
+    /* hack the matrix to influence output of flags and enum */
+    bool do_value = false;
+    if(argx->id == ARGX_TYPE_GROUP) {
+        if(argx->group_s) {
+            switch(argx->group_s->id) {
+                case ARGX_GROUP_FLAGS: do_value = true; break;
+                case ARGX_GROUP_ENUM: do_value = true; break;
+                default: break;
+            }
+        }
+    } else {
+        do_value = true;
+        if(argx->group_p) {
+            switch(argx->group_p->id) {
+                case ARGX_GROUP_FLAGS: do_value = false; break;
+                case ARGX_GROUP_ENUM: do_value = false; break;
+                default: break;
+            }
+        }
+    }
+
     /* now format */
     Argx_So_Options opts = {
         .is_for_config = true,
@@ -381,23 +402,25 @@ void argx_fmt_config(So *out, Arg_Rice *rice, Argx *argx) {
         }
     }
 
-    if(argx_so_val_config(argx, &argx->val)) {
-        so_fmt(out, "%.*s%.*s = ", SO_F(hierarchy), SO_F(argx->opt));
-        argx_so_val(out, rice, argx, &argx->val, &opts);
-        if(argx_so_hint_visible(argx, &argx->val)) {
-            so_fmt(out, " # ");
-            argx_so_hint(out, rice, argx, &argx->val, &opts);
-        }
-    } else {
-        so_fmt(out, "# %.*s%.*s", SO_F(hierarchy), SO_F(argx->opt));
-        if(argx_so_hint_visible(argx, &argx->val)) {
-            so_fmt(out, " = ");
-            argx_so_hint(out, rice, argx, &argx->val, &opts);
+    if(do_value) {
+        if(argx_so_val_config(argx, &argx->val)) {
+            so_fmt(out, "%.*s%.*s = ", SO_F(hierarchy), SO_F(argx->opt));
+            argx_so_val(out, rice, argx, &argx->val, &opts);
+            if(argx_so_hint_visible(argx, &argx->val)) {
+                so_fmt(out, " # ");
+                argx_so_hint(out, rice, argx, &argx->val, &opts);
+            }
         } else {
-            so_fmt(out, "# %.*s", SO_F(argx->opt));
+            so_fmt(out, "# %.*s%.*s", SO_F(hierarchy), SO_F(argx->opt));
+            if(argx_so_hint_visible(argx, &argx->val)) {
+                so_fmt(out, " = ");
+                argx_so_hint(out, rice, argx, &argx->val, &opts);
+            } else {
+                so_fmt(out, "# %.*s", SO_F(argx->opt));
+            }
         }
+        so_push(out, '\n');
     }
-    so_push(out, '\n');
 
     so_free(&hierarchy_full);
     //////}

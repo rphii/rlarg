@@ -61,12 +61,7 @@ void argx_group_fmt_config(So *out, Argx_Group *group) {
     so_fmt(out, "[%.*s]\n", SO_F(group->name));
     Arg_Rice rice = {0};
     So_Align_Cache alc = {0};
-    arg_init_al(&rice, group->arg, 0, true);
-
-    rice.val.align.i0 = 2;
-    rice.val.align.iNL = 2;
-    rice.val_delim.align.i0 = 2;
-    rice.val_delim.align.iNL = 2;
+    arg_init_al(&rice, group->arg, &alc, true);
 
     for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
         //so_fmt(out, "%.*s.", SO_F(group->name));
