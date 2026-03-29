@@ -241,6 +241,10 @@ int main(const int argc, const char **argv) {
       argx_type_so(x, &config_print, 0);
       argx_callback(x, config_print_them, arg, ARGX_PRIORITY_IMMEDIATELY);
 
+    VSo blackhole = 0;
+    x=argx_opt(g1, 0, so("black-hole"), so("black hole!"));
+      argx_type_rest(x, &blackhole);
+
 // => for flags:
 //           argx_enum_all(g2, so("all"), so("enable all"));
 //        x =argx_enum_unique(g2, so("default"), so("default option"));
