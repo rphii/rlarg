@@ -38,7 +38,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
     ASSERT_ARG(id);
     bool nc = arg->builtin.color_off;
     arg->builtin.color_off = true; /* TODO make this better -> argx_so should clear colors for error output? */
-    Argx_So xso = {0};
+    So hint = SO;
     bool newline = false;
     if(arg->builtin.config_print_selected) return;
     //if(argx) { printff(F("ERROR %u, set %u [%.*s], help %u", FG_RD_B), id, stream->error_id, SO_F(argx->opt), arg->help.wanted); }
@@ -71,7 +71,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 Argx_So_Options opts = {
                     .force_nocolor = true,
                 };
-                argx_so(&xso, arg->help.argx, &opts);
+                argx_so_hint(&hint, &arg->rice, arg->help.argx, &arg->help.argx->val, &opts);
                 newline = (bool)(arg->help.argx);
             } break;
             case ARG_PARSE_ERROR_UNCONFIGURABLE:
@@ -89,7 +89,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     .force_nocolor = true,
                     .is_for_config = true,
                 };
-                argx_so(&xso, argx, &opts);
+                argx_so_hint(&hint, &arg->rice, arg->help.argx, &arg->help.argx->val, &opts);
                 newline = (bool)(argx);
             } break;
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
@@ -118,10 +118,10 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     fprintf(stderr, FF(nc, "Cannot configure: '%.*s', tried setting to: '%.*s'", FG_RD_B BOLD), SO_F(argx->opt), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_CONVERSION: {
-                    fprintf(stderr, FF(nc, "Invalid conversion for '%.*s' %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+                    fprintf(stderr, FF(nc, "Invalid conversion for '%.*s' %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_GROUP: {
-                    fprintf(stderr, FF(nc, "Option not found in '%.*s' %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint), SO_F(stream->carg));
+                    fprintf(stderr, FF(nc, "Option not found in '%.*s' %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_STRING: {
                     fprintf(stderr, FF(nc, "Invalid string for '%.*s': %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(stream->carg));
@@ -166,16 +166,16 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     fprintf(stderr, FF(nc, "Hierarchy reveals no such option: %.*s", FG_RD_B BOLD), SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
-                    fprintf(stderr, FF(nc, "Missing positional values: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));
+                    fprintf(stderr, FF(nc, "Missing positional values: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_SEQUENCE: {
-                    fprintf(stderr, FF(nc, "Missing sequential values: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));
+                    fprintf(stderr, FF(nc, "Missing sequential values: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_CONFIG: {
-                    fprintf(stderr, FF(nc, "Error(s) occured while configuring: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));
+                    fprintf(stderr, FF(nc, "Error(s) occured while configuring: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_VALUE: {
-                    fprintf(stderr, FF(nc, "Missing value for argument: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(xso.hint));
+                    fprintf(stderr, FF(nc, "Missing value for argument: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL: {
                     fprintf(stderr, FF(nc, "Unknown error occured while parsing: ", FG_RD_B BOLD));
@@ -199,8 +199,8 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             if(newline) fprintf(stderr, "\n");
         }
     }
-    argx_so_free(&xso);
     arg->builtin.color_off = nc;
+    so_free(&hint);
 }
 
 /* error messages }}} */

@@ -46,23 +46,6 @@ void argx_so_al_toggle(So_Align_Cache **cache, Arg_Rice *rice, bool on) {
     }
 }
 
-void argx_so_free(Argx_So *xso) {
-    if(!xso) return;
-    if(!xso->argx) return;
-    so_free(&xso->set_val);
-    so_free(&xso->hint);
-    so_free(&xso->hierarchy);
-}
-
-void argx_so_clear(Argx_So *xso) {
-    if(!xso) return;
-    if(!xso->argx) return;
-    so_clear(&xso->set_val);
-    so_clear(&xso->hint);
-    so_clear(&xso->hierarchy);
-    xso->argx = 0;
-}
-
 /* non vector types {{{ */
 
 void argx_so_like_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
@@ -120,7 +103,7 @@ void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, S
         So *vE2 = (max_items && array_len(*val->vso) > max_items) ? array_it(*val->vso, max_items) : vE;
         for(So *v = *val->vso; v < vE2; ++v) {
             so_al_nl(out, al_ws, 1);
-            so_fmt_fx(out, rice->val_delim, 0, "\"");
+            so_fmt_fx(out, rice->val_delim, rice->val_delim.align.i0 + 2, "\"");
             for(size_t i = 0; i < so_len(*v); ++i) {
                 char c = so_at(*v, i);
                 if(c == '"') so_fmt_fx(out, rice->val, 0, "\\");
@@ -147,7 +130,7 @@ void argx_so_type_array_int(So *out, Arg_Rice *rice, Argx_Value_Union *val, So_A
         int *vE2 = (max_items && array_len(*val->vi) > max_items) ? array_it(*val->vi, max_items) : vE;
         for(int *v = *val->vi; v < vE2; ++v) {
             so_al_nl(out, al_ws, 1);
-            so_fmt_fx(out, rice->val, 0, "%d", *v);
+            so_fmt_fx(out, rice->val, rice->val.align.i0 + 2, "%d", *v);
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
         if(vE2 < vE) {
@@ -168,7 +151,7 @@ void argx_so_type_array_size(So *out, Arg_Rice *rice, Argx_Value_Union *val, So_
         ssize_t *vE2 = (max_items && array_len(*val->vz) > max_items) ? array_it(*val->vz, max_items) : vE;
         for(ssize_t *v = *val->vz; v < vE2; ++v) {
             so_al_nl(out, al_ws, 1);
-            so_fmt_fx(out, rice->val, 0, "%zi", *v);
+            so_fmt_fx(out, rice->val, rice->val.align.i0 + 2, "%zi", *v);
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
         if(vE2 < vE) {
@@ -189,7 +172,7 @@ void argx_so_type_array_bool(So *out, Arg_Rice *rice, Argx_Value_Union *val, So_
         bool *vE2 = (max_items && array_len(*val->vso) > max_items) ? array_it(*val->vb, max_items) : vE;
         for(bool *v = *val->vb; v < vE2; ++v) {
             so_al_nl(out, al_ws, 1);
-            so_fmt_fx(out, rice->val, 0, "%s", *v ? "true" : "false");
+            so_fmt_fx(out, rice->val, rice->val.align.i0 + 2, "%s", *v ? "true" : "false");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ", ");
         }
         if(vE2 < vE) {
@@ -210,6 +193,7 @@ void argx_so_type_array_color(So *out, Arg_Rice *rice, Argx_Value_Union *val, So
         Color *vE2 = (max_items && array_len(*val->vc) > max_items) ? array_it(*val->vc, max_items) : vE;
         for(Color *v = *val->vc; v < vE2; ++v) {
             so_al_nl(out, al_ws, 1);
+            so_fmt_fx(out, rice->val, rice->val.align.i0 + 2, "");
             if(rice) so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX|SO_COLOR_PAREN);
             else so_fmt_color(out, *val->c, SO_COLOR_RGB|SO_COLOR_HEX|SO_COLOR_PAREN|SO_COLOR_NOFX);
             so_fmt_fx(out, rice->val_delim, 0, ", ");
@@ -227,98 +211,111 @@ void argx_so_type_array_color(So *out, Arg_Rice *rice, Argx_Value_Union *val, So
 
 /* types relying on subgroup {{{ */
 
-void argx_so_enum(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
-    ASSERT_ARG(xso);
-    ASSERT_ARG(rice);
+void argx_so_hint_enum(So *out, Arg_Rice *rice, char *hints, Argx *argx) {
+    ASSERT_ARG(out);
     ASSERT_ARG(hints);
     ASSERT_ARG(argx);
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
     bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
-    so_fmt_fx(&xso->hint, rice->enum_delim, 0, "%c", hints[0]);
+    so_fmt_fx(out, rice->enum_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
+#if 1
+        if(argx->val.i && *argx->val.i == (*it)->attr.val_enum) {
+            current_is_selected = !is_pos;
+        }
+#else
         /* check if iterator matches selected value */
         if(argx->val.i && *argx->val.i == (*it)->attr.val_enum) {
             so_fmt_fx(&xso->set_val, rice->val, 0, "%.*s", SO_F((*it)->opt));
             current_is_selected = !is_pos;
         }
+#endif
         /* format hint */
         if(current_is_selected && rice) {
-            so_fmt_fx(&xso->hint, rice->enum_set, 0, "%.*s", SO_F((*it)->opt));
+            so_fmt_fx(out, rice->enum_set, 0, "%.*s", SO_F((*it)->opt));
         } else {
-            so_fmt_fx(&xso->hint, rice->enum_unset, 0, "%.*s", SO_F((*it)->opt));
+            so_fmt_fx(out, rice->enum_unset, 0, "%.*s", SO_F((*it)->opt));
         }
-        if(it + 1 < itE) so_fmt_fx(&xso->hint, rice->enum_delim, 0, "|");
+        if(it + 1 < itE) so_fmt_fx(out, rice->enum_delim, 0, "|");
     }
-    so_fmt_fx(&xso->hint, rice->enum_delim, 0, "%c", hints[1]);
+    so_fmt_fx(out, rice->enum_delim, 0, "%c", hints[1]);
 }
 
-void argx_so_flags(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
-    ASSERT_ARG(xso);
+void argx_so_hint_flags(So *out, Arg_Rice *rice, char *hints, Argx *argx) {
+    ASSERT_ARG(out);
     ASSERT_ARG(rice);
     ASSERT_ARG(hints);
     ASSERT_ARG(argx);
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
     bool is_pos = argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
-    so_fmt_fx(&xso->hint, rice->flag_delim, 0, "%c", hints[0]);
+    so_fmt_fx(out, rice->flag_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         bool current_is_selected = false;
         /* check if iterator matches selected value */
+#if 1
+        if((*it)->val.b && *(*it)->val.b) {
+            current_is_selected = !is_pos;
+        }
+#else
         if((*it)->val.b && *(*it)->val.b) {
             if(iv++) so_push(&xso->set_val, ',');
             so_extend(&xso->set_val, (*it)->opt);
             current_is_selected = !is_pos;
         }
+#endif
         /* format hint */
         if(current_is_selected) {
-            so_fmt_fx(&xso->hint, rice->flag_set, 0, "%.*s", SO_F((*it)->opt));
+            so_fmt_fx(out, rice->flag_set, 0, "%.*s", SO_F((*it)->opt));
         } else {
-            so_fmt_fx(&xso->hint, rice->flag_unset, 0, "%.*s", SO_F((*it)->opt));
+            so_fmt_fx(out, rice->flag_unset, 0, "%.*s", SO_F((*it)->opt));
         }
-        if(it + 1 < itE) so_fmt_fx(&xso->hint, rice->flag_delim, 0, "|");
+        if(it + 1 < itE) so_fmt_fx(out, rice->flag_delim, 0, "|");
     }
-    so_fmt_fx(&xso->hint, rice->flag_delim, 0, "%c", hints[1]);
+    so_fmt_fx(out, rice->flag_delim, 0, "%c", hints[1]);
 }
 
-void argx_so_options(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
-    ASSERT_ARG(xso);
+void argx_so_hint_options(So *out, Arg_Rice *rice, char *hints, Argx *argx) {
+    ASSERT_ARG(out);
     ASSERT_ARG(rice);
     ASSERT_ARG(hints);
     ASSERT_ARG(argx);
-    so_fmt_fx(&xso->hint, rice->subopt_delim, 0, "%c", hints[0]);
+    so_fmt_fx(out, rice->subopt_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
     size_t iv = 0, ir = 0;
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
         //printff("IT VAL %p %.*s",(*it)->val.b, SO_F((*it)->opt));
         /* check if iterator matches selected value */
+#if 0
         if((*it)->val.any) {
             if(iv++) so_push(&xso->set_val, ',');
             so_fmt_fx(&xso->set_val, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
         }
+#endif
         /* format hint */
-        so_fmt_fx(&xso->hint, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
-        if(it + 1 < itE) so_fmt_fx(&xso->hint, rice->subopt_delim, 0, "|");
+        so_fmt_fx(out, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
+        if(it + 1 < itE) so_fmt_fx(out, rice->subopt_delim, 0, "|");
     }
-    so_fmt_fx(&xso->hint, rice->subopt_delim, 0, "%c", hints[1]);
+    so_fmt_fx(out, rice->subopt_delim, 0, "%c", hints[1]);
 }
 
-void argx_so_sequence(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
-    ASSERT_ARG(xso);
+void argx_so_hint_sequence(So *out, Arg_Rice *rice, char *hints, Argx *argx) {
+    ASSERT_ARG(out);
     ASSERT_ARG(rice);
     ASSERT_ARG(hints);
     ASSERT_ARG(argx);
-    so_fmt_fx(&xso->hint, rice->sequence_delim, 0, "%c", hints[0]);
+    so_fmt_fx(out, rice->sequence_delim, 0, "%c", hints[0]);
     Argx **itE = array_itE(argx->group_s->list);
     for(Argx **it = argx->group_s->list; it < itE; ++it) {
-        so_fmt_fx(&xso->hint, rice->sequence, 0, "%.*s", SO_F((*it)->opt));
-        if(it + 1 < itE) so_fmt_fx(&xso->hint, rice->sequence_delim, 0, ",");
+        so_fmt_fx(out, rice->sequence, 0, "%.*s", SO_F((*it)->opt));
+        if(it + 1 < itE) so_fmt_fx(out, rice->sequence_delim, 0, ",");
     }
-    so_fmt_fx(&xso->hint, rice->sequence_delim, 0, "%c", hints[1]);
+    so_fmt_fx(out, rice->sequence_delim, 0, "%c", hints[1]);
 }
 
 /* types relying on subgroup }}} */
@@ -330,10 +327,10 @@ void argx_so_hierarchy(So *hierarchy, Arg_Rice *rice, Argx_Group *group) {
     so_fmt_fx(hierarchy, rice->group_delim, 0, ".");
 }
 
-void argx_so_hint_generic(Argx_So *xso, Arg_Rice *rice, char *hint, So so) {
-    so_fmt_fx(&xso->hint, rice->hint_delim, 0, "%c", hint[0]);
-    so_fmt_fx(&xso->hint, rice->hint, 0, "%.*s", SO_F(so));
-    so_fmt_fx(&xso->hint, rice->hint_delim, 0, "%c", hint[1]);
+void argx_so_hint_generic(So *out, Arg_Rice *rice, char *hint, So so) {
+    so_fmt_fx(out, rice->hint_delim, 0, "%c", hint[0]);
+    so_fmt_fx(out, rice->hint, 0, "%.*s", SO_F(so));
+    so_fmt_fx(out, rice->hint_delim, 0, "%c", hint[1]);
 }
 
 void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Argx_So_Options *opts) {
@@ -430,20 +427,34 @@ bool argx_so_val_visible(Argx *argx, Argx_Value_Union *val) {
     return result;
 }
 
-void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
+bool argx_so_hint_visible(Argx *argx, Argx_Value_Union *val) {
+    if(argx->id == ARGX_TYPE_NONE) return false;
+    if(argx->id == ARGX_TYPE_GROUP) return (bool)(argx->group_s);
+    return true;
+}
+
+bool argx_so_val_config(Argx *argx, Argx_Value_Union *val) {
+    if(argx->id == ARGX_TYPE_NONE) return false;
+    if(argx->id == ARGX_TYPE_SWITCH) return false;
+    return (bool)(val && val->any);
+}
+
+void argx_so_hint(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Argx_So_Options *opts) {
     //printff("FORMATTING ARGX_SO: %.*s", SO_F(argx->opt));
     if(!argx) return;
-    ASSERT_ARG(xso);
+    ASSERT_ARG(out);
     ASSERT_ARG(opts);
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
     bool was_nocolor = argx->group_p->arg->builtin.color_off; /* TODO this is disgusting */
     if(opts->force_nocolor) argx->group_p->arg->builtin.color = ARG_BUILTIN_COLOR_OFF; /* TODO this is disgusting */
-    Arg_Rice *rice = &argx->group_p->arg->rice;
+    //Arg_Rice *rice = &argx->group_p->arg->rice;
+#if 0
     So_Align_Cache *cache = 0;
     argx_so_al_toggle(&cache, rice, false);
+#endif
 
-    argx_so_clear(xso);
+    //argx_so_clear(xso);
     /* remember the hint */
     char hint[2] = {0};
     switch(argx->hint.id) {
@@ -470,33 +481,30 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
         } break;
     }
     /* format the value */
-    xso->val_config = (bool)(argx->val.any);
-    xso->have_hint = true;
-    argx_so_hierarchy(&xso->hierarchy, rice, argx->group_p);
-    argx_so_val(&xso->set_val, rice, argx, &argx->val, opts);
+    //argx_so_hierarchy(out, rice, argx->group_p);
+    //argx_so_val(out, rice, argx, &argx->val, opts);
 
     if(argx->attr.is_array) {
         switch(argx->id) {
             default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
             case ARGX_TYPE_NONE: {
-                xso->have_hint = false;
             } break;
             case ARGX_TYPE_COLOR: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_BOOL: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_INT: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_SIZE: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_REST:
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_SWITCH: {
                 ABORT(ERR_UNREACHABLE("vector of SWITCH is not supported, and thus you should never see this message"));
@@ -515,47 +523,47 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
         switch(argx->id) {
             default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
             case ARGX_TYPE_NONE: {
-                xso->have_hint = false;
+                //xso->have_hint = false;
             } break;
             case ARGX_TYPE_COLOR: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_FLAG:
             case ARGX_TYPE_BOOL: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_INT: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_SIZE: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_URI:
             case ARGX_TYPE_STRING: {
-                argx_so_hint_generic(xso, rice, hint, argx->hint.so);
+                argx_so_hint_generic(out, rice, hint, argx->hint.so);
             } break;
             case ARGX_TYPE_GROUP: {
-                xso->have_hint = false;
+                //bool have_hint = false;
                 //so_push(&xso->hint, hint[0]);
                 //printff("SUBGROUP %p,id %u,table %p,list %p,%.*s",argx->group_s,argx->group_s->id,argx->group_s->table,argx->group_s->list,SO_F(argx->opt));
                 if(argx->group_s) {
-                    xso->have_hint = true;
+                    //have_hint = true;
                     switch(argx->group_s->id) {
                         case ARGX_GROUP_ENUM: {
-                            argx_so_enum(xso, rice, hint, argx);
-                            xso->val_config = (bool)(xso->set_val.len);
+                            argx_so_hint_enum(out, rice, hint, argx);
+                            //xso->val_config = (bool)(xso->set_val.len);
                         } break;
                         case ARGX_GROUP_FLAGS: {
-                            argx_so_flags(xso, rice, hint, argx);
-                            xso->val_config = (bool)(xso->set_val.len);
+                            argx_so_hint_flags(out, rice, hint, argx);
+                            //xso->val_config = (bool)(xso->set_val.len);
                         } break;
                         case ARGX_GROUP_OPTIONS: {
-                            argx_so_options(xso, rice, hint, argx);
-                            xso->val_group = true;
+                            argx_so_hint_options(out, rice, hint, argx);
+                            //xso->val_group = true;
                         } break;
                         case ARGX_GROUP_SEQUENCE: {
-                            argx_so_sequence(xso, rice, hint, argx);
-                            xso->val_group = true;
+                            argx_so_hint_sequence(out, rice, hint, argx);
+                            //xso->val_group = true;
                         } break;
                         case ARGX_GROUP_ROOT: ABORT(ERR_UNREACHABLE("case has to be handled from the outside"));
                     }
@@ -564,15 +572,15 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
             } break;
             case ARGX_TYPE_SWITCH: {
                 size_t n_sw = array_len(argx->val.sw);
-                so_fmt_fx(&xso->hint, rice->sw_delim, 0, "(sets ");
-                so_fmt_fx(&xso->hint, rice->sw, 0, "%zux", n_sw);
-                so_fmt_fx(&xso->hint, rice->sw_delim, 0, " option%s)", n_sw > 1 ? "s" : "");
+                so_fmt_fx(out, rice->sw_delim, 0, "(sets ");
+                so_fmt_fx(out, rice->sw, 0, "%zux", n_sw);
+                so_fmt_fx(out, rice->sw_delim, 0, " option%s)", n_sw > 1 ? "s" : "");
                 /* set up config value ... by default always off */
-                xso->val_config = true;
-                so_extend(&xso->set_val, so("false"));
+                // TODO: xso->val_config = true;
+                // TODO: so_extend(&xso->set_val, so("false"));
             } break;
             case ARGX_TYPE_ENUM: {
-                xso->have_hint = false;
+                //xso->have_hint = false;
             } break;
             case ARGX_TYPE_REST: {
                 ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));
@@ -580,9 +588,9 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
         }
     }
 
-    xso->argx = argx;
+    //xso->argx = argx;
     argx->group_p->arg->builtin.color_off = was_nocolor; /* TODO this is disgusting */
-    argx_so_al_toggle(&cache, rice, true);
+    //argx_so_al_toggle(&cache, rice, true);
 }
 
 

@@ -17,7 +17,6 @@ int arg_after_fmt_config(So *out, struct Arg *arg, So configs, Arg_Builtin_Color
     arg->builtin.color = color;
     arg_update_color_off(arg);
 
-
     So config = SO;
     while(so_splice(configs, &config, ',')) {
         Argx_Group *group = argx_group_get_opt(arg, config);

@@ -78,35 +78,37 @@ void arg_compgen_argx(struct Arg *arg, struct Argx *argx) {
 }
 
 void arg_compgen_help_argx(struct Arg *arg, struct Argx *argx) {
-    Argx_So xso = {0};
     Argx_So_Options opts = {
         .force_nocolor = true,
     };
+    So hier = SO;
     if(argx->id == ARGX_TYPE_GROUP) {
         arg_compgen_help_group(arg, argx->group_s);
     } else {
-        argx_so(&xso, argx, &opts);
-        printf("%c%.*s%.*s", ARG_COMPGEN_DELIM, SO_F(xso.hierarchy), SO_F(argx->opt));
+        argx_so_hierarchy(&hier, &arg->rice, argx->group_p);
+        printf("%c%.*s%.*s", ARG_COMPGEN_DELIM, SO_F(hier), SO_F(argx->opt));
     }
-    argx_so_free(&xso);
+    so_free(&hier);
 }
 
 void arg_compgen_help_group(struct Arg *arg, struct Argx_Group *group) {
-    Argx_So xso = {0};
+    //Argx_So xso = {0};
     Argx_So_Options opts = {
         .force_nocolor = true,
     };
+    So hier = SO;
     Argx **itE = array_itE(group->list);
     for(Argx **it = group->list; it < itE; ++it) {
-        argx_so_clear(&xso);
-        argx_so(&xso, *it, &opts);
-        printf("%c%.*s%.*s", ARG_COMPGEN_DELIM, SO_F(xso.hierarchy), SO_F((*it)->opt));
+        so_clear(&hier);
+        argx_so_hierarchy(&hier, 0, (*it)->group_p);
+        printf("%c%.*s%.*s", ARG_COMPGEN_DELIM, SO_F(hier), SO_F((*it)->opt));
         if((*it)->id == ARGX_TYPE_GROUP) {
             printf(".");
         }
     }
+    so_free(&hier);
 
-    argx_so_free(&xso);
+    //argx_so_free(&xso);
 }
 
 void arg_compgen_help_groups(struct Arg *arg) {
