@@ -36,7 +36,7 @@ int main(const int argc, const char **argv) {
 
     struct Arg_Config *cfg = arg_config_new();
     arg_config_set_width(cfg, 0);
-    arg_config_set_program(cfg, so_l(argv[0]));
+    arg_config_set_program(cfg, so_l((char *)argv[0]));
     arg_config_set_description(cfg, so("a description goes here"));
     arg_config_set_epilog(cfg, so("an epilog goes here"));
 
