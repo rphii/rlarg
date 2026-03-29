@@ -287,7 +287,6 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     ASSERT_ARG(argx->group_p->arg);
     Arg_Rice *rice = &argx->group_p->arg->rice;
     So_Align al_ws = argx->group_p->arg->print.whitespace;
-    so_al_cache_rewind(al_ws.cache);
 
     Argx_So xso = {0};
     Argx_So_Options opts = {0};
@@ -341,7 +340,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
         so_fmt_al(out, rice->hint.align, rice->hint.align.cache->progress + 1, "%.*s", SO_F(xso.hint));
     }
 
-    if(!compact_desc) so_al_nl(out, al_ws, 1);
+    //if(!compact_desc) so_al_nl(out, al_ws, 1);
     
     so_fmt_fx(out, rice->desc, 0, "%.*s", SO_F(argx->desc));
 
@@ -350,7 +349,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
         so_fmt_al(out, rice->val.align, 0, "%.*s", SO_F(xso.set_val));
     }
 
-    so_al_nl(out, al_ws, 1);
+    //so_fmt_fx(out, rice->opt, 0, "\n");
 
     argx_so_free(&xso);
 

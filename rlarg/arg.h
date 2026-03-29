@@ -90,6 +90,7 @@ typedef struct Arg {
 
     Argx_Callback_Queue *queue;   /* any callback that we encountered */
     Arg_Stream stream_in;
+    size_t nb_source;
 
     struct {
         bool quit_early;

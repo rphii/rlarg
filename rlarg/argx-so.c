@@ -42,7 +42,7 @@ void argx_so_al_toggle(So_Align_Cache **cache, Arg_Rice *rice, bool on) {
     }
 
     for(size_t i = 0; i < SIZE_ARRAY(fxs); ++i) {
-        fxs[i]->align.cache = on ? *cache : 0;
+        fxs[i]->align.cache = on ? (cache ? *cache : 0) : 0;
     }
 }
 
