@@ -111,17 +111,18 @@ void arg_help_short(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
     /* format long options */
-    so_fmt(&out, "Options: ");
+    so_fmt(&out, "Options:\n");
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
         Argx **xE = array_itE((*group)->list);
         for(Argx **xI = (*group)->list; xI < xE; ++xI) {
             so_fmt_fx(&out, arg->rice.opt, 0, "--%.*s", SO_F((*xI)->opt));
-            so_fmt(&out, " ");
+            so_fmt_al(&out, arg->print.whitespace, 0, " ");
         }
     }
     
     /* format short options, TODO: if no short opts, it will still print the - without anything.. */
-    so_fmt(&out, "\n\nShort options: ");
+    so_fmt(&out, "\n\nShort options:\n");
+    so_al_cache_rewind(&arg->print.p_al2);
     so_fmt_fx(&out, arg->rice.opt, 0, "-");
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
         Argx **xE = array_itE((*group)->list);
