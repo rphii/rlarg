@@ -31,7 +31,7 @@ typedef struct Arg_Stream_Source {
 
 typedef struct Arg_Stream {
     VSo vso;
-    int i, i_split;
+    size_t i, i_split;
     bool skip_flag_check;   /* set true once we encounter '--' */
     bool not_consumed;
     bool is_config;

@@ -792,7 +792,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                         }
                     }
                     if(!argx) {
-                        Argx pseudo = { .opt = so_ll(&c, 1) };
+                        Argx pseudo = { .opt = so_ll((char *)&c, 1) };
                         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_ROOT, &pseudo);
                         status = -1;
                         goto error_but_maybe_get_env_help;
