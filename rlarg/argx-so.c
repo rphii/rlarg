@@ -470,8 +470,6 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
         } break;
     }
     /* format the value */
-    //xso->ref_visible = (bool)(argx->ref);
-    //xso->val_visible = ;
     xso->val_config = (bool)(argx->val.any);
     xso->have_hint = true;
     argx_so_hierarchy(&xso->hierarchy, rice, argx->group_p);
@@ -582,9 +580,8 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
         }
     }
 
-    xso->val_visible = argx_so_val_visible(argx, &argx->val);
     xso->argx = argx;
-    argx->group_p->arg->builtin.color_off = was_nocolor ; /* TODO this is disgusting */
+    argx->group_p->arg->builtin.color_off = was_nocolor; /* TODO this is disgusting */
     argx_so_al_toggle(&cache, rice, true);
 }
 

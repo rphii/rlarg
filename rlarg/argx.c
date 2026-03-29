@@ -344,7 +344,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     
     so_fmt_fx(out, rice->desc, 0, "%.*s", SO_F(argx->desc));
 
-    if(xso.val_visible) {
+    if(argx_so_val_visible(argx, &argx->val)) {
         so_fmt_fx(out, rice->val_delim, al_ws.cache->progress + 1, "=");
         so_fmt_al(out, rice->val.align, 0, "%.*s", SO_F(xso.set_val));
     }
