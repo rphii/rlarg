@@ -11,7 +11,7 @@ typedef union Argx_Value_Union Argx_Value_Union ;
 typedef struct Argx_So {
     Argx *argx;
     So set_val;
-    So set_ref;
+    //So set_ref;
     So hint;
     So hierarchy;
     bool val_visible;
