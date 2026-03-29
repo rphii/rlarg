@@ -9,7 +9,7 @@ int main(int argc, const char **argv) {
     Readme r = {0};
 
     /* set up arg */
-    struct Arg *arg = arg_new();
+    struct Arg *arg = arg_new(0);
     struct Argx_Group *g = argx_group(arg, so("default"));
     struct Argx *x;
     argx_builtin_opt_color(g);

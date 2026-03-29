@@ -326,16 +326,11 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
     } else {
         /* format the short opt */
         if(argx->c) {
-            //so_extend(out, so("  "));
             so_fmt_fx(out, rice->c, 0, "-%c", argx->c);
-        } else {
-            //so_extend(out, so("    ")); 
         }
         if(treat_as_options) {
-            //so_extend(out, so("  ")); 
             so_fmt_fx(out, rice->opt, 0, "--%.*s", SO_F(argx->opt));
         } else {
-            //so_extend(out, so("    ")); 
             so_fmt_fx(out, rice->opt, 0, "%.*s", SO_F(argx->opt));
         }
     }
@@ -347,12 +342,10 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
 
     if(!compact_desc) so_al_nl(out, al_ws, 1);
     
-    //so_fmt(out, "%*s", spacing_desc, "");
     so_fmt_fx(out, rice->desc, 0, "%.*s", SO_F(argx->desc));
 
     if(xso.val_visible) {
-        //so_push(out, ' ');
-        so_fmt_fx(out, rice->val_delim, 0, "=");
+        so_fmt_fx(out, rice->val_delim, al_ws.cache->progress + 1, "=");
         so_fmt_al(out, rice->val.align, 0, "%.*s", SO_F(xso.set_val));
     }
 

@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv) {
     int result = -1;
-    Arg *arg = arg_new();
+    Arg *arg = arg_new(0);
 
     if(argc != 2) goto defer;
 
