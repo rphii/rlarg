@@ -50,7 +50,6 @@ void argx_so_free(Argx_So *xso) {
     if(!xso) return;
     if(!xso->argx) return;
     so_free(&xso->set_val);
-    so_free(&xso->set_ref);
     so_free(&xso->hint);
     so_free(&xso->hierarchy);
 }
@@ -59,7 +58,6 @@ void argx_so_clear(Argx_So *xso) {
     if(!xso) return;
     if(!xso->argx) return;
     so_clear(&xso->set_val);
-    so_clear(&xso->set_ref);
     so_clear(&xso->hint);
     so_clear(&xso->hierarchy);
     xso->argx = 0;
@@ -246,9 +244,6 @@ void argx_so_enum(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
             so_fmt_fx(&xso->set_val, rice->val, 0, "%.*s", SO_F((*it)->opt));
             current_is_selected = !is_pos;
         }
-        if(argx->ref.i && *argx->ref.i == (*it)->attr.val_enum) {
-            so_fmt_fx(&xso->set_ref, rice->val, 0, "%.*s", SO_F((*it)->opt));
-        }
         /* format hint */
         if(current_is_selected && rice) {
             so_fmt_fx(&xso->hint, rice->enum_set, 0, "%.*s", SO_F((*it)->opt));
@@ -279,10 +274,6 @@ void argx_so_flags(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
             so_extend(&xso->set_val, (*it)->opt);
             current_is_selected = !is_pos;
         }
-        if((*it)->ref.b && *(*it)->ref.b) {
-            if(ir++) so_push(&xso->set_ref, ',');
-            so_extend(&xso->set_ref, (*it)->opt);
-        }
         /* format hint */
         if(current_is_selected) {
             so_fmt_fx(&xso->hint, rice->flag_set, 0, "%.*s", SO_F((*it)->opt));
@@ -308,10 +299,6 @@ void argx_so_options(Argx_So *xso, Arg_Rice *rice, char *hints, Argx *argx) {
         if((*it)->val.any) {
             if(iv++) so_push(&xso->set_val, ',');
             so_fmt_fx(&xso->set_val, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
-        }
-        if((*it)->ref.any) {
-            if(ir++) so_push(&xso->set_ref, ',');
-            so_fmt_fx(&xso->set_ref, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
         }
         /* format hint */
         so_fmt_fx(&xso->hint, rice->subopt, 0, "%.*s", SO_F((*it)->opt));
@@ -489,7 +476,6 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
     xso->have_hint = true;
     argx_so_hierarchy(&xso->hierarchy, rice, argx->group_p);
     argx_so_val(&xso->set_val, rice, argx, &argx->val, opts);
-    argx_so_val(&xso->set_ref, rice, argx, &argx->ref, opts);
 
     if(argx->attr.is_array) {
         switch(argx->id) {
