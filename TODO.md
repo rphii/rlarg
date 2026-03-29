@@ -1,5 +1,8 @@
 # priority
 
+- most recent source is wrong ( -> sort by nb_source )
+- printing colors... remove the color.. in CONFIG_PRINT..
+- organize so_fmt_fx better..... (they all over the place)
 - better compgen for flags, e.g: +flag,-flag2 and show combinations..
 
 - more tests, e.g.
@@ -8,13 +11,11 @@
 
 # later
 
-- printing colors... remove the color.. in CONFIG_PRINT..
 - min/max for numbers and...
 - ..float/double
 - ..time
 
 - hot/reload
-- organize so_fmt_fx better..... (they all over the place)
 - note that if URI wasn't found? optional enable/disable?
 - don't output 'not set anywhere' .. if a group? what if callback? or just list sources of all sub-items?
 
