@@ -1,6 +1,5 @@
 # priority
 
-- most recent source is wrong ( -> sort by nb_source )
 - printing colors... remove the color.. in CONFIG_PRINT..
 - organize so_fmt_fx better..... (they all over the place)
 - better compgen for flags, e.g: +flag,-flag2 and show combinations..

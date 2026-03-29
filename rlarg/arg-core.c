@@ -166,49 +166,71 @@ void arg_help_argx_group(struct Argx_Group *group) {
     so_free(&out);
 }
 
-void argx_extend_sources(VSo *srces, Argx *argx) {
+
+void arg_stream_sources_sort(Arg_Stream_Source *arr) {
+    int n = array_len(arr);
+
+    // Start with a large gap, then reduce it step by step
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+
+        // Perform a "gapped" insertion sort for this gap size
+        for (int i = gap; i < n; i++) {
+            
+            // Current element to be placed correctly
+            Arg_Stream_Source temp = arr[i];  
+            int j = i;
+
+            // Shift elements that are greater than temp to make space
+            while (j >= gap && arr[j - gap].nb_source > temp.nb_source) {
+                arr[j] = arr[j - gap];
+                j -= gap;
+            }
+
+            // Place temp in its correct location
+            arr[j] = temp;
+        }
+    }
+}
+
+void arg_stream_source_so(So *out, Arg_Stream_Source *src) {
+    ASSERT_ARG(src);
+    switch(src->id) {
+        case ARG_STREAM_SOURCE_CONFIG:
+            so_fmt(out, "%.*s:%u", SO_F(src->path), src->number);
+            break;
+        case ARG_STREAM_SOURCE_STDIN:
+            so_fmt(out, "stdin@%u", src->number);
+            break;
+        case ARG_STREAM_SOURCE_ENVVARS:
+            so_fmt(out, "envvars");
+            break;
+        case ARG_STREAM_SOURCE_REFVAL:
+            so_fmt(out, "refval");
+            break;
+        default: break;
+    }
+}
+
+void argx_extend_sources(Arg_Stream_Source **srces, Argx *argx) {
 
     ASSERT_ARG(argx);
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
 
     size_t len = array_len(argx->sources);
-    So tmp = SO;
-    So hierarchy = SO;
-    Arg_Rice *rice = &argx->group_p->arg->rice;
     if(len) {
         for(size_t i = 0; i < len; ++i) {
-            so_zero(&tmp);
             Arg_Stream_Source src = array_at(argx->sources, i);
-            switch(src.id) {
-                case ARG_STREAM_SOURCE_CONFIG:
-                    so_fmt(&tmp, "%.*s:%u", SO_F(src.path), src.number);
-                    break;
-                case ARG_STREAM_SOURCE_STDIN:
-                    so_fmt(&tmp, "stdin@%u", src.number);
-                    break;
-                case ARG_STREAM_SOURCE_ENVVARS:
-                    so_fmt(&tmp, "envvars");
-                    break;
-                case ARG_STREAM_SOURCE_REFVAL:
-                    so_fmt(&tmp, "refval");
-                    break;
-                default: break;
-            }
-            if(so_len(tmp)) {
-                so_clear(&hierarchy);
-                argx_so_hierarchy(&hierarchy, rice, argx->group_p);
-                so_fmt(&tmp, "  ( %.*s%.*s )", SO_F(hierarchy), SO_F(argx->opt));
-                vso_push(srces, tmp);
-            }
+            if(!src.id) continue;
+            array_push(*srces, src);
         }
     }
-    so_free(&hierarchy);
 }
 
 void arg_help_argx(struct Argx *help) {
     So out = SO;
-    VSo sources = 0;
+    So source_hierarchy = SO;
+    Arg_Stream_Source *sources = 0;
     Argx_So_Options opts = {0};
     ASSERT_ARG(help->group_p);
     ASSERT_ARG(help->group_p->arg);
@@ -216,6 +238,8 @@ void arg_help_argx(struct Argx *help) {
     So_Align al_ws = rice->whitespace;
     bool full_help = true;
 
+    Arg_Rice dummy = {0};
+    argx_so_hierarchy(&source_hierarchy, &dummy, help->group_p);
     argx_so_hierarchy(&out, rice, help->group_p);
     //so_fmt_al(&out, rice->group.align, 0, "%.*s", SO_F(xso.hierarchy));
     so_fmt_fx(&out, rice->group, 0, "%.*s", SO_F(help->opt));
@@ -260,16 +284,19 @@ void arg_help_argx(struct Argx *help) {
         so_free(&tmp_hier_val);
     }
 
+    arg_stream_sources_sort(sources);
+
     if(argx_is_configurable(help)) {
         if(!help->attr.is_unconfigurable) {
             so_fmt(&out, "\nsources:\n");
             if(!array_len(sources)) {
                 so_fmt(&out, "  not set anywhere");
             } else {
-                So *itE = array_itE(sources);
-                for(So *it = sources; it < itE; ++it) {
+                Arg_Stream_Source *itE = array_itE(sources);
+                for(Arg_Stream_Source *it = sources; it < itE; ++it) {
                     so_extend(&out, so("  "));
-                    so_extend(&out, *it);
+                    arg_stream_source_so(&out, it);
+                    so_fmt(&out, "   ( %.*s%.*s )", SO_F(source_hierarchy), SO_F(help->opt));
                     if(it + 1 < itE) so_extend(&out, so(",\n"));
                     else if(it > sources) so_extend(&out, so(" <-- most recent one"));
                 }
@@ -284,7 +311,8 @@ void arg_help_argx(struct Argx *help) {
     so_println(SO);
 
     so_free(&out);
-    vso_free(&sources);
+    so_free(&source_hierarchy);
+    array_free(sources);
 }
 
 void arg_enable_config_print(struct Arg *arg, bool enable) {
