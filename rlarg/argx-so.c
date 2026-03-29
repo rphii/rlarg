@@ -313,10 +313,6 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Arg
 
     So_Align al_ws = rice->whitespace;
 
-    //int array_spacing[2] = {
-    //    opts->is_for_config ? 2 : ARG_SPACING_VALUE_WRAP_ARRAY,
-    //    opts->is_for_config ? 0 : ARG_SPACING_VALUE_WRAP_DELIM};
-
     if(argx->attr.is_array) {
         switch(argx->id) {
             default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
@@ -460,15 +456,7 @@ void argx_so_hint(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Ar
     ASSERT_ARG(opts);
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
-    bool was_nocolor = argx->group_p->arg->builtin.color_off; /* TODO this is disgusting */
-    if(opts->force_nocolor) argx->group_p->arg->builtin.color = ARG_BUILTIN_COLOR_OFF; /* TODO this is disgusting */
-    //Arg_Rice *rice = &argx->group_p->arg->rice;
-#if 0
-    So_Align_Cache *cache = 0;
-    argx_so_al_toggle(&cache, rice, false);
-#endif
 
-    //argx_so_clear(xso);
     /* remember the hint */
     char hint[2] = {0};
     switch(argx->hint.id) {
@@ -495,8 +483,6 @@ void argx_so_hint(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Ar
         } break;
     }
     /* format the value */
-    //argx_so_hierarchy(out, rice, argx->group_p);
-    //argx_so_val(out, rice, argx, &argx->val, opts);
 
     if(argx->attr.is_array) {
         switch(argx->id) {
@@ -602,9 +588,6 @@ void argx_so_hint(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Ar
         }
     }
 
-    //xso->argx = argx;
-    argx->group_p->arg->builtin.color_off = was_nocolor; /* TODO this is disgusting */
-    //argx_so_al_toggle(&cache, rice, true);
 }
 
 

@@ -68,9 +68,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_MISSING_SHORTOPT: /* pseudo */
             case ARG_PARSE_ERROR_NO_REST_ALLOWED: {
                 arg_parse_set_help_error(arg, arg->help.argx);
-                Argx_So_Options opts = {
-                    .force_nocolor = true,
-                };
+                Argx_So_Options opts = {0};
                 argx_so_hint(&hint, &arg->rice, arg->help.argx, &arg->help.argx->val, &opts);
                 newline = (bool)(arg->help.argx);
             } break;
@@ -85,10 +83,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_INVALID_STRING_END:
             case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL: {
                 arg_parse_set_help_error(arg, argx);
-                Argx_So_Options opts = {
-                    .force_nocolor = true,
-                    .is_for_config = true,
-                };
+                Argx_So_Options opts = {0};
                 argx_so_hint(&hint, &arg->rice, arg->help.argx, &arg->help.argx->val, &opts);
                 newline = (bool)(argx);
             } break;

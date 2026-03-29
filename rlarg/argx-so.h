@@ -9,8 +9,6 @@ typedef struct Argx_Group Argx_Group;
 typedef union Argx_Value_Union Argx_Value_Union;
 
 typedef struct Argx_So_Options {
-    bool force_nocolor;
-    bool is_for_config;
     size_t array_max_items;
 } Argx_So_Options;
 
