@@ -385,9 +385,7 @@ void argx_fmt_config(So *out, Arg_Rice *rice, Argx *argx) {
     }
 
     /* now format */
-    Argx_So_Options opts = {
-        .is_for_config = true,
-    };
+    Argx_So_Options opts = {0};
 
     So hierarchy_full = SO, hierarchy = SO;
     argx_so_hierarchy(&hierarchy_full, rice, argx->group_p);

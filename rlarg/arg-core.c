@@ -198,7 +198,7 @@ void argx_extend_sources(VSo *srces, Argx *argx) {
             if(so_len(tmp)) {
                 so_clear(&hierarchy);
                 argx_so_hierarchy(&hierarchy, rice, argx->group_p);
-                so_fmt(&tmp, " :: %.*s%.*s", SO_F(hierarchy), SO_F(argx->opt));
+                so_fmt(&tmp, "  ( %.*s%.*s )", SO_F(hierarchy), SO_F(argx->opt));
                 vso_push(srces, tmp);
             }
         }
