@@ -24,6 +24,7 @@ typedef enum {
 typedef struct Arg_Stream_Source {
     So path;
     int number;
+    size_t nb_source;
     Arg_Stream_Source_List id;
 } Arg_Stream_Source;
 

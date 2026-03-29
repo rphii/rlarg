@@ -122,7 +122,6 @@ void arg_help_short(struct Arg *arg) {
     
     /* format short options, TODO: if no short opts, it will still print the - without anything.. */
     so_fmt(&out, "\n\nShort options:\n");
-    so_al_cache_rewind(&arg->print.p_al2);
     so_fmt_fx(&out, arg->rice.opt, 0, "-");
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
         Argx **xE = array_itE((*group)->list);
@@ -141,6 +140,7 @@ void arg_help_argx_rec(So *out, Argx *argx, bool full_help) {
     if(!argx) return;
     arg_help_argx_rec(out, argx->group_p ? argx->group_p->parent : 0, false);
     argx_fmt_help(out, argx, full_help);
+    so_fmt_fx(out, argx->group_p->arg->rice.opt, 0, "\n");
 }
 
 void arg_help_argx_group(struct Argx_Group *group) {
@@ -211,10 +211,10 @@ void arg_help_argx(struct Argx *help) {
 
     arg_help_argx_rec(&out, help, full_help);
     if(help->id == ARGX_TYPE_GROUP) {
-        so_al_nl(&out, al_ws, 1);
         ASSERT_ARG(help->group_s);
         Argx **itE = array_itE(help->group_s->list);
         for(Argx **it = help->group_s->list; it < itE; ++it) {
+            so_fmt_fx(&out, rice->opt, 0, "\n");
             argx_fmt_help(&out, *it, true);
             argx_extend_sources(&sources, *it);
         }

@@ -51,6 +51,7 @@ void argx_group_fmt_help(So *out, Argx_Group *group) {
     so_al_nl(out, group->arg->print.whitespace, 1);
     for(Argx **argx = group->list; argx < array_itE(group->list); ++argx) {
         argx_fmt_help(out, *argx, false);
+        so_al_nl(out, group->arg->print.whitespace, 1);
     }
 }
 
