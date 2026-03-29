@@ -79,7 +79,7 @@ typedef struct Argx {
     char c;
 } Argx, *V_Argx;
 
-LUT_INCLUDE(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL);
+LUT_INCLUDE(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL)
 
 void v_argx_free(V_Argx *vargs);
 

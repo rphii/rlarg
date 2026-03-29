@@ -5,7 +5,7 @@
 void argx_free_v(Argx argx);
 void argx_free(Argx *argx);
 
-LUT_IMPLEMENT(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL, so_hash, so_cmp, so_free_v, argx_free_v);
+LUT_IMPLEMENT(T_Argx, t_argx, So, BY_VAL, Argx, BY_VAL, so_hash, so_cmp, so_free_v, argx_free_v)
 
 void argx_free_v(Argx argx) {
     argx_free(&argx);
