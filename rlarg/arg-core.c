@@ -331,8 +331,8 @@ void arg_config_set_width(struct Arg_Config *cfg, size_t width) {
     struct winsize termsize;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &termsize);
     cfg->bounds.max = termsize.ws_col;
-    
-    if(width == 0 || termsize.ws_col < width) width = termsize.ws_col;
+    size_t w_use = termsize.ws_col ? termsize.ws_col : 100;
+    if(width == 0 || w_use < width) width = w_use;
     int desc = width * 45;
     if(desc % 200) desc += 200 - desc % 200;
     desc /= 100;
