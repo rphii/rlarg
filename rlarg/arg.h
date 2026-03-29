@@ -84,7 +84,7 @@ typedef struct Arg {
     Argx_Group pos;     /* positional arguments */
     Argx_Group env;     /* environment variables */
 
-    int i_pos;          /* index of positional argument parse status */
+    size_t i_pos;       /* index of positional argument parse status */
 
     T_Argx t_pos;       /* root of positional arguments */
     T_Argx t_env;       /* root of environment variables */

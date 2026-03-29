@@ -40,7 +40,8 @@ void arg_stream_from_stdin(Arg_Stream *stream, const int argc, const char **argv
     ASSERT_ARG(stream);
     ASSERT_ARG(argv);
     ASSERT_ARG(argc);
-    for(size_t i = 1; i < argc; ++i) {
+    ASSERT_ARG(argc >= 0);
+    for(size_t i = 1; i < (size_t)argc; ++i) {
         vso_push(&stream->vso, so_l((char *)argv[i]));
     }
 }
