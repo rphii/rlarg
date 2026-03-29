@@ -3,6 +3,7 @@
 #include <rlso.h>
 
 struct Arg;
+struct Arg_Config;
 struct Argx;
 struct Argx_Group;
 
@@ -13,7 +14,14 @@ typedef enum {
 } Arg_Builtin_Color_List;
 
 /* rlarg/arg-core.c */
-struct Arg *arg_new(void);
+struct Arg_Config *arg_config_new(void);
+void arg_config_set_program(struct Arg_Config *cfg, So program);
+void arg_config_set_description(struct Arg_Config *cfg, So desc);
+void arg_config_set_epilog(struct Arg_Config *cfg, So epilog);
+void arg_config_set_width(struct Arg_Config *cfg, size_t width);
+void arg_config_free(struct Arg_Config **cfg);
+
+struct Arg *arg_new(struct Arg_Config *cfg);
 void arg_help(struct Arg *arg);
 void arg_help_short(struct Arg *arg);
 void arg_help_argx_group(struct Argx_Group *group);

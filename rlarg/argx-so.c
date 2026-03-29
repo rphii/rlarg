@@ -10,6 +10,8 @@ void argx_so_al_toggle(So_Align_Cache **cache, Arg_Rice *rice, bool on) {
 
     So_Fx *fxs[] = {
         &rice->program,
+        &rice->program_delim,
+        &rice->program_desc,
         &rice->group,
         &rice->group_delim,
         &rice->pos,

@@ -21,6 +21,18 @@
 
 enum Arg_Parse_Error_List;
 
+typedef struct Arg_Config {
+    So program;
+    So description;
+    So epilog;
+    struct {
+        int max;    // max width
+        int desc;   // spacing until description
+        int c;      // spacing until short option
+        int opt;    // spacing until long option
+    } bounds;
+} Arg_Config;
+
 typedef struct Arg_Help_Source {
     size_t i;
     Argx *last;
@@ -28,6 +40,8 @@ typedef struct Arg_Help_Source {
 
 typedef struct Arg_Rice {
     So_Fx program;
+    So_Fx program_delim;
+    So_Fx program_desc;
     So_Fx group;
     So_Fx group_delim;
     So_Fx pos;
@@ -54,12 +68,6 @@ typedef struct Arg_Rice {
 } Arg_Rice;
 
 typedef struct ArgPrint {
-    struct {
-        int max;    // max width
-        int desc;   // spacing until description
-        int c;      // spacing until short option
-        int opt;    // spacing until long option
-    } bounds;
     So_Align_Cache p_al2;
     So_Align whitespace;
     bool compgen_nfirst;
@@ -68,6 +76,7 @@ typedef struct ArgPrint {
 typedef struct Arg {
     Argx *c[ARGX_SHORT_COUNT]; /* short options */
     Arg_Print print;
+    Arg_Config config;
 
     Argx_Groups opts;   /* groups of long options */
     Argx_Group pos;     /* positional arguments */

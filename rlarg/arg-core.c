@@ -1,9 +1,11 @@
 #include <rlc.h>
 #include "arg.h"
+#include <sys/ioctl.h>
 
 void arg_free(struct Arg **parg) {
     if(!parg) return;
     Arg *arg = *parg;
+    if(!arg) return;
     array_free_ext(arg->opts, argx_groups_free);
     argx_group_free(&arg->pos);
     argx_group_free(&arg->env);
@@ -17,15 +19,11 @@ void arg_free(struct Arg **parg) {
 }
 
 void arg_init_al(struct Arg *arg) {
-    arg->print.bounds.c = 2;
-    arg->print.bounds.opt = 8;
-    arg->print.bounds.desc = 50;
-    arg->print.bounds.max = 80;
 
-    const size_t bc = arg->print.bounds.c;
-    const size_t bo = arg->print.bounds.opt;
-    const size_t bd = arg->print.bounds.desc;
-    const size_t bm = arg->print.bounds.max;
+    const size_t bc = arg->config.bounds.c;
+    const size_t bo = arg->config.bounds.opt;
+    const size_t bd = arg->config.bounds.desc;
+    const size_t bm = arg->config.bounds.max;
 
     so_al_config(&arg->rice.group.align,          0,    bc,   bm, 0, &arg->print.p_al2);
     so_al_config(&arg->rice.group_delim.align,    0,    bc,   bm, 0, &arg->print.p_al2);
@@ -41,7 +39,7 @@ void arg_init_al(struct Arg *arg) {
     so_al_config(&arg->rice.sw_delim.align,       bo,   bo+4, bm, 0, &arg->print.p_al2);
     so_al_config(&arg->rice.sequence.align,       bo,   bo+4, bm, 0, &arg->print.p_al2);
     so_al_config(&arg->rice.sequence_delim.align, bo,   bo+4, bm, 0, &arg->print.p_al2);
-    so_al_config(&arg->rice.subopt.align,         bo,  bo+4, bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.subopt.align,         bo,   bo+4, bm, 0, &arg->print.p_al2);
     so_al_config(&arg->rice.subopt_delim.align,   bo,   bo+4, bm, 0, &arg->print.p_al2);
     so_al_config(&arg->rice.val.align,            bo+8, bo+8, bm, 0, &arg->print.p_al2);
     so_al_config(&arg->rice.val_delim.align,      bo+8, bo+8, bm, 0, &arg->print.p_al2);
@@ -51,7 +49,10 @@ void arg_init_al(struct Arg *arg) {
     so_al_config(&arg->rice.desc.align,           bd,   bo+6, bm, 0, &arg->print.p_al2);
     so_al_config(&arg->rice.pos.align,            bc,   bc+2, bm, 0, &arg->print.p_al2);
     so_al_config(&arg->rice.program.align,        0,    0,    bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.program_delim.align,  0,    0,    bm, 0, &arg->print.p_al2);
+    so_al_config(&arg->rice.program_desc.align,   0,    0,    bm, 0, &arg->print.p_al2);
     so_al_config(&arg->print.whitespace,          0,    0,    bm, 0, &arg->print.p_al2);
+
     if(bm - bd >= 80 - bo) {
         arg->rice.val_delim.align.i0 = bd;
         arg->rice.val_delim.align.iNL = bd;
@@ -63,25 +64,43 @@ void arg_init_al(struct Arg *arg) {
 }
 
 
-struct Arg *arg_new(void) {
+struct Arg *arg_new(Arg_Config *cfg) {
     Arg *result;
     NEW(Arg, result);
     result->pos = argx_group_init(result, &result->t_pos, so("positional"), ARGX_GROUP_ROOT, 0);
     result->env = argx_group_init(result, &result->t_env, so("environment"), ARGX_GROUP_ROOT, 0);
 
+    Arg_Config *free_cfg = 0;
+    if(!cfg) {
+        cfg = arg_config_new();
+        free_cfg = cfg;
+    }
+
+    result->config = *cfg;
     arg_init_al(result);
 
+    arg_config_free(&free_cfg);
     return result;
 }
 
 void arg_help(struct Arg *arg) {
     ASSERT_ARG(arg);
     So out = SO;
+
+    so_fmt_fx(&out, arg->rice.program, 0, "%.*s", SO_F(arg->config.program));
+    so_fmt_fx(&out, arg->rice.program_delim, 0, ": ");
+    so_fmt_fx(&out, arg->rice.program_desc, 0, "%.*s", SO_F(arg->config.description));
+    so_al_nl(&out, arg->print.whitespace, 1);
+
     argx_group_fmt_help(&out, &arg->pos);
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
         argx_group_fmt_help(&out, *group);
     }
     argx_group_fmt_help(&out, &arg->env);
+
+    so_fmt_fx(&out, arg->rice.program_desc, 0, "%.*s", SO_F(arg->config.epilog));
+    so_al_nl(&out, arg->print.whitespace, 1);
+
     so_print(out);
     so_free(&out);
 }
@@ -263,5 +282,51 @@ void arg_config(struct Arg *arg) {
     }
     so_print(out);
     so_free(&out);
+}
+
+struct Arg_Config *arg_config_new(void) {
+    Arg_Config *cfg;
+    NEW(Arg_Config, cfg);
+    cfg->bounds.c = 2;
+    cfg->bounds.opt = 8;
+    cfg->bounds.desc = 50;
+    cfg->bounds.max = 80;
+    return cfg;
+}
+
+void arg_config_set_program(struct Arg_Config *cfg, So program) {
+    ASSERT_ARG(cfg);
+    cfg->program = program;
+}
+
+void arg_config_set_description(struct Arg_Config *cfg, So desc) {
+    ASSERT_ARG(cfg);
+    cfg->description = desc;
+}
+
+void arg_config_set_epilog(struct Arg_Config *cfg, So epilog) {
+    ASSERT_ARG(cfg);
+    cfg->epilog = epilog;
+}
+
+void arg_config_set_width(struct Arg_Config *cfg, size_t width) {
+    struct winsize termsize;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &termsize);
+    cfg->bounds.max = termsize.ws_col;
+    
+    if(width == 0 || termsize.ws_col < width) width = termsize.ws_col;
+    int desc = width * 45;
+    if(desc % 200) desc += 200 - desc % 200;
+    desc /= 100;
+    cfg->bounds.desc = desc;
+    cfg->bounds.max = width;
+}
+
+void arg_config_free(struct Arg_Config **pcfg) {
+    if(!pcfg) return;
+    Arg_Config *cfg = *pcfg;
+    if(!cfg) return;
+    free(cfg);
+    *pcfg = 0;
 }
 

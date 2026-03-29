@@ -252,6 +252,8 @@ struct Argx_Group *argx_builtin_rice(struct Arg *arg) {
 
     bool *nofx = &arg->builtin.color_off;
     static_argx_builtin_set_rice(&arg->rice.program,        nofx, &COLOR_RGB(0xdd, 0x55, 0x55), 0, true, false, false);
+    static_argx_builtin_set_rice(&arg->rice.program_delim,  nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, true, false, false );
+    static_argx_builtin_set_rice(&arg->rice.program_desc,   nofx, &COLOR_RGB(0xdd, 0x55, 0x55), 0, true, false, false);
     static_argx_builtin_set_rice(&arg->rice.group,          nofx, &COLOR_RGB(0xcc, 0xcc, 0xcc), 0, true, false, true );
     static_argx_builtin_set_rice(&arg->rice.group_delim,    nofx, &COLOR_RGB(0x66, 0x66, 0x66), 0, false, false, false );
     static_argx_builtin_set_rice(&arg->rice.pos,            nofx, &COLOR_RGB(0xaa, 0x55, 0xdd), 0, false, true, false );
