@@ -1,17 +1,19 @@
 #include <rlc.h>
 #include "arg.h"
 
-void arg_free(struct Arg **arg) {
-    if(!arg) return;
-    array_free_ext((*arg)->opts, argx_groups_free);
-    argx_group_free(&(*arg)->pos);
-    argx_group_free(&(*arg)->env);
-    array_free((*arg)->queue);
-    vso_free(&(*arg)->builtin.sources_paths);
-    vso_free(&(*arg)->builtin.sources_content);
-    vso_free(&(*arg)->help.sub);
-    free(*arg);
-    *arg = 0;
+void arg_free(struct Arg **parg) {
+    if(!parg) return;
+    Arg *arg = *parg;
+    array_free_ext(arg->opts, argx_groups_free);
+    argx_group_free(&arg->pos);
+    argx_group_free(&arg->env);
+    array_free(arg->queue);
+    vso_free(&arg->builtin.sources_paths);
+    vso_free(&arg->builtin.sources_content);
+    vso_free(&arg->help.sub);
+    so_al_cache_free(&arg->print.p_al2);
+    free(arg);
+    *parg = 0;
 }
 
 void arg_init_al(struct Arg *arg) {

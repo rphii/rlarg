@@ -3,6 +3,47 @@
 #include "argx-group.h"
 #include "arg.h"
 
+void argx_so_al_toggle(So_Align_Cache **cache, Arg_Rice *rice, bool on) {
+    ASSERT_ARG(cache);
+
+    if(!rice) return;
+
+    So_Fx *fxs[] = {
+        &rice->program,
+        &rice->group,
+        &rice->group_delim,
+        &rice->pos,
+        &rice->c,
+        &rice->opt,
+        &rice->env,
+        &rice->desc,
+        &rice->subopt,
+        &rice->subopt_delim,
+        &rice->enum_unset,
+        &rice->enum_set,
+        &rice->enum_delim,
+        &rice->flag_unset,
+        &rice->flag_set,
+        &rice->flag_delim,
+        &rice->hint,
+        &rice->hint_delim,
+        &rice->val,
+        &rice->val_delim,
+        &rice->sw,
+        &rice->sw_delim,
+        &rice->sequence,
+        &rice->sequence_delim,
+    };
+
+    if(!on) {
+        *cache = rice->c.align.cache;
+    }
+
+    for(size_t i = 0; i < SIZE_ARRAY(fxs); ++i) {
+        fxs[i]->align.cache = on ? *cache : 0;
+    }
+}
+
 void argx_so_free(Argx_So *xso) {
     if(!xso) return;
     if(!xso->argx) return;
@@ -410,6 +451,8 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
     bool was_nocolor = argx->group_p->arg->builtin.color_off; /* TODO this is disgusting */
     if(opts->force_nocolor) argx->group_p->arg->builtin.color = ARG_BUILTIN_COLOR_OFF; /* TODO this is disgusting */
     Arg_Rice *rice = &argx->group_p->arg->rice;
+    So_Align_Cache *cache = 0;
+    argx_so_al_toggle(&cache, rice, false);
 
     argx_so_clear(xso);
     /* remember the hint */
@@ -554,6 +597,7 @@ void argx_so(Argx_So *xso, Argx *argx, Argx_So_Options *opts) {
     xso->val_visible = argx_so_val_visible(argx, &argx->val);
     xso->argx = argx;
     argx->group_p->arg->builtin.color_off = was_nocolor ; /* TODO this is disgusting */
+    argx_so_al_toggle(&cache, rice, true);
 }
 
 

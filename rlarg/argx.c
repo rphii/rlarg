@@ -340,8 +340,7 @@ void argx_fmt_help(So *out, Argx *argx, bool full_help) {
 
     if(xso.have_hint) {
         if(!compact_hint) so_al_nl(out, al_ws, 1);
-        so_fmt_al(out, rice->hint.align, 0, "%.*s", SO_F(xso.hint));
-        so_fmt_al(out, rice->hint.align, 0, "%.*s", SO_F(xso.hint));
+        so_fmt_al(out, rice->hint.align, rice->hint.align.cache->progress + 1, "%.*s", SO_F(xso.hint));
     }
 
     if(!compact_desc) so_al_nl(out, al_ws, 1);

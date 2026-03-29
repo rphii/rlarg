@@ -34,6 +34,7 @@ int cbtest(struct Argx *argx, void *user, So so) {
 
 int main(const int argc, const char **argv) {
     struct Arg *arg = arg_new();
+
     ASSERT(arg, "expect to have pointer");
     arg_enable_config_print(arg, true);
 
