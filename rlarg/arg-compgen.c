@@ -6,6 +6,8 @@
 
 void arg_compgen_argx_hierarchy(struct Argx *argx) {
     Argx_Group *group = argx->group_p;
+    bool is_pos = (group->table == &group->arg->t_pos);
+    if(is_pos) return;
     bool treat_as_options = (group->table == &group->arg->t_opt);
     printf("%c", ARG_COMPGEN_DELIM);
     if(treat_as_options) printf("--");
