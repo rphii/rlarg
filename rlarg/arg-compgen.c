@@ -9,6 +9,9 @@ void arg_compgen_argx_hierarchy(struct Argx *argx) {
     bool is_pos = (group->table == &group->arg->t_pos);
     if(is_pos) return;
     bool treat_as_options = (group->table == &group->arg->t_opt);
+    if(!group->arg->builtin.compgen_flags) {
+        if(!group->arg->help.error && treat_as_options) return;
+    }
     printf("%c", ARG_COMPGEN_DELIM);
     if(treat_as_options) printf("--");
     printf("%.*s", SO_F(argx->opt));
