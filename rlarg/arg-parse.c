@@ -206,6 +206,7 @@ void arg_parse_add_source(struct Argx *argx, Arg_Stream_Source source) {
     ASSERT_ARG(argx->group_p);
     ASSERT_ARG(argx->group_p->arg);
     source.nb_source = argx->group_p->arg->nb_source++;
+    source.argx = argx;
     if(source.id == ARG_STREAM_SOURCE_CONFIG) {
         source.path = so_clone(source.path);
         array_push(argx->sources, source);

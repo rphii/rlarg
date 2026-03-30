@@ -1,5 +1,6 @@
 # priority
 
+- compgen -> why show env vars lol ??
 - when doing ./a <tab> do not show -- options and not - per default ?
 - printing colors... remove the color.. in CONFIG_PRINT..
 - organize so_fmt_fx better..... (they all over the place)
