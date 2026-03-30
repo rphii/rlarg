@@ -229,7 +229,6 @@ void argx_extend_sources(Arg_Stream_Source **srces, Argx *argx) {
 
 void arg_help_argx(struct Argx *help) {
     So out = SO;
-    So source_hierarchy = SO;
     Arg_Stream_Source *sources = 0;
     Argx_So_Options opts = {0};
     ASSERT_ARG(help->group_p);
@@ -238,8 +237,6 @@ void arg_help_argx(struct Argx *help) {
     So_Align al_ws = rice->whitespace;
     bool full_help = true;
 
-    Arg_Rice dummy = {0};
-    argx_so_hierarchy(&source_hierarchy, &dummy, help->group_p);
     argx_so_hierarchy(&out, rice, help->group_p);
     //so_fmt_al(&out, rice->group.align, 0, "%.*s", SO_F(xso.hierarchy));
     so_fmt_fx(&out, rice->group, 0, "%.*s", SO_F(help->opt));
@@ -287,6 +284,8 @@ void arg_help_argx(struct Argx *help) {
     arg_stream_sources_sort(sources);
 
     if(argx_is_configurable(help)) {
+        Arg_Rice dummy = {0};
+        So source_hierarchy = SO;
         if(!help->attr.is_unconfigurable) {
             so_fmt(&out, "\nsources:\n");
             if(!array_len(sources)) {
@@ -296,12 +295,15 @@ void arg_help_argx(struct Argx *help) {
                 for(Arg_Stream_Source *it = sources; it < itE; ++it) {
                     so_extend(&out, so("  "));
                     arg_stream_source_so(&out, it);
-                    so_fmt(&out, "   ( %.*s%.*s )", SO_F(source_hierarchy), SO_F(help->opt));
+                    so_clear(&source_hierarchy);
+                    argx_so_hierarchy(&source_hierarchy, &dummy, help->group_p);
+                    so_fmt(&out, "   ( %.*s%.*s )", SO_F(source_hierarchy), SO_F(it->argx->opt));
                     if(it + 1 < itE) so_extend(&out, so(",\n"));
                     else if(it > sources) so_extend(&out, so(" <-- most recent one"));
                 }
             }
         }
+        so_free(&source_hierarchy);
     } else {
         so_fmt(&out, "\nunconfigurable via config file");
     }
@@ -311,7 +313,6 @@ void arg_help_argx(struct Argx *help) {
     so_println(SO);
 
     so_free(&out);
-    so_free(&source_hierarchy);
     array_free(sources);
 }
 

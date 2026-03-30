@@ -26,6 +26,7 @@ typedef struct Arg_Stream_Source {
     int number;
     size_t nb_source;
     Arg_Stream_Source_List id;
+    struct Argx *argx;
 } Arg_Stream_Source;
 
 
