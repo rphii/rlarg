@@ -56,7 +56,6 @@ void arg_compgen_global(struct Arg *arg) {
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
         arg_compgen_group(*group);
     }
-    arg_compgen_group(&arg->env);
     arg_compgen_group(&arg->pos);
     /* also print the argx information about the next positional in line BUT only if the current help is not the --help argx */
     if(arg->help.last != arg->help.argx) {
