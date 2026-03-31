@@ -165,8 +165,29 @@ void argx_builtin_opt_help(struct Argx_Group *group, char c, So opt) {
     argx_attr_configurable(x, false);
 }
 
+int argx_callback_version(Argx *argx, void *user, So so) {
+    arg_runtime_quit_early(argx, true);
+    Arg *arg = user;
+    bool nl = false;
+    if(so_len(arg->config.program)) {
+        printf("%.*s ", SO_F(arg->config.program));
+        nl = true;
+    }
+    if(so_len(arg->config.version)) {
+        printf("%.*s",  SO_F(arg->config.version));
+        nl = true;
+    }
+    if(nl) printf("\n");
+#if defined(RLARG_VERSION)
+    printf("argument parser version: %s\n", RLARG_VERSION);
+#endif
+    return 0;
+}
+
 void argx_builtin_opt_version(struct Argx_Group *group, char c, So opt, So version) {
     Argx *x = argx_opt(group, c, opt, so("print the version"));
+    argx_callback(x, argx_callback_version, group->arg, ARGX_PRIORITY_IMMEDIATELY);
+    group->arg->config.version = version;
     argx_attr_configurable(x, false);
 }
 

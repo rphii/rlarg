@@ -23,6 +23,7 @@ void arg_init_al(Arg_Rice *rice, struct Arg *arg, So_Align_Cache *alc, bool no_d
 
 typedef struct Arg_Config {
     So program;
+    So version;     /* version of the program, not the argument parser */
     So description;
     So epilog;
     struct {

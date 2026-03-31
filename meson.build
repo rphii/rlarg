@@ -1,4 +1,5 @@
 project('rlarg', 'c', meson_version: '>=1.1', version: '0.0.1')
+add_project_arguments('-DRLARG_VERSION="'+meson.project_version()+'"', language: 'c')
 
 sources = [
   'rlarg/arg-after.c',

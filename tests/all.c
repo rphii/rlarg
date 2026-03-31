@@ -56,6 +56,7 @@ int main(const int argc, const char **argv) {
     argx_builtin_opt_help(g1, ARGX_BUILTIN_OPT_HELP);
     //argx_builtin_opt_source(g1, so("$HOME/.config/rphiic/colors.conf"));
     argx_builtin_opt_source(g1, ARGX_BUILTIN_OPT_SOURCE, so("all.conf"));
+    argx_builtin_opt_version(g1, ARGX_BUILTIN_OPT_VERSION, so("1.0"));
 
     struct Argx *x, *e1, *e2, *e3, *xs, *xu, *xx;
 
@@ -94,7 +95,7 @@ int main(const int argc, const char **argv) {
     vso_push(&vec_v, so("two"));
     x = argx_opt(g1, 'v', so("vso"), so("list of strings"));
         argx_type_array_so(x, &vec_p, &vec_v);
-    x = argx_opt(g1, 'V', so("vi"), so("list of ints"));
+    x = argx_opt(g1, 'W', so("vi"), so("list of ints"));
         argx_type_array_int(x, &vi, 0);
         argx_switch_array_int(xs, x, vi);
 
