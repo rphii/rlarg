@@ -25,7 +25,7 @@ rlc_dep = dependency('rlc', fallback : ['rlc', 'rlc_dep'], default_options: ['de
 rlso_dep = dependency('rlso', fallback : ['rlso', 'rlso_dep'], default_options: ['default_library=static'])
 
 install_headers('rlarg.h')
-install_data('bash/rlc', install_dir: get_option('completion_dir'))
+install_data('bash/rlarg', install_dir: get_option('completion_dir'))
 
 librlarg = library('rlarg',
   sources,
