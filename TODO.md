@@ -1,8 +1,10 @@
 # priority
 
+- when last positional is rest, do not cry about missing positionals _(maybe allow configuration of min./max. number of values in rest??)_
 - when option file sets flags -> user sets flag via flagname, it's ok - clear previous. but when doing +flag or -flag -> do not clear
-- organize so_fmt_fx better..... (they all over the place)
 - parse REST in config
+
+- organize so_fmt_fx better..... (they all over the place)
 
 - more tests, e.g.
     - CONFIG_PRINT=section -> input to same thing -> expect same CONFIG_PRINT=section output
