@@ -31,6 +31,7 @@ For a full overview of provided functions by the library, see [`rlarg.g`](rlarg.
 **Builtin**
 
 - `argx_builtin_opt_help`: expansive help
+- `argx_builtin_opt_version`: print version
 - `argx_builtin_rice`: enable colors
 - `argx_builtin_env_compgen`: auto completion support (see also [`bash/rlarg`](bash/rlarg))
 - `argx_builtin_opt_color`: color = `auto/on/off` support
