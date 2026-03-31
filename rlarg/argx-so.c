@@ -71,7 +71,7 @@ void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, S
         }
         if(vE2 < vE) {
             so_al_nl(out, al_ws, 1);
-            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
+            so_fmt_fx(out, rice->val_delim, rice->val.align.i0 + 2, "(+%zu more)", vE - vE2);
         }
         if(vE > *val->vso) so_al_nl(out, al_ws, 1);
         so_fmt_fx(out, rice->val_delim, 0, "]");
@@ -92,7 +92,7 @@ void argx_so_type_array_int(So *out, Arg_Rice *rice, Argx_Value_Union *val, So_A
         }
         if(vE2 < vE) {
             so_al_nl(out, al_ws, 1);
-            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
+            so_fmt_fx(out, rice->val_delim, rice->val.align.i0 + 2, "(+%zu more)", vE - vE2);
         }
         if(vE > *val->vi) so_al_nl(out, al_ws, 1);
         so_fmt_fx(out, rice->val_delim, 0, "]");
@@ -113,7 +113,7 @@ void argx_so_type_array_size(So *out, Arg_Rice *rice, Argx_Value_Union *val, So_
         }
         if(vE2 < vE) {
             so_al_nl(out, al_ws, 1);
-            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
+            so_fmt_fx(out, rice->val_delim, rice->val.align.i0 + 2, "(+%zu more)", vE - vE2);
         }
         if(vE > *val->vz) so_al_nl(out, al_ws, 1);
         so_fmt_fx(out, rice->val_delim, 0, "]");
@@ -134,7 +134,7 @@ void argx_so_type_array_bool(So *out, Arg_Rice *rice, Argx_Value_Union *val, So_
         }
         if(vE2 < vE) {
             so_al_nl(out, al_ws, 1);
-            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
+            so_fmt_fx(out, rice->val_delim, rice->val.align.i0 + 2, "(+%zu more)", vE - vE2);
         }
         if(vE > *val->vb) so_al_nl(out, al_ws, 1);
         so_fmt_fx(out, rice->val_delim, 0, "]");
@@ -157,7 +157,7 @@ void argx_so_type_array_color(So *out, Arg_Rice *rice, Argx_Value_Union *val, So
         }
         if(vE2 < vE) {
             so_al_nl(out, al_ws, 1);
-            so_fmt_fx(out, rice->val_delim, 0, "(+%zu more)", vE - vE2);
+            so_fmt_fx(out, rice->val_delim, rice->val.align.i0 + 2, "(+%zu more)", vE - vE2);
         }
         if(vE > *val->vc) so_al_nl(out, al_ws, 1);
         so_fmt_fx(out, rice->val_delim, 0, "]");
@@ -269,6 +269,7 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Arg
     ASSERT_ARG(opts);
 
     So_Align al_ws = rice->whitespace;
+    Arg_Rice *rice_color = argx->group_p->arg->builtin.color_off ? 0 : rice;
 
     if(argx->attr.is_array) {
         switch(argx->id) {
@@ -276,7 +277,7 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Arg
             case ARGX_TYPE_NONE: {
             } break;
             case ARGX_TYPE_COLOR: {
-                argx_so_type_array_color(out, rice, val, al_ws, opts->array_max_items);
+                argx_so_type_array_color(out, rice_color, val, al_ws, opts->array_max_items);
             } break;
             case ARGX_TYPE_BOOL: {
                 argx_so_type_array_bool(out, rice, val, al_ws, opts->array_max_items);
@@ -311,7 +312,7 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Arg
             case ARGX_TYPE_NONE: {
             } break;
             case ARGX_TYPE_COLOR: {
-                argx_so_type_color(out, rice, val);
+                argx_so_type_color(out, rice_color, val);
             } break;
             case ARGX_TYPE_FLAG:
             case ARGX_TYPE_BOOL: {
