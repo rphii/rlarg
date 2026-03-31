@@ -734,7 +734,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
             if(!so_cmp0(carg, so("--")) && carg.len > 2) situation = ARG_STREAM_LONGOPT;
             else if(!so_cmp0(carg, so("-"))) situation = ARG_STREAM_SHORTOPT;
         }
-        //printff(" situation %u, hl %u",situation,stream->is_help_lookup);
+        printff(" situation %u, hl %u carg %.*s",situation,stream->is_help_lookup,SO_F(carg));
         /* now act upon deciding what situation we're in... */
         switch(situation) {
             case ARG_STREAM_DONE: break;
@@ -785,14 +785,18 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                 for(size_t i = 0; i < so_len(opts); ++i) {
                     unsigned char c = so_at(opts, i);
                     Argx *argx = 0;
+#if 0
                     if(stream->rest) {
                         vso_push(stream->rest->val.vso, so_i0(opts, i));
                         break;
                     } else {
+#endif
                         if(c >= ARGX_SHORT_MIN && c < ARGX_SHORT_MAX) {
                             argx = arg->c[c - ARGX_SHORT_MIN];
                         }
+#if 0
                     }
+#endif
                     if(!argx) {
                         Argx pseudo = { .opt = so_ll((char *)&c, 1) };
                         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_ROOT, &pseudo);
@@ -1093,9 +1097,11 @@ int arg_parse_help(Arg *arg, bool do_not_recurse) {
                 arg_config(arg);
             } else if(!do_not_recurse) {
                 if(arg->i_pos < array_len(arg->pos.list)) {
-                    //arg_parse_errmsg_missing_positionals(arg);
-                    arg_parse_error(arg, &arg->stream_in, ARG_PARSE_ERROR_MISSING_POSITIONAL, array_at(arg->pos.list, arg->i_pos));
-                    arg_parse_help(arg, true);
+                    if(isatty(STDIN_FILENO)) {
+                        //arg_parse_errmsg_missing_positionals(arg);
+                        arg_parse_error(arg, &arg->stream_in, ARG_PARSE_ERROR_MISSING_POSITIONAL, array_at(arg->pos.list, arg->i_pos));
+                        arg_parse_help(arg, true);
+                    }
                 }
             }
         } else if(help == arg->help.argx) {
