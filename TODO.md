@@ -17,6 +17,7 @@
 - don't output 'not set anywhere' .. if a group? what if callback? or just list sources of all sub-items?
 
 - some compgen things
+    - compgen this: ./a --option=<tab> -> does not take into consideration the =
     - compgen this: ./a --flag<tab> -> also show flag-all 
     - better compgen for flags, e.g: +flag,-flag2 and show combinations..
 
