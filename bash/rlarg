@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function _complete_rlc() {
+function _complete_rlarg() {
     # current word
     local CWORD="${COMP_WORDS[COMP_CWORD]}"
     # split strings on null character into newline into array (wordlist)
