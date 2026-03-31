@@ -1,6 +1,5 @@
 # priority
 
-- when doing ./a <tab> do not show -- options and not - per default ?
 - organize so_fmt_fx better..... (they all over the place)
 - better compgen for flags, e.g: +flag,-flag2 and show combinations..
 
