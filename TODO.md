@@ -1,7 +1,6 @@
 # priority
 
 - organize so_fmt_fx better..... (they all over the place)
-- better compgen for flags, e.g: +flag,-flag2 and show combinations..
 
 - more tests, e.g.
     - CONFIG_PRINT=section -> input to same thing -> expect same CONFIG_PRINT=section output
@@ -16,6 +15,10 @@
 - hot/reload
 - note that if URI wasn't found? optional enable/disable?
 - don't output 'not set anywhere' .. if a group? what if callback? or just list sources of all sub-items?
+
+- some compgen things
+    - compgen this: ./a --flag<tab> -> also show flag-all 
+    - better compgen for flags, e.g: +flag,-flag2 and show combinations..
 
 # later later
 
