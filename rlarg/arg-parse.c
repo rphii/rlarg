@@ -1117,8 +1117,11 @@ int arg_parse_help(Arg *arg, bool do_not_recurse) {
                 if(arg->i_pos < array_len(arg->pos.list)) {
                     if(isatty(STDIN_FILENO)) {
                         //arg_parse_errmsg_missing_positionals(arg);
-                        arg_parse_error(arg, &arg->stream_in, ARG_PARSE_ERROR_MISSING_POSITIONAL, array_at(arg->pos.list, arg->i_pos));
-                        arg_parse_help(arg, true);
+                        Argx *last = array_at(arg->pos.list, arg->i_pos);
+                        if(last->id != ARGX_TYPE_REST) {
+                            arg_parse_error(arg, &arg->stream_in, ARG_PARSE_ERROR_MISSING_POSITIONAL, last);
+                            arg_parse_help(arg, true);
+                        }
                     }
                 }
             }

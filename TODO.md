@@ -1,6 +1,5 @@
 # priority
 
-- when last positional is rest, do not cry about missing positionals _(maybe allow configuration of min./max. number of values in rest??)_
 - when option file sets flags -> user sets flag via flagname, it's ok - clear previous. but when doing +flag or -flag -> do not clear
 - parse REST in config
 
