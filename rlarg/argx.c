@@ -64,7 +64,7 @@ void v_argx_free(V_Argx *vargs) {
     array_free(vargs);
 }
 
-struct Argx *argx_opt(struct Argx_Group *group, char c, So name, So desc) {
+struct Argx *argx_opt(struct Argx_Group *group, char cc, So name, So desc) {
     ASSERT_ARG(group);
     ASSERT_ARG(group->table);
     T_Argx_KV *kv = t_argx_once(group->table, name, (Argx){0});
@@ -74,8 +74,9 @@ struct Argx *argx_opt(struct Argx_Group *group, char c, So name, So desc) {
         ABORT("trying to register an argument that already exists: '%.*s' in group: '%.*s'", SO_F(name), SO_F(e->group_p->name));
     }
     kv->val.group_p = group;
+    unsigned char c = cc;
     if(c) {
-        if(c < '~' && c >= '!') {
+        if(c <= '~' && c >= '!') {
             ASSERT_ARG(group->arg);
             size_t i = c - '!';
             Argx **dest = &group->arg->c[i];

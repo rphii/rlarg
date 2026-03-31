@@ -9,7 +9,7 @@
 #include "argx-callback.h"
 
 #define ARGX_SHORT_MIN      ('!')
-#define ARGX_SHORT_MAX      ('~')
+#define ARGX_SHORT_MAX      ('~' + 1)
 #define ARGX_SHORT_COUNT    (ARGX_SHORT_MAX - ARGX_SHORT_MIN)
 
 typedef struct Arg_Stream_Source Arg_Stream_Source;
