@@ -730,7 +730,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
         if(get_env_help) goto error_but_maybe_get_env_help;
         Arg_Stream_List situation = ARG_STREAM_DONE;
         if(stream->i < array_len(stream->vso)) situation = ARG_STREAM_REST;
-        if(!stream->skip_flag_check && !stream->rest) {
+        if(!stream->skip_flag_check) {
             if(!so_cmp0(carg, so("--")) && carg.len > 2) situation = ARG_STREAM_LONGOPT;
             else if(!so_cmp0(carg, so("-"))) situation = ARG_STREAM_SHORTOPT;
         }
@@ -1037,7 +1037,7 @@ int arg_queue_post_parsing(Arg *arg) {
     return result;
 }
 
-void arg_parse_help(Arg *arg, bool do_not_recurse) {
+int arg_parse_help(Arg *arg, bool do_not_recurse) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
 
     size_t help_len = array_len(arg->help.sub);
@@ -1114,7 +1114,7 @@ void arg_parse_help(Arg *arg, bool do_not_recurse) {
             }
         }
     }
-
+    return (bool)(arg->help.error);
 }
 
 void arg_parse_configs(Arg *arg) {
@@ -1193,9 +1193,11 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
 
 defer:
 
-    *quit_early = arg->builtin.quit_early || arg->builtin.quit_when_all_parsed;
+    *quit_early |= arg->builtin.quit_early || arg->builtin.quit_when_all_parsed;
 
-    arg_parse_help(arg, *quit_early);
+    status = arg_parse_help(arg, *quit_early);
+
+    if(arg->builtin.compgen) *quit_early = true;
 
     return status;
 }
