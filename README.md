@@ -32,7 +32,7 @@ For a full overview of provided functions by the library, see [`rlarg.g`](rlarg.
 
 - `argx_builtin_opt_help`: expansive help
 - `argx_builtin_rice`: enable colors
-- `argx_builtin_env_compgen`: auto completion support (see also [`bash/rlc`](bash/rlc))
+- `argx_builtin_env_compgen`: auto completion support (see also [`bash/rlarg`](bash/rlarg))
 - `argx_builtin_opt_color`: color = `auto/on/off` support
 - `argx_builtin_opt_so_fx`: string object effects (kind of like a custom type, it adds sub-options)
 - `argx_builtin_opt_source`: config loading support (+ config can load other configs, and so on)
@@ -267,9 +267,9 @@ Tested with bash.
 If you have a program that wants to make use of this autocompletion, be sure to provide a file in the bash completions directory (e.g. for me: [`/usr/share/bash-completions/completions/<YOUR-PROGRAM-NAME>`](meson.options)) that contains this:
 
 ```sh
-# generic completion function using rlc
-_completion_loader rlc
-complete -o bashdefault -o default -F _complete_rlc <YOUR-PROGRAM-NAME>
+# generic completion function using rlarg
+_completion_loader rlarg
+complete -o bashdefault -o default -F _complete_rlarg <YOUR-PROGRAM-NAME>
 ```
 
 Replace **`<YOUR-PROGRAM-NAME>`** with your *actual* program name.
