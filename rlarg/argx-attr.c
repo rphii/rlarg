@@ -16,3 +16,9 @@ void argx_attr_callback_skip_compgen(struct Argx *argx, bool skip) {
     argx->attr.callback_skip_compgen = skip;
 }
 
+void argx_attr_explicit_bool(struct Argx *argx, bool explicit) {
+    ASSERT_ARG(argx);
+    ASSERT(argx->id == ARGX_TYPE_BOOL, "expect bool argx");
+    argx->attr.is_explicit_bool = explicit;
+}
+

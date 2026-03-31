@@ -355,7 +355,16 @@ int arg_parse_argx_vcolor(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so
 int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     bool v;
     int result = so_as_yes_or_no(so, &v);
-    if(!result) arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, false);
+    if(!result) {
+        arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, false);
+    } else {
+        if(!stream->is_config && !argx->attr.is_explicit_bool) {
+            v = argx->val.b ? !*argx->val.b : true;
+            arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, false);
+            arg_stream_not_consumed(stream);
+            result = 0;
+        }
+    }
     return result;
 }
 
@@ -645,6 +654,15 @@ int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
         case ARGX_TYPE_NONE: break;
         case ARGX_TYPE_SWITCH: break;
         case ARGX_TYPE_REST: break;
+        case ARGX_TYPE_BOOL: { /* try to get a value, depending on if is_explicit */
+            arg_parse_set_help_any(arg, argx);
+            if(!arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) {
+                if(!(!stream->is_config && !argx->attr.is_explicit_bool)) {
+                    arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_VALUE, argx);
+                    return -1;
+                }
+            }
+        } break;
         default: {
             arg_parse_set_help_any(arg, argx);
             if(!arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) {
@@ -734,7 +752,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
             if(!so_cmp0(carg, so("--")) && carg.len > 2) situation = ARG_STREAM_LONGOPT;
             else if(!so_cmp0(carg, so("-"))) situation = ARG_STREAM_SHORTOPT;
         }
-        printff(" situation %u, hl %u carg %.*s",situation,stream->is_help_lookup,SO_F(carg));
+        //printff(" situation %u, hl %u carg %.*s",situation,stream->is_help_lookup,SO_F(carg));
         /* now act upon deciding what situation we're in... */
         switch(situation) {
             case ARG_STREAM_DONE: break;
