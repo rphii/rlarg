@@ -12,10 +12,10 @@ int main(int argc, const char **argv) {
     struct Arg *arg = arg_new(0);
     struct Argx_Group *g = argx_group(arg, so("default"));
     struct Argx *x;
-    argx_builtin_opt_color(g);
-    argx_builtin_opt_help(g);
+    argx_builtin_opt_color(g, ARGX_BUILTIN_OPT_COLOR);
+    argx_builtin_opt_help(g, ARGX_BUILTIN_OPT_HELP);
     arg_enable_config_print(arg, true);
-    argx_builtin_opt_source(g, so("readme.conf"));
+    argx_builtin_opt_source(g, ARGX_BUILTIN_OPT_SOURCE, so("readme.conf"));
 
     /* add options */
     x=argx_opt(g, 0, so("int"), so("an integer"));

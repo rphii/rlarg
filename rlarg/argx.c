@@ -117,11 +117,11 @@ int argx_callback_color(Argx *argx, void *user, So so) {
     return 0;
 }
 
-void argx_builtin_opt_color(struct Argx_Group *group) {
+void argx_builtin_opt_color(struct Argx_Group *group, char c, So opt) {
     ASSERT_ARG(group);
     Arg *arg = group->arg;
     ASSERT_ARG(arg);
-    Argx *x = argx_opt(group, 0, so("color"), so("change color mode"));
+    Argx *x = argx_opt(group, c, opt, so("change color mode"));
     argx_callback(x, argx_callback_color, arg, ARGX_PRIORITY_IMMEDIATELY);
     Argx_Group *g = argx_group_enum(x, (int *)&arg->builtin.color, (int *)&g_color_mode_default);
     argx_enum_bind(g, ARG_BUILTIN_COLOR_AUTO, so("auto"), so("automatic color mode"));
@@ -157,15 +157,20 @@ int argx_callback_help(Argx *argx, void *user, So so) {
     return 0;
 }
 
-void argx_builtin_opt_help(struct Argx_Group *group) {
-    Argx *x = argx_opt(group, 'h', so("help"), so("print this help"));
+void argx_builtin_opt_help(struct Argx_Group *group, char c, So opt) {
+    Argx *x = argx_opt(group, c, opt, so("print this help"));
     argx_callback(x, argx_callback_help, group->arg, ARGX_PRIORITY_IMMEDIATELY);
     argx_type_rest(x, &group->arg->help.sub);
     group->arg->help.argx = x;
     argx_attr_configurable(x, false);
 }
 
-void argx_builtin_opt_source(struct Argx_Group *group, So uri) {
+void argx_builtin_opt_version(struct Argx_Group *group, char c, So opt, So version) {
+    Argx *x = argx_opt(group, c, opt, so("print the version"));
+    argx_attr_configurable(x, false);
+}
+
+void argx_builtin_opt_source(struct Argx_Group *group, char c, So opt, So uri) {
     Arg *arg = group->arg;
     if(!arg->builtin.sources_argx) {
         arg->builtin.sources_argx = argx_opt(group, 0, so("source"), so("source config files"));

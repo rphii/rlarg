@@ -47,10 +47,16 @@ struct Argx *argx_opt(struct Argx_Group *group, char c, So name, So desc);
 struct Argx *argx_pos(struct Arg *arg, So name, So desc);
 struct Argx *argx_env(struct Arg *arg, So name, So desc);
 
+#define ARGX_BUILTIN_OPT_COLOR      0,   so("color")
+#define ARGX_BUILTIN_OPT_HELP       'h', so("help")
+#define ARGX_BUILTIN_OPT_VERSION    'V', so("version")
+#define ARGX_BUILTIN_OPT_SOURCE     0,   so("source")
+
 void argx_builtin_env_compgen(struct Arg *arg);
-void argx_builtin_opt_color(struct Argx_Group *group);
-void argx_builtin_opt_help(struct Argx_Group *group);
-void argx_builtin_opt_source(struct Argx_Group *group, So uri);
+void argx_builtin_opt_color(struct Argx_Group *group, char c, So opt);
+void argx_builtin_opt_help(struct Argx_Group *group, char c, So opt);
+void argx_builtin_opt_version(struct Argx_Group *group, char c, So opt, So version);
+void argx_builtin_opt_source(struct Argx_Group *group, char c, So opt, So uri);
 void argx_builtin_opt_so_fx(struct Argx *x, So_Fx *fmt, So_Fx *ref);
 struct Argx_Group *argx_builtin_rice(struct Arg *arg);
 
