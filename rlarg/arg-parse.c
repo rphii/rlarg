@@ -103,10 +103,10 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     fprintf(stderr, FF(nc, "stdin@%u: ", FG_MG_B BOLD), stream->source.number);
                 } break;
                 case ARG_STREAM_SOURCE_REFVAL: {
-                    fprintf(stderr, FF(nc, "refval", FG_MG_B BOLD));
+                    fprintf(stderr, FF(nc, "refval: ", FG_MG_B BOLD));
                 } break;
                 case ARG_STREAM_SOURCE_ENVVARS: {
-                    fprintf(stderr, FF(nc, "envvars", FG_MG_B BOLD));
+                    fprintf(stderr, FF(nc, "envvars: ", FG_MG_B BOLD));
                 } break;
             }
             switch(id) {
