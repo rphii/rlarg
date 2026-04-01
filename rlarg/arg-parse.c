@@ -1222,7 +1222,7 @@ defer:
 
     *quit_early |= arg->builtin.quit_early || arg->builtin.quit_when_all_parsed;
 
-    status = arg_parse_help(arg, *quit_early);
+    status |= arg_parse_help(arg, *quit_early);
 
     if(arg->builtin.compgen) *quit_early = true;
 
