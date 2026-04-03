@@ -31,6 +31,5 @@
 - IMMEDIATELY_PRE / POST
 - compgen for, e.g. `prog --help<tab>` does not finish the word :(
 - parse arbitrary config hierarchy -> `arg-parse-config.c:30`
-- add option to set parser error... in arg_runtime?
 - roff (man page) generation?
 
