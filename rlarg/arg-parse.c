@@ -174,7 +174,11 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     fprintf(stderr, FF(nc, "Missing value for argument: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL: {
-                    fprintf(stderr, FF(nc, "Unknown error occured while parsing: ", FG_RD_B BOLD));
+                    if(so_len(arg->builtin.custom_err_msg)) {
+                        fprintf(stderr, FF(nc, "%.*s: ", FG_RD_B BOLD), SO_F(arg->builtin.custom_err_msg));
+                    } else {
+                        fprintf(stderr, FF(nc, "Unknown error occured while parsing: ", FG_RD_B BOLD));
+                    }
                     while(stream->i < array_len(stream->vso)) {
                         So carg = array_at(stream->vso, stream->i);
                         fprintf(stderr, "%.*s ", SO_F(carg));
