@@ -178,11 +178,11 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                         fprintf(stderr, FF(nc, "%.*s", FG_RD_B BOLD), SO_F(arg->builtin.custom_err_msg));
                     } else {
                         fprintf(stderr, FF(nc, "Unknown error occured while parsing: ", FG_RD_B BOLD));
-                    }
-                    while(stream->i < array_len(stream->vso)) {
-                        So carg = array_at(stream->vso, stream->i);
-                        fprintf(stderr, "%.*s ", SO_F(carg));
-                        ++stream->i;
+                        while(stream->i < array_len(stream->vso)) {
+                            So carg = array_at(stream->vso, stream->i);
+                            fprintf(stderr, "%.*s ", SO_F(carg));
+                            ++stream->i;
+                        }
                     }
                 } break;
                 case ARG_PARSE_ERROR_NO_REST_ALLOWED: {
@@ -860,32 +860,35 @@ void arg_parse_setref_sources_mono(Argx *argx, Arg_Stream_Source src, size_t n) 
 int arg_parse_setref_argx_flag(Argx *argx, bool clear) {
 
     Argx_Value_Union flag = argx->ref;
+    int status = 0;
     if(clear) {
         if(!argx->sources) {
             flag.b = &(bool){ false };
-            return arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
+            status |= arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
         }
     } else {
-        return arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
+        status |= arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
     }
-    return 0;
+    return status;
 }
 
 int arg_parse_setref_argx(Argx *argx) {
     if(argx->sources) return 0; /* do not setref if it was already parsed somewhere else */
-    ASSERT_ARG(argx->group_p);
-    Arg *arg = argx->group_p->arg;
     int status = arg_parse_setval_argx(argx, &argx->ref, ARGX_SOURCE_REFVAL, false);
-    if(status) {
-        arg_parse_error(arg, &(Arg_Stream){ .source = ARGX_SOURCE_REFVAL, .is_help_lookup = true }, ARG_PARSE_ERROR_UNHANDLED_POSITIONAL, argx);
-    }
     return status;
 }
 
 int arg_parse_setval_argx_callback_refval_single(Argx *argx, So val) {
     int status = 0;
     if(argx->callback.func) {
+#if 1
+        ASSERT_ARG(argx->group_p);
+        Arg *arg = argx->group_p->arg;
         status = argx->callback.func(argx, argx->callback.user, val);
+        if(status) {
+            arg_parse_error(arg, &(Arg_Stream){ .source = ARGX_SOURCE_REFVAL, .is_help_lookup = true }, ARG_PARSE_ERROR_UNHANDLED_POSITIONAL, argx);
+        }
+#endif
     }
     return status;
 }
@@ -899,11 +902,11 @@ int arg_parse_setval_argx_callback_refval(Argx *argx, Argx_Value_Union *ref, Arg
                 case ARGX_TYPE_URI:
                 case ARGX_TYPE_STRING: {
                     if(!single) {
-                        for(size_t i = 0; i < array_len(*ref->vso) && !status; ++i) {
-                            status = arg_parse_setval_argx_callback_refval_single(argx, array_at(*ref->vso, i));
+                        for(size_t i = 0; i < array_len(*ref->vso); ++i) {
+                            status |= arg_parse_setval_argx_callback_refval_single(argx, array_at(*ref->vso, i));
                         }
                     } else {
-                        status = arg_parse_setval_argx_callback_refval_single(argx, *ref->so);
+                        status |= arg_parse_setval_argx_callback_refval_single(argx, *ref->so);
                     }
                 } break;
                 default: break;
@@ -912,7 +915,7 @@ int arg_parse_setval_argx_callback_refval(Argx *argx, Argx_Value_Union *ref, Arg
             switch(argx->id) {
                 case ARGX_TYPE_URI:
                 case ARGX_TYPE_STRING: {
-                    status = arg_parse_setval_argx_callback_refval_single(argx, *ref->so);
+                    status |= arg_parse_setval_argx_callback_refval_single(argx, *ref->so);
                 } break;
                 default: break;
             }
@@ -1201,10 +1204,10 @@ int arg_parse_help(Arg *arg, bool do_not_recurse) {
     return (bool)(arg->help.error);
 }
 
-void arg_parse_configs(Arg *arg, size_t i0) {
+void arg_parse_configs(Arg *arg) {
     ASSERT_ARG(arg);
     So extend = SO;
-    for(size_t i = i0; i < array_len(arg->builtin.sources_vso); ++i) {
+    for(size_t i = 0; i < array_len(arg->builtin.sources_vso); ++i) {
         So path = array_at(arg->builtin.sources_vso, i);
         so_clear(&extend);
         so_extend_wordexp(&extend, path, false);
@@ -1264,13 +1267,10 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     if(arg->builtin.color != ARG_BUILTIN_COLOR_ON && arg->builtin.config_print_selected) arg->builtin.color_off = true;
     if(arg->builtin.quit_early) goto defer;
 
-    arg_parse_configs(arg, 0);
-    size_t i_sources = array_len(arg->builtin.sources_vso);
+    arg_parse_configs(arg);
 
     if(!status) status = arg_parse_stdin(arg, argc, argv);
     if(arg->builtin.quit_early) goto defer;
-
-    arg_parse_configs(arg, i_sources);
 
     if(!status) status = arg_parse_setref(arg);
 
