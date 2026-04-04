@@ -1148,14 +1148,15 @@ int arg_parse_help(Arg *arg, bool do_not_recurse) {
     return (bool)(arg->help.error);
 }
 
-void arg_parse_configs(Arg *arg) {
+void arg_parse_configs(Arg *arg, size_t i0) {
     ASSERT_ARG(arg);
     So extend = SO;
-    for(size_t i = 0; i < array_len(arg->builtin.sources_vso); ++i) {
+    for(size_t i = i0; i < array_len(arg->builtin.sources_vso); ++i) {
         So path = array_at(arg->builtin.sources_vso, i);
         so_clear(&extend);
         so_extend_wordexp(&extend, path, false);
         so_path_get_realpath(&extend, extend);
+        if(!so_len(extend)) continue;
         //printff("SOURCE [%.*s]",SO_F(extend));
         /* check if I already loaded a file at that location */
         bool have_already_loaded = false;
@@ -1210,12 +1211,42 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     if(arg->builtin.color != ARG_BUILTIN_COLOR_ON && arg->builtin.config_print_selected) arg->builtin.color_off = true;
     if(arg->builtin.quit_early) goto defer;
 
-    arg_parse_configs(arg);
+    arg_parse_configs(arg, 0);
+    size_t i_sources = array_len(arg->builtin.sources_vso);
 
     if(!status) status = arg_parse_stdin(arg, argc, argv);
     if(arg->builtin.quit_early) goto defer;
 
+    arg_parse_configs(arg, i_sources);
+
     arg_parse_setref(arg);
+
+    /**/
+
+#if 0
+    /* also execute callbacks */
+    {
+        Argx_Group **gE = array_itE(arg->opts);
+        for(Argx_Group **g = arg->opts; g < gE; ++g) {
+            Argx_Group *group = *g;
+            Argx **xE = array_itE(group->list);
+            for(Argx **x = group->list; x < xE; ++x) {
+                Argx *argx = *x;
+                if(argx->callback.func) {
+                    So *s = 0;
+                    if(argx->attr.is_array) {
+                    } else {
+                        if(argx->id == ARGX_TYPE_STRING) s = argx->val.so;
+                    }
+                    argx->callback.func(argx, argx->callback.user, s ? *s : so(""));
+                }
+            }
+        }
+    }
+#endif
+
+
+    /**/
 
     if(!status) status = arg_queue_post_parsing(arg);
     if(arg->builtin.quit_early) goto defer;
