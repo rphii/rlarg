@@ -14,6 +14,7 @@ void arg_free(struct Arg **parg) {
     vso_free(&arg->builtin.sources_content);
     vso_free(&arg->help.sub);
     so_al_cache_free(&arg->print.p_al2);
+    so_free(&arg->builtin.custom_err_msg);
     free(arg);
     *parg = 0;
 }

@@ -19,9 +19,12 @@ Argx *arg_parse_config_get_hierarchy(Arg_Parse_Config *p, Arg_Parse_Config_Head 
     p->stream.source.number = head->line_number;
     Argx *argx = arg_parse_hierarchy(p->arg, &p->stream, *tmp, 0);
     if(!argx) {
+        /* error should be set in arg_parse_hierarchy */
         p->status |= ARG_PARSE_CONFIG_ERR_HIERAR;
+        Argx pseudo = { .opt = p->tmp_full_hierarchy };
+        /* TODO: maybe this is not a ERROR_HIERARCHY_ROOT_CONFIG but somethign else as well.. eh */
+        arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG, &pseudo);
     }
-    //printff("FULL HIER: %.*s -> %p", SO_F(p->tmp_full_hierarchy), argx);
     return argx;
 }
 
@@ -54,7 +57,9 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
     if(in_array) {
         p->stream.carg = content;
         if(arg_parse_argx(p->arg, &p->stream, p->argx, content)) {
+            arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_INVALID_CONVERSION, p->argx);
             p->status |= ARG_PARSE_CONFIG_ERR_ASSIGN;
+            p->fatal_error |= p->argx->attr.is_fatal_config_error;
         }
     } else {
         for(So line = SO; so_splice(content, &line, '\n'); ) {
@@ -63,7 +68,9 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
             if(!so_len(line)) continue;
             p->stream.carg = line;
             if(arg_parse_argx(p->arg, &p->stream, p->argx, line)) {
+                arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_INVALID_CONVERSION, p->argx);
                 p->status |= ARG_PARSE_CONFIG_ERR_ASSIGN;
+                p->fatal_error |= p->argx->attr.is_fatal_config_error;
             }
         }
     }
@@ -80,10 +87,12 @@ int arg_parse_config_assign_string(Arg_Parse_Config *p, bool in_array) {
         //TODO_WARN;
         return -1;
     }
-    //printff("STRING %.*s", SO_F(val));
     p->stream.carg = p->tmp_string;
     if(arg_parse_argx(p->arg, &p->stream, p->argx, p->tmp_string)) {
+        //printff("STRING %.*s", SO_F(p->tmp_string));
+        arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_CONFIG, p->argx);
         p->status |= ARG_PARSE_CONFIG_ERR_ASSIGN;
+        p->fatal_error |= p->argx->attr.is_fatal_config_error;
     }
     vso_push(&p->arg->builtin.sources_content, p->tmp_string);
     p->tmp_string = SO;
@@ -98,7 +107,9 @@ int arg_parse_config_assign_other(Arg_Parse_Config *p, So val, bool in_array) {
     //printff("OTHER %.*s", SO_F(val));
     p->stream.carg = val;
     if(arg_parse_argx(p->arg, &p->stream, p->argx, val)) {
+        arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_CONFIG, p->argx);
         p->status |= ARG_PARSE_CONFIG_ERR_ASSIGN;
+        p->fatal_error |= p->argx->attr.is_fatal_config_error;
     }
     return 0;
 }
@@ -479,7 +490,14 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     so_free(&p.hierarchy);
     so_free(&p.section);
 
-    if(p.status) p.status |= ARG_PARSE_CONFIG_ERR_CONFIG;
+    /* filter fatal errors - one is on childs, the other is on the source argx itself */
+    //printff("status %x",p.status);
+    if(!p.fatal_error) p.status &= ~ARG_PARSE_CONFIG_ERR_ASSIGN;
+    Argx *argx_src = arg->builtin.sources_argx;
+    if(argx_src && !argx_src->attr.is_fatal_config_error) {
+        Arg_Parse_Config_Flag e = p.status & (ARG_PARSE_CONFIG_ERR_ASSIGN);
+        p.status = e;
+    }
 
     return p.status;
 }
