@@ -9,7 +9,7 @@ Argument parser for C.
 
 ## Features
 
-For a full overview of provided functions by the library, see [`rlarg.g`](rlarg.h).
+For a full overview of provided functions by the library, see [`rlarg.h`](rlarg.h).
 
 **Core**
 

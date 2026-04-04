@@ -97,6 +97,7 @@ int main(const int argc, const char **argv) {
         argx_type_array_so(x, &vec_p, &vec_v);
     x = argx_opt(g1, 'W', so("vi"), so("list of ints"));
         argx_type_array_int(x, &vi, 0);
+        argx_attr_fatal_config_error(x, false);
         argx_switch_array_int(xs, x, vi);
 
 

@@ -34,7 +34,7 @@ void arg_enable_config_print(struct Arg *arg, bool enable);
 /* rlarg/arg-runtime.c */
 void arg_runtime_quit_early(struct Argx *argx, bool val);
 void arg_runtime_quit_when_all_parsed(struct Argx *argx, bool val);
-void arg_runtime_set_parse_error_message(struct Argx *argx, So errmsg);
+void arg_runtime_set_parse_error_message(struct Argx *argx, char *fmt, ...);
 
 /* rlarg/arg-parse.c */
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early);
@@ -123,6 +123,7 @@ void argx_attr_hide(struct Argx *argx, bool hide);
 void argx_attr_configurable(struct Argx *argx, bool configurable);
 void argx_attr_callback_skip_compgen(struct Argx *argx, bool skip);
 void argx_attr_explicit_bool(struct Argx *argx, bool explicit);
+void argx_attr_fatal_config_error(struct Argx *argx, bool fatal);
 
 /* rlarg/arg-after.c */
 
