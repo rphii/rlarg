@@ -1125,7 +1125,7 @@ int arg_parse_stdin(struct Arg *arg, const int argc, const char **argv) {
 int arg_queue_post_parsing(Arg *arg) {
     int result = 0;
     Argx_Callback_Queue *itE = array_itE(arg->queue);
-    for(Argx_Callback_Queue *it = arg->queue; it < itE && !arg->help.wanted; ++it) {
+    for(Argx_Callback_Queue *it = arg->queue; it < itE; ++it) {
         ASSERT_ARG(it->argx);
         ASSERT_ARG(it->argx->callback.func);
         result = it->argx->callback.func(it->argx, it->argx->callback.user, it->so);
@@ -1137,6 +1137,7 @@ int arg_queue_post_parsing(Arg *arg) {
 
 int arg_parse_help(Arg *arg, bool do_not_recurse) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
+    if(arg->help.wanted && !arg->help.last) help = arg->help.argx;
 
     size_t help_len = array_len(arg->help.sub);
     bool help_compgen = (arg->help.wanted && help == arg->help.argx && arg->builtin.compgen);
@@ -1295,13 +1296,15 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     if(arg->builtin.color != ARG_BUILTIN_COLOR_ON && arg->builtin.config_print_selected) arg->builtin.color_off = true;
     if(arg->builtin.quit_early) goto defer;
 
-    bool fatal_config = arg_parse_configs(arg);
+    bool fatal_config = false;
+    arg_parse_configs(arg);
     if(!status) status = arg_parse_stdin(arg, argc, argv);
     if(arg->builtin.quit_early || fatal_config) goto defer;
 
+    if(!status) status = arg_queue_post_parsing(arg);
+
     if(!status) status = arg_parse_setref(arg);
 
-    if(!status) status = arg_queue_post_parsing(arg);
     if(arg->builtin.quit_early) goto defer;
 
     if(arg->builtin.quit_early || arg->builtin.quit_when_all_parsed) goto defer;
