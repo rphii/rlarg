@@ -56,17 +56,20 @@ void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, S
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vso) {
+        So tmp = SO;
         so_fmt_fx(out, rice->val_delim, 0, "[");
         So *vE = array_itE(*val->vso);
         So *vE2 = (max_items && array_len(*val->vso) > max_items) ? array_it(*val->vso, max_items) : vE;
         for(So *v = *val->vso; v < vE2; ++v) {
             so_al_nl(out, al_ws, 1);
             so_fmt_fx(out, rice->val_delim, rice->val_delim.align.i0 + 2, "\"");
+            so_clear(&tmp);
             for(size_t i = 0; i < so_len(*v); ++i) {
                 char c = so_at(*v, i);
-                if(c == '"') so_fmt_fx(out, rice->val, 0, "\\");
-                so_fmt_fx(out, rice->val, 0, "%c", c);
+                if(c == '"') so_push(&tmp, '\\'); // so_fmt_fx(out, rice->val, 0, "\\");
+                so_push(&tmp, c); // so_fmt_fx(out, rice->val, 0, "%c", c);
             }
+            so_fmt_fx(out, rice->val_delim, 0, "%.*s", SO_F(tmp));
             so_fmt_fx(out, rice->val_delim, 0, "\"");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ",");
         }
@@ -76,6 +79,7 @@ void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, S
         }
         if(vE > *val->vso) so_al_nl(out, al_ws, 1);
         so_fmt_fx(out, rice->val_delim, 0, "]");
+        so_free(&tmp);
     }
 }
 
