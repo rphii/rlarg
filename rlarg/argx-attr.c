@@ -22,3 +22,9 @@ void argx_attr_explicit_bool(struct Argx *argx, bool explicit) {
     argx->attr.is_explicit_bool = explicit;
 }
 
+void argx_attr_fatal_config_error(struct Argx *argx, bool fatal) {
+    ASSERT_ARG(argx);
+    argx->attr.is_fatal_config_error = fatal;
+}
+
+

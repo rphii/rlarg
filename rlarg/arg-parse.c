@@ -8,6 +8,21 @@ int arg_parse_positional(struct Arg *arg, Arg_Stream *stream, Argx *argx);
 
 /* error messages {{{ */
 
+int arg_parse_setval_argx_callback_refval_single(Argx *argx, Arg_Stream_Source src, So val) {
+    int status = 0;
+    if(argx->callback.func && src.id == ARG_STREAM_SOURCE_REFVAL) {
+#if 1
+        ASSERT_ARG(argx->group_p);
+        Arg *arg = argx->group_p->arg;
+        status = argx->callback.func(argx, argx->callback.user, val);
+        if(status) {
+            arg_parse_error(arg, &(Arg_Stream){ .source = ARGX_SOURCE_REFVAL, .is_help_lookup = true }, ARG_PARSE_ERROR_UNHANDLED_POSITIONAL, argx);
+        }
+#endif
+    }
+    return status;
+}
+
 void arg_parse_set_help_any(struct Arg *arg, Argx *argx) {
     ASSERT_ARG(arg);
     ASSERT_ARG(argx);
@@ -27,6 +42,13 @@ void arg_parse_set_help_error(struct Arg *arg, Argx *argx) {
 }
 
 #define FF(n,x,f)     (n ? x : F(x, f))
+#define FFF(c,n,x,f, ...)    do { \
+            if(so_len(c)) { \
+                fprintf(stderr, FF(nc, "%.*s", FG_RD_B BOLD), SO_F(c)); \
+            } else { \
+                fprintf(stderr, FF(n,x,f), ##__VA_ARGS__); \
+            } \
+        } while(0)
 
 void arg_parse_error_allow_more(Arg_Stream *stream) {
     stream->error_id = 0;
@@ -109,90 +131,99 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     fprintf(stderr, FF(nc, "envvars: ", FG_MG_B BOLD));
                 } break;
             }
+            So c = arg->builtin.custom_err_msg;
             switch(id) {
                 case ARG_PARSE_ERROR_UNCONFIGURABLE: {
-                    fprintf(stderr, FF(nc, "Cannot configure: '%.*s', tried setting to: '%.*s'", FG_RD_B BOLD), SO_F(argx->opt), SO_F(stream->carg));
+                    FFF(c, nc, "Cannot configure: '%.*s', tried setting to: '%.*s'", FG_RD_B BOLD, SO_F(argx->opt), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_CONVERSION: {
-                    fprintf(stderr, FF(nc, "Invalid conversion for '%.*s' %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint), SO_F(stream->carg));
+                    FFF(c, nc, "Invalid conversion for '%.*s' %.*s: %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_GROUP: {
-                    fprintf(stderr, FF(nc, "Option not found in '%.*s' %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint), SO_F(stream->carg));
+                    FFF(c, nc, "Option not found in '%.*s' %.*s: %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_STRING: {
-                    fprintf(stderr, FF(nc, "Invalid string for '%.*s': %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(stream->carg));
+                    FFF(c, nc, "Invalid string for '%.*s': %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_STRING_END: {
-                    fprintf(stderr, FF(nc, "Invalid string end for '%.*s': %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(stream->carg));
+                    FFF(c, nc, "Invalid string end for '%.*s': %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(stream->carg));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_FILE: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Failed reading file: %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Failed reading file: %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_FILE_DELIM: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Failed to find closing ')': %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(argx->desc));
+                    FFF(c, nc, "Failed to find closing ')': %.*s: %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(argx->desc));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_ARRAY_DELIM: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Failed to find closing ']': %.*s: %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(argx->desc));
+                    FFF(c, nc, "Failed to find closing ']': %.*s: %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(argx->desc));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_ARRAY_VALUE: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Expected a value, not a ',': %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Expected a value, not a ',': %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_HIERARCHY_DELIM: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Failed to find '=': %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Failed to find '=': %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_STRING_DELIM: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Failed to find closing '\"': %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Failed to find closing '\"': %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_SECTION: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Invalid section format: %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Invalid section format: %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Option not found in root groups: '%.*s'", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Option not found in root groups: '%.*s'", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_SHORTOPT: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Missing short options, only provided with: %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Missing short options, only provided with: %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Hierarchy reveals no such option table: %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Hierarchy reveals no such option table: %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_HIERARCHY_ROOT_CONFIG: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Hierarchy reveals no root: %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Hierarchy reveals no root: %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_HIERARCHY_OPTION_CONFIG: { /* pseudo */
-                    fprintf(stderr, FF(nc, "Hierarchy reveals no such option: %.*s", FG_RD_B BOLD), SO_F(argx->opt));
+                    FFF(c, nc, "Hierarchy reveals no such option: %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
-                    fprintf(stderr, FF(nc, "Missing positional values: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint));
+                    FFF(c, nc, "Missing positional values: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_SEQUENCE: {
-                    fprintf(stderr, FF(nc, "Missing sequential values: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint));
+                    FFF(c, nc, "Missing sequential values: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_CONFIG: {
-                    fprintf(stderr, FF(nc, "Error(s) occured while configuring: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint));
+                    FFF(c, nc, "Error(s) occured while configuring: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_VALUE: {
-                    fprintf(stderr, FF(nc, "Missing value for argument: %.*s %.*s", FG_RD_B BOLD), SO_F(argx->opt), SO_F(hint));
+                    FFF(c, nc, "Missing value for argument: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_UNHANDLED_POSITIONAL: {
-                    fprintf(stderr, FF(nc, "Unknown error occured while parsing: ", FG_RD_B BOLD));
-                    while(stream->i < array_len(stream->vso)) {
-                        So carg = array_at(stream->vso, stream->i);
-                        fprintf(stderr, "%.*s ", SO_F(carg));
-                        ++stream->i;
+                    FFF(c, nc, "Unknown error occured while parsing: ", FG_RD_B BOLD);
+                    if(!so_len(c)) {
+                        while(stream->i < array_len(stream->vso)) {
+                            So carg = array_at(stream->vso, stream->i);
+                            fprintf(stderr, "%.*s ", SO_F(carg));
+                            ++stream->i;
+                        }
                     }
                 } break;
                 case ARG_PARSE_ERROR_NO_REST_ALLOWED: {
-                    fprintf(stderr, FF(nc, "Not allowed to set rest of values: ", FG_RD_B BOLD));
-                    while(stream->i < array_len(stream->vso)) {
-                        So carg = array_at(stream->vso, stream->i);
-                        fprintf(stderr, "%.*s ", SO_F(carg));
-                        ++stream->i;
+                    FFF(c,nc, "Not allowed to set rest of values: ", FG_RD_B BOLD);
+                    if(!so_len(c)) {
+                        while(stream->i < array_len(stream->vso)) {
+                            So carg = array_at(stream->vso, stream->i);
+                            fprintf(stderr, "%.*s ", SO_F(carg));
+                            ++stream->i;
+                        }
                     }
                 } break;
                 default: ABORT(ERR_UNREACHABLE("unhandled error: %u"), id);
             }
             fprintf(stderr, "\n");
             if(newline) fprintf(stderr, "\n");
+            so_clear(&arg->builtin.custom_err_msg);
+
+            /* show help ... idk man.. too much output... also, this would break the config tests for whatever reason, lol, so beware.. */
+            //arg_help_argx(argx);
         }
     }
     arg->builtin.color_off = nc;
@@ -384,6 +415,7 @@ int arg_parse_argx_size(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
 
 int arg_parse_argx_so(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     arg_parse_setval_argx(argx, &(Argx_Value_Union){ .so = &so }, stream->source, false);
+    arg_parse_setval_argx_callback_refval_single(argx, stream->source, so);
     return 0;
 }
 
@@ -513,11 +545,14 @@ int arg_parse_argx_vector(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so
         so = so_sub(so, 1, so_len(so) - 1);
         for(So sp = SO; so_splice(so, &sp, ','); ) {
             result = cb(arg, stream, argx, so_trim(sp));
+            arg_parse_setval_argx_callback_refval_single(argx, stream->source, so);
             if(result) break;
         }
     } else {
         result = cb(arg, stream, argx, so_trim(so));
+        arg_parse_setval_argx_callback_refval_single(argx, stream->source, so);
     }
+
     return result;
 }
 
@@ -853,28 +888,63 @@ void arg_parse_setref_sources_mono(Argx *argx, Arg_Stream_Source src, size_t n) 
     }
 }
 
-void arg_parse_setref_argx_flag(Argx *argx, bool clear) {
+int arg_parse_setref_argx_flag(Argx *argx, bool clear) {
 
     Argx_Value_Union flag = argx->ref;
+    int status = 0;
     if(clear) {
         if(!argx->sources) {
             flag.b = &(bool){ false };
-            arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
+            status |= arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
         }
     } else {
-        arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
+        status |= arg_parse_setval_argx(argx, &flag, ARGX_SOURCE_REFVAL, false);
     }
-
+    return status;
 }
 
-void arg_parse_setref_argx(Argx *argx) {
-    if(argx->sources) return; /* do not setref if it was already parsed somewhere else */
-    arg_parse_setval_argx(argx, &argx->ref, ARGX_SOURCE_REFVAL, false);
+int arg_parse_setref_argx(Argx *argx) {
+    if(argx->sources) return 0; /* do not setref if it was already parsed somewhere else */
+    int status = arg_parse_setval_argx(argx, &argx->ref, ARGX_SOURCE_REFVAL, false);
+    return status;
 }
 
-
-void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source src, bool argx_is_array_but_value_is_not) {
+#if 0
+int arg_parse_setval_argx_callback_refval(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source src, bool argx_is_array_but_value_is_not) {
     bool single = argx_is_array_but_value_is_not;
+    int status = 0;
+    if(ref && ref->any && src.id == ARG_STREAM_SOURCE_REFVAL) {
+        if(argx->attr.is_array) {
+            switch(argx->id) {
+                case ARGX_TYPE_URI:
+                case ARGX_TYPE_STRING: {
+                    if(!single) {
+                        for(size_t i = 0; i < array_len(*ref->vso); ++i) {
+                            status |= arg_parse_setval_argx_callback_refval_single(argx, array_at(*ref->vso, i));
+                        }
+                    } else {
+                        status |= arg_parse_setval_argx_callback_refval_single(argx, *ref->so);
+                    }
+                } break;
+                default: break;
+            }
+        } else {
+            switch(argx->id) {
+                case ARGX_TYPE_URI:
+                case ARGX_TYPE_STRING: {
+                    status |= arg_parse_setval_argx_callback_refval_single(argx, *ref->so);
+                } break;
+                default: break;
+            }
+        }
+    }
+    return status;
+}
+#endif
+
+int arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source src, bool argx_is_array_but_value_is_not) {
+    bool single = argx_is_array_but_value_is_not;
+    int status = 0;
     //printff("setval for: %.*s",SO_F(argx->opt));
     if(ref && ref->any) {
         if(argx->attr.is_array) {
@@ -897,6 +967,7 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
                     if(argx->val.vso) {
                         if(!single) array_extend(*argx->val.vso, *ref->vso);
                         else array_push(*argx->val.vso, *ref->so);
+
                     }
                 } break;
                 case ARGX_TYPE_INT: {
@@ -961,10 +1032,12 @@ void arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source 
     //} else {
         //argx->val.any = 0;
     }
+    return status;
 }
 
-void arg_parse_setref_group(Argx_Group *group) {
-    if(!group) return;
+int arg_parse_setref_group(Argx_Group *group) {
+    if(!group) return 0;
+    int status = 0;
     for(Argx **it = group->list; it < array_itE(group->list); ++it) {
         //printff("setref for: %.*s",SO_F((*it)->opt));
         ASSERT_ARG(it);
@@ -983,14 +1056,14 @@ void arg_parse_setref_group(Argx_Group *group) {
                             break;
                         }
                         for(Argx **it = argx->group_s->list; it < itE; ++it) {
-                            arg_parse_setref_argx_flag(*it, should_clear);
+                            status |= arg_parse_setref_argx_flag(*it, should_clear);
                         }
                     }
                 } break;
                 case ARGX_GROUP_SEQUENCE:
                 case ARGX_GROUP_OPTIONS:
                 case ARGX_GROUP_ROOT: {
-                    arg_parse_setref_group(argx->group_s); 
+                    status |= arg_parse_setref_group(argx->group_s); 
                 } break;
                 case ARGX_GROUP_ENUM: {
                     if(argx->sources) continue;
@@ -998,17 +1071,20 @@ void arg_parse_setref_group(Argx_Group *group) {
                 } break;
             }
         } else {
-            arg_parse_setref_argx(argx);
+            status |= arg_parse_setref_argx(argx);
         }
     }
+    return status;
 }
 
-void arg_parse_setref(struct Arg *arg) {
+int arg_parse_setref(struct Arg *arg) {
     /* apply values from references */
+    int status = 0;
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
-        arg_parse_setref_group(*group);
+        status |= arg_parse_setref_group(*group);
     }
-    arg_parse_setref_group(&arg->env);
+    status |= arg_parse_setref_group(&arg->env);
+    return status;
 }
 
 /* set reference value }}} */
@@ -1061,11 +1137,13 @@ int arg_queue_post_parsing(Arg *arg) {
 
 int arg_parse_help(Arg *arg, bool do_not_recurse) {
     Argx *help = arg->help.wanted ? arg->help.last : arg->help.error;
+    if(arg->help.wanted && !arg->help.last) help = arg->help.argx;
 
     size_t help_len = array_len(arg->help.sub);
     bool help_compgen = (arg->help.wanted && help == arg->help.argx && arg->builtin.compgen);
     bool help_do = (help_len || help_compgen) && !arg->builtin.config_print_selected;
 
+    //printff("HELP WANTED %u DO %u HELP %p %.*s",arg->help.wanted,help_do);
     if(help_do) {
         if(help_compgen) {
             arg->builtin.color_off = true;
@@ -1144,43 +1222,55 @@ int arg_parse_help(Arg *arg, bool do_not_recurse) {
     return (bool)(arg->help.error);
 }
 
-void arg_parse_configs(Arg *arg) {
-    ASSERT_ARG(arg);
+int arg_parse_config_single(Arg *arg, So path) {
+    int status = 0;
     So extend = SO;
-    for(size_t i = 0; i < array_len(arg->builtin.sources_vso); ++i) {
-        So path = array_at(arg->builtin.sources_vso, i);
-        so_clear(&extend);
-        so_extend_wordexp(&extend, path, false);
-        so_path_get_realpath(&extend, extend);
-        //printff("SOURCE [%.*s]",SO_F(extend));
-        /* check if I already loaded a file at that location */
-        bool have_already_loaded = false;
-        for(size_t j = 0; j < array_len(arg->builtin.sources_paths); ++j) {
-            So loaded = array_at(arg->builtin.sources_paths, j);
-            if(so_cmp(loaded, extend)) continue;
-            have_already_loaded = true;
-            break;
-        }
-        if(have_already_loaded) {
-            //printff("ALREADY LOADED");
-            continue;
-        }
-        So content = SO;
-        /* can safely load the file for the first time */
-        so_clear(&content);
-        if(!so_file_read(extend, &content)) {
-            vso_push(&arg->builtin.sources_paths, extend);
-            vso_push(&arg->builtin.sources_content, content);
-            //printff("PARSE CONFIG [%.*s]",SO_F(extend));
-            arg_parse_config(arg, content, extend);
-            so_zero(&extend);
-        } else {
-            //printff("TODO WARN: COULD NOT OPEN [%.*s]",SO_F(path));
-        }
+
+    so_clear(&extend);
+    so_extend_wordexp(&extend, path, false);
+    so_path_get_realpath(&extend, extend);
+    if(!so_len(extend)) goto defer;
+    //printff("SOURCE [%.*s]",SO_F(extend));
+    /* check if I already loaded a file at that location */
+    bool have_already_loaded = false;
+    for(size_t j = 0; j < array_len(arg->builtin.sources_paths); ++j) {
+        So loaded = array_at(arg->builtin.sources_paths, j);
+        if(so_cmp(loaded, extend)) continue;
+        have_already_loaded = true;
+        break;
     }
-    so_free(&extend);
+    if(have_already_loaded) {
+        //printff("ALREADY LOADED");
+        goto defer;
+    }
+    So content = SO;
+    /* can safely load the file for the first time */
+    so_clear(&content);
+    if(!so_file_read(extend, &content)) {
+        vso_push(&arg->builtin.sources_paths, extend);
+        vso_push(&arg->builtin.sources_content, content);
+        //printff("PARSE CONFIG [%.*s]",SO_F(extend));
+        status = arg_parse_config(arg, content, extend);
+        so_zero(&extend);
+    } else {
+        //printff("TODO WARN: COULD NOT OPEN [%.*s]",SO_F(path));
+    }
+defer:
     arg->help.error = 0;
     arg->help.last = 0;
+    so_free(&extend);
+    return status;
+}
+
+int arg_parse_configs(Arg *arg) {
+    size_t len = array_len(arg->builtin.sources_vso);
+    int status = 0;
+    for(size_t i = 0; i < len; ++i) {
+        So path = array_at(arg->builtin.sources_vso, i);
+        status = arg_parse_config_single(arg, path);
+        if(status) break;
+    }
+    return status;
 }
 
 void arg_parse_enable_config_print(Arg *arg) {
@@ -1206,14 +1296,15 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     if(arg->builtin.color != ARG_BUILTIN_COLOR_ON && arg->builtin.config_print_selected) arg->builtin.color_off = true;
     if(arg->builtin.quit_early) goto defer;
 
+    bool fatal_config = false;
     arg_parse_configs(arg);
-
     if(!status) status = arg_parse_stdin(arg, argc, argv);
-    if(arg->builtin.quit_early) goto defer;
-
-    arg_parse_setref(arg);
+    if(arg->builtin.quit_early || fatal_config) goto defer;
 
     if(!status) status = arg_queue_post_parsing(arg);
+
+    if(!status) status = arg_parse_setref(arg);
+
     if(arg->builtin.quit_early) goto defer;
 
     if(arg->builtin.quit_early || arg->builtin.quit_when_all_parsed) goto defer;
