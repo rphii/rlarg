@@ -1,5 +1,7 @@
 # priority
 
+---> ./a -h | grep name
+
 - when option file sets flags -> user sets flag via flagname, it's ok - clear previous. but when doing +flag or -flag -> do not clear
 - parse REST in config
 
