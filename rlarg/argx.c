@@ -192,11 +192,20 @@ void argx_builtin_opt_version(struct Argx_Group *group, char c, So opt, So versi
     argx_attr_configurable(x, false);
 }
 
+int argx_callback_source(Argx *argx, void *user, So so) {
+    ASSERT_ARG(argx);
+    ASSERT_ARG(argx->group_p);
+    Arg *arg = user;
+    int err = arg_parse_config_single(arg, so);
+    return err;
+}
+
 void argx_builtin_opt_source(struct Argx_Group *group, char c, So opt, So uri) {
     Arg *arg = group->arg;
     if(!arg->builtin.sources_argx) {
         arg->builtin.sources_argx = argx_opt(group, 0, so("source"), so("source config files"));
         argx_type_array_uri(arg->builtin.sources_argx, &arg->builtin.sources_vso, 0);
+        argx_callback(arg->builtin.sources_argx, argx_callback_source, arg, ARGX_PRIORITY_WHEN_ALL_VALID);
     }
     Argx *argx = arg->builtin.sources_argx;
     vso_push(argx->val.vso, uri);

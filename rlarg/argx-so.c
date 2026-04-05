@@ -2,19 +2,21 @@
 #include "argx.h"
 #include "argx-group.h"
 #include "arg.h"
+#include <ctype.h>
 
 /* non vector types {{{ */
 
 void argx_so_like_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     if(val->so) {
-        so_fmt_fx(out, rice->val_delim, 0, "\"");
+        So tmp = SO;
         for(size_t i = 0; i < so_len(*val->so); ++i) {
             char c = so_at(*val->so, i);
-            if(c == '"') so_fmt_fx(out, rice->val, 0, "\\");
-            so_fmt_fx(out, rice->val, 0, "%c", c);
+            if(c == '"') so_fmt(&tmp, "\\");
+            so_push(&tmp, c);
         }
-        so_fmt_fx(out, rice->val_delim, 0, "\"");
+        so_fmt_fx(out, rice->val_delim, 0, "\"%.*s\"", SO_F(tmp));
+        so_free(&tmp);
     }
 }
 
@@ -51,21 +53,43 @@ void argx_so_type_color(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
 
 /* vector types {{{ */
 
-void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, So_Align al_ws, size_t max_items) {
+void argx_so_fmt_escape_ch(So *out, char c) {
+    switch(c) {
+        case '\n': so_extend(out, so("\\n")); break;
+        case '\t': so_extend(out, so("\\t")); break;
+        case '\r': so_extend(out, so("\\r")); break;
+        case '\b': so_extend(out, so("\\b")); break;
+        case '\f': so_extend(out, so("\\f")); break;
+        case '\a': so_extend(out, so("\\a")); break;
+        case '\v': so_extend(out, so("\\v")); break;
+        case '\\': so_extend(out, so("\\\\")); break;
+        default: so_fmt(out, "\\x%x", c); break;
+    }
+}
+
+void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, So_Align al_ws, size_t array_max_items) {
     ASSERT_ARG(out);
     ASSERT_ARG(val);
     if(val->vso) {
+        So tmp = SO;
         so_fmt_fx(out, rice->val_delim, 0, "[");
         So *vE = array_itE(*val->vso);
-        So *vE2 = (max_items && array_len(*val->vso) > max_items) ? array_it(*val->vso, max_items) : vE;
+        So *vE2 = (array_max_items && array_len(*val->vso) > array_max_items) ? array_it(*val->vso, array_max_items) : vE;
         for(So *v = *val->vso; v < vE2; ++v) {
             so_al_nl(out, al_ws, 1);
             so_fmt_fx(out, rice->val_delim, rice->val_delim.align.i0 + 2, "\"");
+            so_clear(&tmp);
             for(size_t i = 0; i < so_len(*v); ++i) {
                 char c = so_at(*v, i);
-                if(c == '"') so_fmt_fx(out, rice->val, 0, "\\");
-                so_fmt_fx(out, rice->val, 0, "%c", c);
+                //if(c == '\n') is_for_config
+                if(c == '"') so_push(&tmp, '\\');
+                if(iscntrl(c)) {
+                    argx_so_fmt_escape_ch(&tmp, c);
+                } else {
+                    so_push(&tmp, c);
+                }
             }
+            so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(tmp));
             so_fmt_fx(out, rice->val_delim, 0, "\"");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ",");
         }
@@ -75,6 +99,7 @@ void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, S
         }
         if(vE > *val->vso) so_al_nl(out, al_ws, 1);
         so_fmt_fx(out, rice->val_delim, 0, "]");
+        so_free(&tmp);
     }
 }
 

@@ -35,6 +35,7 @@ typedef struct Arg_Parse_Config {
     So tmp_file_path;
     So tmp_string;
     So tmp_file_path_wordexp;
+    bool fatal_error;
     Argx *argx;
     Arg_Stream stream;
     Arg_Parse_Config_Flag status;
