@@ -69,7 +69,7 @@ void argx_so_like_array_string(So *out, Arg_Rice *rice, Argx_Value_Union *val, S
                 if(c == '"') so_push(&tmp, '\\'); // so_fmt_fx(out, rice->val, 0, "\\");
                 so_push(&tmp, c); // so_fmt_fx(out, rice->val, 0, "%c", c);
             }
-            so_fmt_fx(out, rice->val_delim, 0, "%.*s", SO_F(tmp));
+            so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(tmp));
             so_fmt_fx(out, rice->val_delim, 0, "\"");
             if(v + 1 < vE) so_fmt_fx(out, rice->val_delim, 0, ",");
         }
