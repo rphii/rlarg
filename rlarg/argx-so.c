@@ -8,13 +8,14 @@
 void argx_so_like_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
     ASSERT_ARG(out);
     if(val->so) {
-        so_fmt_fx(out, rice->val_delim, 0, "\"");
+        So tmp = SO;
         for(size_t i = 0; i < so_len(*val->so); ++i) {
             char c = so_at(*val->so, i);
-            if(c == '"') so_fmt_fx(out, rice->val, 0, "\\");
-            so_fmt_fx(out, rice->val, 0, "%c", c);
+            if(c == '"') so_fmt(&tmp, "\\");
+            so_push(&tmp, c);
         }
-        so_fmt_fx(out, rice->val_delim, 0, "\"");
+        so_fmt_fx(out, rice->val_delim, 0, "\"%.*s\"", SO_F(tmp));
+        so_free(&tmp);
     }
 }
 
