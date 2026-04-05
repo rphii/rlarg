@@ -359,7 +359,11 @@ void arg_config_set_epilog(struct Arg_Config *cfg, So epilog) {
 
 void arg_config_set_width(struct Arg_Config *cfg, size_t width) {
     struct winsize termsize;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &termsize);
+    if(isatty(STDOUT_FILENO)) {
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &termsize);
+    } else {
+        termsize.ws_col = 100;
+    }
     cfg->bounds.max = termsize.ws_col;
     size_t w_use = termsize.ws_col ? termsize.ws_col : 100;
     if(width == 0 || w_use < width) width = w_use;
