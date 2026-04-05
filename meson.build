@@ -1,4 +1,4 @@
-project('rlarg', 'c', meson_version: '>=1.1', version: '0.1.0')
+project('rlarg', 'c', meson_version: '>=1.1', version: '0.1.2')
 add_project_arguments('-DRLARG_VERSION="'+meson.project_version()+'"', language: 'c')
 
 #add_project_arguments('-Werror=unused-result',language:'c')
@@ -45,7 +45,7 @@ pkg.generate(
   )
 
 
-rlarg = declare_dependency(
+rlarg_dep = declare_dependency(
   link_with: librlarg,
   include_directories: '.',
   )
