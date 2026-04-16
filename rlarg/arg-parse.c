@@ -1301,9 +1301,9 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     if(!status) status = arg_parse_stdin(arg, argc, argv);
     if(arg->builtin.quit_early || fatal_config) goto defer;
 
-    if(!status) status = arg_queue_post_parsing(arg);
-
     if(!status) status = arg_parse_setref(arg);
+
+    if(!status) status = arg_queue_post_parsing(arg);
 
     if(arg->builtin.quit_early) goto defer;
 
