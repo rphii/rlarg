@@ -15,7 +15,9 @@ void argx_so_like_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
             if(c == '"') so_fmt(&tmp, "\\");
             so_push(&tmp, c);
         }
-        so_fmt_fx(out, rice->val_delim, 0, "\"%.*s\"", SO_F(tmp));
+        so_fmt_fx(out, rice->val_delim, 0, "\"");
+        so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(tmp));
+        so_fmt_fx(out, rice->val_delim, 0, "\"");
         so_free(&tmp);
     }
 }
