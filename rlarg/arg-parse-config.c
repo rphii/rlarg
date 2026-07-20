@@ -406,7 +406,6 @@ bool arg_parse_config_config(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     bool ok = true;
     Arg_Parse_Config_Head q = *head;
     arg_parse_config_ws(p, &q);
-    //printff("PARSE CONFIG");
     if(arg_parse_config_array(p, &q)) {
     } else if(arg_parse_config_value(p, &q, false)) {
     } else {
