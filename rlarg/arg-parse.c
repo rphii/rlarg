@@ -561,14 +561,35 @@ int arg_parse_argx_vector_none(struct Arg *arg, Arg_Stream *stream, Argx *argx, 
 }
 
 int arg_parse_argx_vector_rest(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so, Arg_Parse_Argx_Callback cb) {
+
     if(argx_is_subgroup_of_root(argx, &arg->pos)) {
         arg_stream_not_consumed(stream);
     }
+
     if(argx->val.vso) {
         stream->rest = argx;
+
+        if(!so_is_zero(so)) {
+
+            int result;
+            if(so_at0(so) == '[' && so_atE(so) == ']') {
+                so = so_sub(so, 1, so_len(so) - 1);
+                for(So sp = SO; so_splice(so, &sp, ','); ) {
+                    result = cb(arg, stream, argx, so_trim(sp));
+                    arg_parse_setval_argx_callback_refval_single(argx, stream->source, so);
+                    if(result) break;
+                }
+            } else {
+                result = cb(arg, stream, argx, so_trim(so));
+                arg_parse_setval_argx_callback_refval_single(argx, stream->source, so);
+            }
+
+        }
     } else {
         stream->rest = 0;
     }
+
+
     return 0;
 }
 
@@ -598,7 +619,7 @@ static Arg_Parse_Argx_Callback static_parse_argx_vector_vals_cbs[ARGX_TYPE__COUN
     [ARGX_TYPE_URI] = arg_parse_argx_vso,
     [ARGX_TYPE_STRING] = arg_parse_argx_vso,
     [ARGX_TYPE_COLOR] = arg_parse_argx_vcolor,
-    [ARGX_TYPE_REST] = 0,
+    [ARGX_TYPE_REST] = arg_parse_argx_vso,
     [ARGX_TYPE_NONE] = 0,
     [ARGX_TYPE_ENUM] = 0,
     [ARGX_TYPE_FLAG] = 0,
@@ -627,7 +648,7 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
-    //printff("PARSE: %.*s",SO_F(argx->opt));
+    //printff("PARSE: %.*s <== '%.*s'",SO_F(argx->opt), SO_F(so));
     int result = -1;
     arg_parse_set_help_any(arg, argx); /* set help BEFORE doing any further parsing */
     if(stream->is_config && !argx_is_configurable(argx)) {
@@ -814,7 +835,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                         goto error_but_maybe_get_env_help;
                     } else {
                         ASSERT(rest->id == ARGX_TYPE_REST, "expecting to set the rest of parsed values into argx of type REST, have %u (%.*s)", rest->id, SO_F(rest->opt));
-                        vso_push(rest->val.vso, carg);
+                        arg_parse_argx(arg, stream, rest, carg);
                     }
                 }
             } break;
@@ -962,6 +983,7 @@ int arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source s
                         else array_push(*argx->val.vc, *ref->c);
                     }
                 } break;
+                case ARGX_TYPE_REST: // ABORT(ERR_UNREACHABLE("case will never provide default values"));
                 case ARGX_TYPE_URI:
                 case ARGX_TYPE_STRING: {
                     if(argx->val.vso) {
@@ -983,7 +1005,7 @@ int arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source s
                     }
                 } break;
                 case ARGX_TYPE_NONE: break;
-                case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
+                //case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
                 case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
                 case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("case is handled separately"));
                 case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("case is handled separately"));
