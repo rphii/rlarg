@@ -19,6 +19,7 @@ typedef enum {
     ARG_STREAM_SOURCE_CONFIG,
     ARG_STREAM_SOURCE_ENVVARS,
     ARG_STREAM_SOURCE_HELP,
+    ARG_STREAM_SOURCE_FORCED,
 } Arg_Stream_Source_List;
 
 typedef struct Arg_Stream_Source {
