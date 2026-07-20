@@ -595,9 +595,11 @@ int arg_parse_argx_vector_none(struct Arg *arg, Arg_Stream *stream, Argx *argx, 
 
 int arg_parse_argx_vector_rest(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so, Arg_Parse_Argx_Callback cb) {
 
+#if 0
     if(argx_is_subgroup_of_root(argx, &arg->pos)) {
         arg_stream_not_consumed(stream);
     }
+#endif
 
     if(argx->val.vso) {
         stream->rest = argx;
@@ -616,8 +618,8 @@ int arg_parse_argx_vector_rest(struct Arg *arg, Arg_Stream *stream, Argx *argx, 
                 result = cb(arg, stream, argx, so_trim(so));
                 arg_parse_setval_argx_callback_refval_single(argx, stream->source, so);
             }
-
         }
+
     } else {
         stream->rest = 0;
     }
