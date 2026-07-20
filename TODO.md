@@ -1,7 +1,6 @@
 # priority
 
-- when option file sets flags -> user sets flag via flagname, it's ok - clear previous. but when doing +flag or -flag -> do not clear
-
+- test what the callbacks on flags does??
 - organize so_fmt_fx better..... (they all over the place)
 
 - more tests, e.g.
