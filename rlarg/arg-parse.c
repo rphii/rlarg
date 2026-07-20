@@ -130,6 +130,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 case ARG_STREAM_SOURCE_ENVVARS: {
                     fprintf(stderr, FF(nc, "envvars: ", FG_MG_B BOLD));
                 } break;
+                case ARG_STREAM_SOURCE_FORCED: {
+                    fprintf(stderr, FF(nc, "forced@%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.number);
+                } break;
             }
             So c = arg->builtin.custom_err_msg;
             switch(id) {
@@ -232,6 +235,14 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
 
 /* error messages }}} */
 
+Argx *arg_parse_get_shortopt(struct Arg *arg, char c) {
+    Argx *result = 0;
+    if(c >= ARGX_SHORT_MIN && c < ARGX_SHORT_MAX) {
+        result = arg->c[c - ARGX_SHORT_MIN];
+    }
+    return result;
+}
+
 void arg_parse_add_source(struct Argx *argx, Arg_Stream_Source source) {
     ASSERT_ARG(argx);
     ASSERT_ARG(argx->group_p);
@@ -286,6 +297,7 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
         ASSERT_ARG(argx->group_s);
         if(argx->group_s->id == ARGX_GROUP_FLAGS) {
             if(!so_splice(so, &so_split, ',')) break;
+#if 0
             flagv = so("1"); // TODO: this is so stupid
             if(so_at0(so_split) == '+') {
                 so_split = so_i0(so_split, 1);
@@ -293,6 +305,14 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 so_split = so_i0(so_split, 1);
                 flagv = so("0");
             }
+#else
+            flagv = so_split;
+            if(so_at0(so_split) == '+') {
+                so_split = so_i0(so_split, 1);
+            } else if(so_at0(so_split) == '-') {
+                so_split = so_i0(so_split, 1);
+            }
+#endif
         } else if(argx->group_s->id == ARGX_GROUP_SEQUENCE) {
             arg_stream_not_consumed(stream);
             result = arg_parse_sequence(arg, stream, argx);
@@ -439,42 +459,55 @@ int arg_parse_argx_none(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     return 0;
 }
 
-int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
-    /* check if any sources given in any of the related flags - if none, then reset all flags to zero */
-    if(stream->source.id == ARG_STREAM_SOURCE_STDIN) {
-        bool reset_related = false;
-        Argx_Group *related = argx->group_p;
-        Argx **itE = array_itE(related->list);
-        for(Argx **it = related->list; it < itE; ++it) {
-            Arg_Stream_Source *jtE = array_itE((*it)->sources);
-            for(Arg_Stream_Source *jt = (*it)->sources; jt < jtE; ++jt) {
-                if(jt->id == ARG_STREAM_SOURCE_CONFIG ||
-                   jt->id == ARG_STREAM_SOURCE_REFVAL) {
+int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so_in) {
+
+    So so = so_in;
+    bool flag_value = false;
+    bool force_on = (bool)(so_at0(so) == '+');
+    bool force_off = (bool)(so_at0(so) == '-');
+    if((force_on || force_off)) {
+        so_i0(so, 1);
+        if(!so_len(so)) {
+            ABORT(ERR_UNREACHABLE("how tf did you get here?"));
+        }
+        flag_value = force_on;
+    } else {
+        flag_value = true;
+
+        if(stream->source.id == ARG_STREAM_SOURCE_STDIN) {
+            bool reset_related = false;
+            Argx_Group *related = argx->group_p;
+            Argx **itE = array_itE(related->list);
+            for(Argx **it = related->list; it < itE; ++it) {
+                Arg_Stream_Source *jtE = array_itE((*it)->sources);
+                for(Arg_Stream_Source *jt = (*it)->sources; jt < jtE; ++jt) {
+#if 1
                     reset_related = true;
-                } else if(jt->id == ARG_STREAM_SOURCE_STDIN) {
-                    reset_related = false;
-                    goto break2;
+#else
+                    if(jt->id == ARG_STREAM_SOURCE_CONFIG ||
+                       jt->id == ARG_STREAM_SOURCE_REFVAL) {
+                        reset_related = true;
+                    } else if(jt->id == ARG_STREAM_SOURCE_STDIN) {
+                        reset_related = false;
+                        goto break2;
+                    }
+#endif
                 }
             }
-        }
-        break2:;
-        /* now reset, if need */
-        if(reset_related) {
-            bool off = false;
-            for(Argx **it = related->list; it < itE; ++it) {
-                arg_parse_setval_argx(*it, &(Argx_Value_Union){ .b = &off }, (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_REFVAL }, false);
+            break2:;
+            /* now reset, if need */
+            if(reset_related) {
+                bool off = false;
+                for(Argx **it = related->list; it < itE; ++it) {
+                    arg_parse_setval_argx(*it, &(Argx_Value_Union){ .b = &off }, (Arg_Stream_Source){
+                            .id = ARG_STREAM_SOURCE_FORCED, .number = stream->i, .path = argx->opt, }, false);
+                }
             }
         }
     }
 
-    ASSERT_ARG(!so_is_zero(so));
-    bool flag = false;
-    //printff("FLAG OF %.*s: %.*s", SO_F(argx->opt), SO_F(so));
-    if(so_as_yes_or_no(so, &flag)) {
-        arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_CONVERSION, argx);
-        return -1;
-    }
-    arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &flag }, stream->source, false);
+    arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &flag_value }, stream->source, false);
+
     return 0;
 }
 
@@ -780,7 +813,11 @@ Argx *arg_parse_hierarchy(struct Arg *arg, Arg_Stream *stream, So hierarchy, Arg
             return 0;
         }
         result = t_argx_get(table, opt);
+        if(!result && stream->is_help_lookup && so_len(opt) == 1) {
+            result = arg_parse_get_shortopt(arg, so_at0(opt));
+        }
         if(!result) {
+            /* lastly, bail out */
             Argx pseudo = { .opt = hierarchy };
             arg_parse_error(arg, stream, ARG_PARSE_ERROR_HIERARCHY_TABLE_CONFIG, &pseudo);
             return 0;
@@ -865,12 +902,7 @@ int arg_parse_stream(struct Arg *arg, Arg_Stream *stream) {
                         break;
                     } else {
 #endif
-                        if(c >= ARGX_SHORT_MIN && c < ARGX_SHORT_MAX) {
-                            argx = arg->c[c - ARGX_SHORT_MIN];
-                        }
-#if 0
-                    }
-#endif
+                    argx = arg_parse_get_shortopt(arg, c);
                     if(!argx) {
                         Argx pseudo = { .opt = so_ll((char *)&c, 1) };
                         arg_parse_error(arg, stream, ARG_PARSE_ERROR_INVALID_OPTION_ROOT, &pseudo);

@@ -208,6 +208,9 @@ void arg_stream_source_so(So *out, Arg_Stream_Source *src) {
         case ARG_STREAM_SOURCE_REFVAL:
             so_fmt(out, "refval");
             break;
+        case ARG_STREAM_SOURCE_FORCED: {
+            so_fmt(out, "forced@%.*s:%u ", SO_F(src->path), src->number);
+        } break;
         default: break;
     }
 }
