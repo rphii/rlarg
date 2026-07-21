@@ -491,12 +491,17 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
 
     /* filter fatal errors - one is on childs, the other is on the source argx itself */
     //printff("status %x",p.status);
+    if(p.status) {
+        fprintf(stderr, "\n");
+    }
+
     if(!p.fatal_error) p.status &= ~ARG_PARSE_CONFIG_ERR_ASSIGN;
     Argx *argx_src = arg->builtin.sources_argx;
     if(argx_src && !argx_src->attr.is_fatal_config_error) {
         Arg_Parse_Config_Flag e = p.status & (ARG_PARSE_CONFIG_ERR_ASSIGN);
         p.status = e;
     }
+
 
     return p.status;
 }
