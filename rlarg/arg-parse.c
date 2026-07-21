@@ -222,7 +222,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 default: ABORT(ERR_UNREACHABLE("unhandled error: %u"), id);
             }
             fprintf(stderr, "\n");
-            if(newline) fprintf(stderr, "\n");
+            //if(newline) fprintf(stderr, "\n");
             so_clear(&arg->builtin.custom_err_msg);
 
             /* show help ... idk man.. too much output... also, this would break the config tests for whatever reason, lol, so beware.. */
@@ -409,7 +409,8 @@ int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(!result) {
         arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, false);
     } else {
-        if(!stream->is_config && !argx->attr.is_explicit_bool) {
+        bool require_explicit = argx->attr.is_explicit_bool || argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
+        if(!stream->is_config && !require_explicit) {
             v = argx->val.b ? !*argx->val.b : true;
             arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, false);
             arg_stream_not_consumed(stream);
