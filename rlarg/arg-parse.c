@@ -409,8 +409,7 @@ int arg_parse_argx_bool(Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     if(!result) {
         arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, false);
     } else {
-        bool require_explicit = argx->attr.is_explicit_bool || argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
-        if(!stream->is_config && !require_explicit) {
+        if(!stream->is_config && !argx_attr_is_explicit_bool(argx)) {
             v = argx->val.b ? !*argx->val.b : true;
             arg_parse_setval_argx(argx, &(Argx_Value_Union){ .b = &v }, stream->source, false);
             arg_stream_not_consumed(stream);
@@ -749,7 +748,7 @@ int arg_parse_option(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
         case ARGX_TYPE_BOOL: { /* try to get a value, depending on if is_explicit */
             arg_parse_set_help_any(arg, argx);
             if(!arg_stream_get_next(stream, &so, &arg->builtin.compgen_flags)) {
-                if(!(!stream->is_config && !argx->attr.is_explicit_bool)) {
+                if(!(!stream->is_config && !argx_attr_is_explicit_bool(argx))) {
                     arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_VALUE, argx);
                     return -1;
                 }

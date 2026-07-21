@@ -1,5 +1,6 @@
 #include "argx-attr.h"
 #include "argx.h"
+#include "arg.h"
 
 void argx_attr_hide(struct Argx *argx, bool hide) {
     ASSERT_ARG(argx);
@@ -25,6 +26,13 @@ void argx_attr_explicit_bool(struct Argx *argx, bool explicit) {
 void argx_attr_fatal_config_error(struct Argx *argx, bool fatal) {
     ASSERT_ARG(argx);
     argx->attr.is_fatal_config_error = fatal;
+}
+
+bool argx_attr_is_explicit_bool(struct Argx *argx) {
+    ASSERT_ARG(argx->group_p);
+    ASSERT_ARG(argx->group_p->arg);
+    bool explicit_bool = argx->attr.is_explicit_bool || argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos);
+    return explicit_bool ;
 }
 
 

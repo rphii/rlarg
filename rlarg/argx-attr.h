@@ -14,6 +14,10 @@ typedef struct Argx_Attr {
     So switch_arg;
 } Argx_Attr;
 
+struct Argx;
+
+bool argx_attr_is_explicit_bool(struct Argx *argx);
+
 #define ARGX_ATTR_H
 #endif /* ARGX_ATTR_H */
 
