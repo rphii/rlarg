@@ -192,7 +192,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     FFF(c, nc, "Hierarchy reveals no such option: %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
-                    FFF(c, nc, "Missing positional values: %.*s %.*s, %u", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint), stream->source.id);
+                    FFF(c, nc, "Missing positional values: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_SEQUENCE: {
                     FFF(c, nc, "Missing sequential values: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
@@ -1412,13 +1412,13 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
 
     if(arg->builtin.quit_early || arg->builtin.quit_when_all_parsed) goto defer;
 
-    status |= arg_parse_check_required_all(arg);
-
 defer:
 
     *quit_early |= arg->builtin.quit_early || arg->builtin.quit_when_all_parsed;
 
     status |= arg_parse_help(arg, *quit_early);
+
+    status |= arg_parse_check_required_all(arg);
 
     if(arg->builtin.compgen) *quit_early = true;
 
