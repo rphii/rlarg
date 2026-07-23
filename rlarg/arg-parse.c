@@ -483,25 +483,23 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so_in) {
 
         if(stream->source.id == ARG_STREAM_SOURCE_STDIN) {
             bool reset_related = false;
+            bool found_related = false;
             Argx_Group *related = argx->group_p;
             Argx **itE = array_itE(related->list);
             for(Argx **it = related->list; it < itE; ++it) {
                 Arg_Stream_Source *jtE = array_itE((*it)->sources);
                 for(Arg_Stream_Source *jt = (*it)->sources; jt < jtE; ++jt) {
-#if 1
                     reset_related = true;
-#else
-                    if(jt->id == ARG_STREAM_SOURCE_CONFIG ||
-                       jt->id == ARG_STREAM_SOURCE_REFVAL) {
-                        reset_related = true;
-                    } else if(jt->id == ARG_STREAM_SOURCE_STDIN) {
-                        reset_related = false;
-                        goto break2;
+                    if(jt->id == ARG_STREAM_SOURCE_STDIN) {
+                        if(jt->number == stream->source.number) {
+                            found_related = true;
+                            goto break2;
+                        }
                     }
-#endif
                 }
             }
             break2:;
+            if(found_related) reset_related = false;
             /* now reset, if need */
             if(reset_related) {
                 bool off = false;
