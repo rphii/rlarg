@@ -32,6 +32,36 @@ int cbtest(struct Argx *argx, void *user, So so) {
     return 0;
 }
 
+typedef struct Shortcut {
+    int key;
+    bool mod_none;
+    bool mod_shift;
+    bool mod_ctrl;
+    bool mod_alt;
+    int func;
+} Shortcut, *Shortcuts;
+
+static Shortcuts g_shortcuts;
+
+int list_shortcuts(struct Argx *argx, void *user, So so) {
+    Shortcuts shortcuts = *(Shortcuts *)user;
+    size_t n = 0;
+    printf("Shortcuts:\n");
+    for(Shortcut *it = shortcuts; it < array_itE(shortcuts); ++it, ++n) {
+        Shortcut *sc = it;
+        printf("[%lu] :: %c, %u|%u|%u|%u :: %u\n", n, sc->key, sc->mod_none, sc->mod_alt, sc->mod_ctrl, sc->mod_shift, sc->func);
+    }
+    arg_runtime_quit_early(argx, true);
+    return 0;
+}
+
+int register_shortcut(struct Argx *argx, void *user, So so) {
+    Shortcut *sc = user;
+    array_push(g_shortcuts, *sc);
+    memset(sc, 0, sizeof(*sc));
+    return 0;
+}
+
 int main(const int argc, const char **argv) {
 
     struct Arg_Config *cfg = arg_config_new();
@@ -65,7 +95,7 @@ int main(const int argc, const char **argv) {
     VSo vec_p = 0;
     VSo vec_v = 0;
 #if 1
-    x = argx_opt(g1, 0, so("hi"), so("description"));
+    x=argx_opt(g1, 0, so("hi"), so("description"));
         //printff("p %p", x);
 
     bool p1 = false, p2 = false;
@@ -171,6 +201,34 @@ int main(const int argc, const char **argv) {
 
     g1=argx_group(arg, so("other"));
 
+    Shortcut sc = {0};
+    x=argx_opt(g1, 'k', so("shortcut"), so("register shortcut"));
+      argx_attr_hide(x, true);
+      argx_callback(x, register_shortcut, &sc, ARGX_PRIORITY_IMMEDIATELY);
+      g2=argx_group_sequence(x);
+         xs=argx_opt(g2, 0, so("key"), so("key"));
+            argx_attr_hide(x, true);
+            g3=argx_group_enum(xs, &sc.key, 0);
+               argx_enum_bind(g3, 'A', so("A"), SO);
+               argx_enum_bind(g3, 'B', so("B"), SO);
+               argx_enum_bind(g3, 'C', so("C"), SO);
+         xs=argx_opt(g2, 0, so("mod"), so("mod"));
+            argx_attr_hide(x, true);
+            g3=argx_group_flags(xs);
+               argx_flag(g3, &sc.mod_none, 0, so("NONE"), SO);
+               argx_flag(g3, &sc.mod_alt, 0, so("ALT"), SO);
+               argx_flag(g3, &sc.mod_ctrl, 0, so("CTRL"), SO);
+               argx_flag(g3, &sc.mod_shift, 0, so("SHIFT"), SO);
+         xs=argx_opt(g2, 0, so("func"), so("func"));
+            argx_attr_hide(x, true);
+            g3=argx_group_enum(xs, &sc.func, 0);
+               argx_enum_bind(g3, 0, so("next_image"), SO);
+               argx_enum_bind(g3, 1, so("previous_image"), SO);
+               argx_enum_bind(g3, 2, so("random_image"), SO);
+               argx_enum_bind(g3, 3, so("exit"), SO);
+               argx_enum_bind(g3, 4, so("refresh"), SO);
+    x=argx_opt(g1, 0, so("shortcut-list"), so("list shortcuts"));
+      argx_callback(x, list_shortcuts, &g_shortcuts, ARGX_PRIORITY_IMMEDIATELY);
 
 #if 1
     Color col = COLOR_AQUA;
