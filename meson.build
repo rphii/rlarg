@@ -1,4 +1,4 @@
-project('rlarg', 'c', meson_version: '>=1.0', version: '0.1.8')
+project('rlarg', 'c', meson_version: '>=1.0', version: '0.1.9')
 add_project_arguments('-DRLARG_VERSION="'+meson.project_version()+'"', language: 'c')
 
 #add_project_arguments('-Werror=unused-result',language:'c')
