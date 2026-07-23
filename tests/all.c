@@ -198,6 +198,7 @@ int main(const int argc, const char **argv) {
               //argx_builtin_switch(x, xs);
             x=argx_opt(g3, 0, so("subopt2"), so("final subopt2"));
               argx_type_so(x, &subopt2, 0);
+              argx_attr_required(x, true);
         x=argx_opt(g2, 0, so("subopt2"), so(""));
 
     x=argx_opt(g1, '1', so("1111"), so("nothing"));
