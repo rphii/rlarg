@@ -57,6 +57,7 @@ typedef union Argx_Value_Union {
 #define ARGX_SOURCE_REFVAL  (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_REFVAL }
 #define ARGX_SOURCE_SOURCE  (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_SOURCE }
 #define ARGX_SOURCE_ENVVARS (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_ENVVARS }
+#define ARGX_SOURCE_POSTCHK (Arg_Stream_Source){ .id = ARG_STREAM_SOURCE_POSTCHK }
 #endif
 
 typedef struct Argx_Switch {

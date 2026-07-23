@@ -7,6 +7,7 @@ typedef struct Argx_Attr {
     bool is_array;
     bool is_hidden;
     bool is_unconfigurable;
+    bool is_required;
     bool is_explicit_bool;
     bool is_fatal_config_error;
     bool callback_skip_compgen;
