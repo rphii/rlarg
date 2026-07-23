@@ -16,7 +16,7 @@ void argx_so_like_string(So *out, Arg_Rice *rice, Argx_Value_Union *val) {
             so_push(&tmp, c);
         }
         so_fmt_fx(out, rice->val_delim, 0, "\"");
-        so_fmt_fx(out, rice->val, 0, "%.*s", SO_F(tmp));
+        so_fmt_fx(out, rice->val, rice->val.align.cache->i0_prev, "%.*s", SO_F(tmp));
         so_fmt_fx(out, rice->val_delim, 0, "\"");
         so_free(&tmp);
     }
