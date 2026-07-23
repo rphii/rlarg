@@ -208,6 +208,9 @@ void arg_stream_source_so(So *out, Arg_Stream_Source *src) {
         case ARG_STREAM_SOURCE_REFVAL:
             so_fmt(out, "refval");
             break;
+        case ARG_STREAM_SOURCE_POSTCHK:
+            so_fmt(out, "postcheck");
+            break;
         default: break;
     }
 }

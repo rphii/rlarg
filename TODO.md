@@ -1,5 +1,6 @@
 # priority
 
+- add --option and mark required attribute... => check all paths, e.g. enums? how does that work?
 - when option file sets flags -> user sets flag via flagname, it's ok - clear previous. but when doing +flag or -flag -> do not clear
 - parse REST in config
 
