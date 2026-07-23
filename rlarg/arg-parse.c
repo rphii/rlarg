@@ -86,7 +86,6 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_MISSING_HIERARCHY_DELIM: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_STRING_DELIM: /* pseudo */
             case ARG_PARSE_ERROR_INVALID_SECTION: /* pseudo */
-                break;
             case ARG_PARSE_ERROR_INVALID_OPTION_ROOT: /* pseudo */
             case ARG_PARSE_ERROR_MISSING_SHORTOPT: /* pseudo */
             case ARG_PARSE_ERROR_NO_REST_ALLOWED: {
@@ -100,7 +99,6 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_INVALID_OPTION_GROUP:
             case ARG_PARSE_ERROR_MISSING_SEQUENCE:
             case ARG_PARSE_ERROR_MISSING_POSITIONAL:
-            case ARG_PARSE_ERROR_MISSING_REQUIRED:
             case ARG_PARSE_ERROR_CONFIG:
             case ARG_PARSE_ERROR_MISSING_VALUE:
             case ARG_PARSE_ERROR_INVALID_STRING:
@@ -110,6 +108,10 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 Argx_So_Options opts = {0};
                 argx_so_hint(&hint, &no_rice, argx, &argx->val, &opts);
                 newline = (bool)(argx);
+            } break;
+            case ARG_PARSE_ERROR_MISSING_REQUIRED: { /* don't set help, but add hint */
+                Argx_So_Options opts = {0};
+                argx_so_hint(&hint, &no_rice, arg->help.argx, &arg->help.argx->val, &opts);
             } break;
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
         }
@@ -134,9 +136,6 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 } break;
                 case ARG_STREAM_SOURCE_FORCED: {
                     fprintf(stderr, FF(nc, "forced@%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.number);
-                } break;
-                case ARG_STREAM_SOURCE_POSTCHK: {
-                    fprintf(stderr, FF(nc, "postcheck: ", FG_MG_B BOLD));
                 } break;
             }
             So c = arg->builtin.custom_err_msg;
@@ -193,7 +192,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     FFF(c, nc, "Hierarchy reveals no such option: %.*s", FG_RD_B BOLD, SO_F(argx->opt));
                 } break;
                 case ARG_PARSE_ERROR_MISSING_POSITIONAL: {
-                    FFF(c, nc, "Missing positional values: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
+                    FFF(c, nc, "Missing positional values: %.*s %.*s, %u", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint), stream->source.id);
                 } break;
                 case ARG_PARSE_ERROR_MISSING_SEQUENCE: {
                     FFF(c, nc, "Missing sequential values: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
@@ -1347,8 +1346,9 @@ int arg_parse_check_required(Argx *argx) {
     ASSERT_ARG(argx);
     ASSERT_ARG(argx->group_p);
     Arg *arg = argx->group_p->arg;
+    Arg_Stream empty_stream = {0};
     if(argx->attr.is_required && !argx->sources) {
-        arg_parse_error(arg, &(Arg_Stream){ .source = ARGX_SOURCE_POSTCHK }, ARG_PARSE_ERROR_MISSING_REQUIRED, argx);
+        arg_parse_error(arg, &empty_stream, ARG_PARSE_ERROR_MISSING_REQUIRED, argx);
         return -1;
     }
     return 0;
@@ -1367,7 +1367,7 @@ int arg_parse_check_required_group(Argx_Group *group) {
         } else {
             status |= arg_parse_check_required(argx);
         }
-        if(status) break;
+        //if(status) break;
     }
     return status;
 }
@@ -1376,9 +1376,9 @@ int arg_parse_check_required_all(Arg *arg) {
     int status = 0;
     for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
         ASSERT_ARG(group);
-        arg_parse_check_required_group(*group);
+        status |= arg_parse_check_required_group(*group);
     }
-    arg_parse_check_required_group(&arg->env);
+    status |= arg_parse_check_required_group(&arg->env);
     return status;
 }
 
