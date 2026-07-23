@@ -100,6 +100,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_INVALID_OPTION_GROUP:
             case ARG_PARSE_ERROR_MISSING_SEQUENCE:
             case ARG_PARSE_ERROR_MISSING_POSITIONAL:
+            case ARG_PARSE_ERROR_MISSING_REQUIRED:
             case ARG_PARSE_ERROR_CONFIG:
             case ARG_PARSE_ERROR_MISSING_VALUE:
             case ARG_PARSE_ERROR_INVALID_STRING:
@@ -113,6 +114,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             default: ABORT(ERR_UNREACHABLE("unhandled id: %u"), id);
         }
         if(!arg->builtin.compgen) {
+            /* TODO: just use arg_stream_source_so ... */
             switch(stream->source.id) {
                 default: break;
                 case ARG_STREAM_SOURCE_CONFIG: {
@@ -132,6 +134,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 } break;
                 case ARG_STREAM_SOURCE_FORCED: {
                     fprintf(stderr, FF(nc, "forced@%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.number);
+                } break;
+                case ARG_STREAM_SOURCE_POSTCHK: {
+                    fprintf(stderr, FF(nc, "postcheck: ", FG_MG_B BOLD));
                 } break;
             }
             So c = arg->builtin.custom_err_msg;
@@ -192,6 +197,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 } break;
                 case ARG_PARSE_ERROR_MISSING_SEQUENCE: {
                     FFF(c, nc, "Missing sequential values: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
+                } break;
+                case ARG_PARSE_ERROR_MISSING_REQUIRED: {
+                    FFF(c, nc, "Missing required value: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
                 } break;
                 case ARG_PARSE_ERROR_CONFIG: {
                     FFF(c, nc, "Error(s) occured while configuring: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
@@ -1335,6 +1343,45 @@ void arg_parse_enable_config_print(Arg *arg) {
     argx_builtin_env_config(arg);
 }
 
+int arg_parse_check_required(Argx *argx) {
+    ASSERT_ARG(argx);
+    ASSERT_ARG(argx->group_p);
+    Arg *arg = argx->group_p->arg;
+    if(argx->attr.is_required && !argx->sources) {
+        arg_parse_error(arg, &(Arg_Stream){ .source = ARGX_SOURCE_POSTCHK }, ARG_PARSE_ERROR_MISSING_REQUIRED, argx);
+        return -1;
+    }
+    return 0;
+}
+
+int arg_parse_check_required_group(Argx_Group *group) {
+    if(!group) return 0;
+    int status = 0;
+    for(Argx **it = group->list; it < array_itE(group->list); ++it) {
+        ASSERT_ARG(it);
+        Argx *argx = *it;
+        ASSERT_ARG(argx);
+        if(argx->id == ARGX_TYPE_GROUP) {
+            if(!argx->group_s) continue;
+            status |= arg_parse_check_required_group(argx->group_s);
+        } else {
+            status |= arg_parse_check_required(argx);
+        }
+        if(status) break;
+    }
+    return status;
+}
+
+int arg_parse_check_required_all(Arg *arg) {
+    int status = 0;
+    for(Argx_Group **group = arg->opts; group < array_itE(arg->opts); ++group) {
+        ASSERT_ARG(group);
+        arg_parse_check_required_group(*group);
+    }
+    arg_parse_check_required_group(&arg->env);
+    return status;
+}
+
 int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_early) {
     ASSERT_ARG(arg);
     ASSERT_ARG(quit_early);
@@ -1364,6 +1411,8 @@ int arg_parse(struct Arg *arg, const int argc, const char **argv, bool *quit_ear
     if(arg->builtin.quit_early) goto defer;
 
     if(arg->builtin.quit_early || arg->builtin.quit_when_all_parsed) goto defer;
+
+    status |= arg_parse_check_required_all(arg);
 
 defer:
 

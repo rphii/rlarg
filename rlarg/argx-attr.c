@@ -12,6 +12,11 @@ void argx_attr_configurable(struct Argx *argx, bool configurable) {
     argx->attr.is_unconfigurable = !configurable;
 }
 
+void argx_attr_required(struct Argx *argx, bool required) {
+    ASSERT_ARG(argx);
+    argx->attr.is_required = required;
+}
+
 void argx_attr_callback_skip_compgen(struct Argx *argx, bool skip) {
     ASSERT_ARG(argx);
     argx->attr.callback_skip_compgen = skip;
