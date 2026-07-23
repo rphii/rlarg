@@ -1322,6 +1322,7 @@ int arg_parse_check_required_all(Arg *arg) {
         ASSERT_ARG(group);
         arg_parse_check_required_group(*group);
     }
+    arg_parse_check_required_group(&arg->env);
     return status;
 }
 
