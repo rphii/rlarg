@@ -304,24 +304,17 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
         ASSERT_ARG(argx->group_s);
         if(argx->group_s->id == ARGX_GROUP_FLAGS) {
             if(!so_splice(so, &so_split, ',')) break;
-#if 0
-            flagv = so("1"); // TODO: this is so stupid
-            if(so_at0(so_split) == '+') {
-                so_split = so_i0(so_split, 1);
-            } else if(so_at0(so_split) == '-') {
-                so_split = so_i0(so_split, 1);
-                flagv = so("0");
-            }
-#else
             flagv = so_split;
             if(so_at0(so_split) == '+') {
                 so_split = so_i0(so_split, 1);
             } else if(so_at0(so_split) == '-') {
                 so_split = so_i0(so_split, 1);
             }
-#endif
         } else if(argx->group_s->id == ARGX_GROUP_SEQUENCE) {
-            arg_stream_not_consumed(stream);
+            //if(argx->group_p && (argx->group_p->id == ARGX_GROUP_OPTIONS || argx->group_p->id == ARGX_GROUP_ROOT)) {
+            if(argx->group_p && (argx->group_p->id != ARGX_GROUP_ENUM)) {
+                arg_stream_not_consumed(stream);
+            }
             result = arg_parse_sequence(arg, stream, argx);
             break; /* quit to loop */
         } else {
