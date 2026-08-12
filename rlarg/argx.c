@@ -23,7 +23,6 @@ void argx_free(Argx *argx) {
         switch(argx->id) {
             default: ABORT(ERR_UNREACHABLE("unhandled id %u"), argx->id);
             case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("array of FLAG unsupported (how did you reach this code?)"));
-            case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("array of ENUM unsupported (how did you reach this code?)"));
             case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("array of GROUP unsupported (how did you reach this code?)"));
             case ARGX_TYPE_SWITCH: ABORT(ERR_UNREACHABLE("array of SWITCH unsupported (how did you reach this code?)"));
             case ARGX_TYPE_NONE: {}

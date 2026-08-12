@@ -15,7 +15,7 @@ int main(int argc, const char **argv) {
 
     bool f1 = false, f2 = false;
     int action = 0;
-    So input = SO, output = SO;
+    So input = SO, output = SO, hi = SO;
     bool do_thing = false;
 
     argx_builtin_rice(arg);
@@ -23,6 +23,7 @@ int main(int argc, const char **argv) {
 
     x=argx_pos(arg, so("thing"), so("thing to do"));
     //x=argx_opt(g, 0, so("thing"), so("thing to do"));
+      //g=argx_group_options(x);
       g=argx_group_enum(x, &action, 0);
         x=argx_enum_bind(g, 1, so("1"), so("one"));
           s=argx_group_sequence(x);
@@ -30,6 +31,7 @@ int main(int argc, const char **argv) {
               //argx_type_so(y, &input, 0);
               h=argx_group_sequence(y);
                 z=argx_opt(h, 0, so("hi"), so("asdf"));
+                  //argx_type_so(z, &hi, 0);
                 z=argx_opt(h, 0, so("ih"), so("fdsa"));
             y=argx_opt(s, 0, so("output"), so("output file"));
               argx_type_so(y, &input, 0);
@@ -39,6 +41,12 @@ int main(int argc, const char **argv) {
                 argx_flag(h, &f2, 0, so("f2"), so("flag 2"));
             y=argx_opt(s, 0, so("bool"), so("a boolean"));
               argx_type_bool(y, &do_thing, 0);
+        x=argx_enum_bind(g, 2, so("2"), so("two"));
+          s=argx_group_sequence(x);
+            y=argx_opt(s, 0, so("flag"), so("flags"));
+              h=argx_group_flags(y);
+                argx_flag(h, &f1, 0, so("f1"), so("flag 1"));
+                argx_flag(h, &f2, 0, so("f2"), so("flag 2"));
 
 
     if((err = arg_parse(arg, argc, argv, &quit_early))) goto defer;
