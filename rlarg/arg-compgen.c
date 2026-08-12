@@ -42,9 +42,11 @@ static void static_arg_compgen_argx(struct Arg *arg, struct Argx *argx) {
             printf("%ctrue%cfalse", ARG_COMPGEN_DELIM, ARG_COMPGEN_DELIM);
         } break;
         case ARGX_TYPE_FLAG:
+#if 0 /* TODO */
         case ARGX_TYPE_ENUM: {
             printf("%c%.*s", ARG_COMPGEN_DELIM, SO_F(argx->opt));
         } break;
+#endif
         case ARGX_TYPE_GROUP: {
             Argx_Group *sub = argx->group_s;
             ASSERT_ARG(sub);

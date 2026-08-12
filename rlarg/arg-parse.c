@@ -634,7 +634,7 @@ static Arg_Parse_Argx_Callback static_parse_argx_single_cbs[ARGX_TYPE__COUNT] = 
     [ARGX_TYPE_INT] = arg_parse_argx_int,
     [ARGX_TYPE_SIZE] = arg_parse_argx_size,
     [ARGX_TYPE_BOOL] = arg_parse_argx_bool,
-    [ARGX_TYPE_ENUM] = arg_parse_argx_enum,
+    //[ARGX_TYPE_ENUM] = arg_parse_argx_enum, /* TODO */
     [ARGX_TYPE_FLAG] = arg_parse_argx_flag,
     [ARGX_TYPE_NONE] = arg_parse_argx_none,
     [ARGX_TYPE_GROUP] = arg_parse_argx_group,
@@ -654,7 +654,6 @@ static Arg_Parse_Argx_Callback static_parse_argx_vector_vals_cbs[ARGX_TYPE__COUN
     [ARGX_TYPE_COLOR] = arg_parse_argx_vcolor,
     [ARGX_TYPE_REST] = arg_parse_argx_vso,
     [ARGX_TYPE_NONE] = 0,
-    [ARGX_TYPE_ENUM] = 0,
     [ARGX_TYPE_FLAG] = 0,
     [ARGX_TYPE_GROUP] = 0,
 };
@@ -668,7 +667,6 @@ static Arg_Parse_Argx_Vector_Callback static_parse_argx_vector_cbs[ARGX_TYPE__CO
     [ARGX_TYPE_COLOR] = arg_parse_argx_vector,
     [ARGX_TYPE_NONE] = arg_parse_argx_vector_none,
     [ARGX_TYPE_REST] = arg_parse_argx_vector_rest,
-    [ARGX_TYPE_ENUM] = 0,
     [ARGX_TYPE_FLAG] = 0,
     [ARGX_TYPE_GROUP] = 0,
 };
@@ -698,6 +696,9 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             }
         }
     } else {
+        if(argx->attr.is_enum) {
+            result = arg_parse_argx_enum(arg, stream, argx, so);
+        }
         if(argx->sources) {
             /* TODO: ability to detect duplicate setting of values... for now just clear sources so they don't pile up */
             array_clear_ext(argx->sources, so_free);
@@ -1039,7 +1040,6 @@ int arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source s
                 case ARGX_TYPE_NONE: break;
                 //case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
                 case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
-                case ARGX_TYPE_ENUM: ABORT(ERR_UNREACHABLE("case is handled separately"));
                 case ARGX_TYPE_FLAG: ABORT(ERR_UNREACHABLE("case is handled separately"));
             }
             if(!single) arg_parse_setref_sources_mono(argx, src, array_len(*ref->vb));
@@ -1070,7 +1070,8 @@ int arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source s
                 } break;
                 case ARGX_TYPE_NONE: break;
                 case ARGX_TYPE_REST: ABORT(ERR_UNREACHABLE("case will never provide default values"));
-                case ARGX_TYPE_GROUP: ABORT(ERR_UNREACHABLE("case is handled separately"));
+                case ARGX_TYPE_GROUP: {} break; ABORT(ERR_UNREACHABLE("case is handled separately"));
+#if 0 /* TODO */
                 case ARGX_TYPE_ENUM: {
                     ASSERT_ARG(argx->group_p);
                     Argx *parent = argx->group_p->parent;
@@ -1079,12 +1080,21 @@ int arg_parse_setval_argx(Argx *argx, Argx_Value_Union *ref, Arg_Stream_Source s
                     if(parent->val.i) *parent->val.i = *ref->i;
                     arg_parse_add_source(parent, src);
                 } break;
+#endif
             }
             arg_parse_setref_sources_mono(argx, src, (int)(bool)(ref->any));
         }
     // TODO: why did I do this below??
     //} else {
         //argx->val.any = 0;
+    }
+    if(argx->attr.is_enum) {
+        ASSERT_ARG(argx->group_p);
+        Argx *parent = argx->group_p->parent;
+        ASSERT_ARG(parent);
+        ASSERT_ARG(parent->val.i);
+        if(parent->val.i) *parent->val.i = *ref->i;
+        arg_parse_add_source(parent, src);
     }
     return status;
 }

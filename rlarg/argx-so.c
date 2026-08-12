@@ -326,9 +326,6 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Arg
             case ARGX_TYPE_GROUP: {
                 ABORT(ERR_UNREACHABLE("vector of GROUP is not supported, and thus you should never see this message"));
             } break;
-            case ARGX_TYPE_ENUM: {
-                ABORT(ERR_UNREACHABLE("vector of ENUM is not supported, and thus you should never see this message"));
-            } break;
             case ARGX_TYPE_FLAG: {
                 ABORT(ERR_UNREACHABLE("vector of FLAG is not supported, and thus you should never see this message"));
             } break;
@@ -397,8 +394,6 @@ void argx_so_val(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Arg
                 }
             } break;
             case ARGX_TYPE_SWITCH: {
-            } break;
-            case ARGX_TYPE_ENUM: {
             } break;
             case ARGX_TYPE_REST: {
                 ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));
@@ -496,9 +491,6 @@ void argx_so_hint(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Ar
             case ARGX_TYPE_GROUP: {
                 ABORT(ERR_UNREACHABLE("vector of GROUP is not supported, and thus you should never see this message"));
             } break;
-            case ARGX_TYPE_ENUM: {
-                ABORT(ERR_UNREACHABLE("vector of ENUM is not supported, and thus you should never see this message"));
-            } break;
             case ARGX_TYPE_FLAG: {
                 ABORT(ERR_UNREACHABLE("vector of FLAG is not supported, and thus you should never see this message"));
             } break;
@@ -553,9 +545,6 @@ void argx_so_hint(So *out, Arg_Rice *rice, Argx *argx, Argx_Value_Union *val, Ar
                 /* set up config value ... by default always off */
                 // TODO: xso->val_config = true;
                 // TODO: so_extend(&xso->set_val, so("false"));
-            } break;
-            case ARGX_TYPE_ENUM: {
-                //xso->have_hint = false;
             } break;
             case ARGX_TYPE_REST: {
                 ABORT(ERR_UNREACHABLE("non-vector of rest is not supported, and thus you should never see this message"));

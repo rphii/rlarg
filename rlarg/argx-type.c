@@ -6,6 +6,7 @@
 /* can provide val=0 to override ability from being allowed to set rest to not */
 void argx_type_rest(struct Argx *argx, VSo *val) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.vso = val;
     argx->id = ARGX_TYPE_REST;
     argx->hint = (Argx_Hint){
@@ -17,6 +18,7 @@ void argx_type_rest(struct Argx *argx, VSo *val) {
 
 void argx_type_so(struct Argx *argx, So *val, So *ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.so = val;
     argx->ref.so = ref;
     argx->id = ARGX_TYPE_STRING;
@@ -28,6 +30,7 @@ void argx_type_so(struct Argx *argx, So *val, So *ref) {
 
 void argx_type_uri(struct Argx *argx, So *val, So *ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.so = val;
     argx->ref.so = ref;
     argx->id = ARGX_TYPE_STRING;
@@ -39,6 +42,7 @@ void argx_type_uri(struct Argx *argx, So *val, So *ref) {
 
 void argx_type_bool(struct Argx *argx, bool *val, bool *ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.b = val;
     argx->ref.b = ref;
     argx->id = ARGX_TYPE_BOOL;
@@ -50,6 +54,7 @@ void argx_type_bool(struct Argx *argx, bool *val, bool *ref) {
 
 void argx_type_int(struct Argx *argx, int *val, int *ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.i = val;
     argx->ref.i = ref;
     argx->id = ARGX_TYPE_INT;
@@ -61,6 +66,7 @@ void argx_type_int(struct Argx *argx, int *val, int *ref) {
 
 void argx_type_size(struct Argx *argx, ssize_t *val, ssize_t *ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.z = val;
     argx->ref.z = ref;
     argx->id = ARGX_TYPE_SIZE;
@@ -72,6 +78,7 @@ void argx_type_size(struct Argx *argx, ssize_t *val, ssize_t *ref) {
 
 void argx_type_color(struct Argx *argx, Color *val, Color *ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.c = val;
     argx->ref.c = ref;
     argx->id = ARGX_TYPE_COLOR;
@@ -83,6 +90,7 @@ void argx_type_color(struct Argx *argx, Color *val, Color *ref) {
 
 void argx_type_switch(struct Argx *argx) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->id = ARGX_TYPE_SWITCH;
     argx->hint = (Argx_Hint){
         .id = ARGX_HINT_NONE,
@@ -91,6 +99,7 @@ void argx_type_switch(struct Argx *argx) {
 
 void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.vso = val;
     argx->ref.vso = ref;
     argx->id = ARGX_TYPE_STRING;
@@ -103,6 +112,7 @@ void argx_type_array_so(struct Argx *argx, VSo *val, VSo *ref) {
 
 void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.vso = val;
     argx->ref.vso = ref;
     argx->id = ARGX_TYPE_URI;
@@ -115,6 +125,7 @@ void argx_type_array_uri(struct Argx *argx, VSo *val, VSo *ref) {
 
 void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.vb = val;
     argx->ref.vb = ref;
     argx->id = ARGX_TYPE_BOOL;
@@ -127,6 +138,7 @@ void argx_type_array_bool(struct Argx *argx, bool **val, bool **ref) {
 
 void argx_type_array_int(struct Argx *argx, int **val, int **ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.vi = val;
     argx->ref.vi = ref;
     argx->id = ARGX_TYPE_INT;
@@ -139,6 +151,7 @@ void argx_type_array_int(struct Argx *argx, int **val, int **ref) {
 
 void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.vz = val;
     argx->ref.vz = ref;
     argx->id = ARGX_TYPE_SIZE;
@@ -151,6 +164,7 @@ void argx_type_array_size(struct Argx *argx, ssize_t **val, ssize_t **ref) {
 
 void argx_type_array_color(struct Argx *argx, Color **val, Color **ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.vc = val;
     argx->ref.vc = ref;
     argx->id = ARGX_TYPE_COLOR;
@@ -163,6 +177,7 @@ void argx_type_array_color(struct Argx *argx, Color **val, Color **ref) {
 
 struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->val.i = val;
     argx->ref.i = ref;
     argx->id = ARGX_TYPE_GROUP;
@@ -177,6 +192,7 @@ struct Argx_Group *argx_group_enum(struct Argx *argx, int *val, int *ref) {
 
 struct Argx_Group *argx_group_options(struct Argx *argx) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->id = ARGX_TYPE_GROUP;
     T_Argx *table;
     NEW(T_Argx, table);
@@ -189,6 +205,7 @@ struct Argx_Group *argx_group_options(struct Argx *argx) {
 
 struct Argx_Group *argx_group_flags(struct Argx *argx) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->id = ARGX_TYPE_GROUP;
     T_Argx *table;
     NEW(T_Argx, table);
@@ -219,7 +236,6 @@ ARGX_SWITCH_FLAG_IMPL(size,  ssize_t, ARGX_TYPE_SIZE, z)
 ARGX_SWITCH_FLAG_IMPL(bool,  bool,    ARGX_TYPE_BOOL, b)
 ARGX_SWITCH_FLAG_IMPL(so,    So,      ARGX_TYPE_STRING, so)
 ARGX_SWITCH_FLAG_IMPL(uri,   So,      ARGX_TYPE_URI, so)
-ARGX_SWITCH_FLAG_IMPL(enum,  int,     ARGX_TYPE_ENUM, i)
 ARGX_SWITCH_FLAG_IMPL(color, Color,   ARGX_TYPE_COLOR, c)
 
 ARGX_SWITCH_FLAG_IMPL(array_int,   int *,     ARGX_TYPE_INT, vi)
@@ -227,7 +243,6 @@ ARGX_SWITCH_FLAG_IMPL(array_size,  ssize_t *, ARGX_TYPE_SIZE, vz)
 ARGX_SWITCH_FLAG_IMPL(array_bool,  bool *,    ARGX_TYPE_BOOL, vb)
 ARGX_SWITCH_FLAG_IMPL(array_so,    So *,      ARGX_TYPE_STRING, vso)
 ARGX_SWITCH_FLAG_IMPL(array_uri,   So *,      ARGX_TYPE_URI, vso)
-ARGX_SWITCH_FLAG_IMPL(array_enum,  int *,     ARGX_TYPE_ENUM, vi)
 ARGX_SWITCH_FLAG_IMPL(array_color, Color *,   ARGX_TYPE_COLOR, vc)
 
 void argx_switch_flag(struct Argx *switch_argx, struct Argx *argx, bool value) {
@@ -254,6 +269,7 @@ void argx_switch_none(struct Argx *switch_argx, struct Argx *argx) {
 
 struct Argx_Group *argx_group_sequence(struct Argx *argx) {
     ASSERT_ARG(argx);
+    ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
     argx->id = ARGX_TYPE_GROUP;
     T_Argx *table;
     NEW(T_Argx, table);
@@ -267,9 +283,10 @@ struct Argx_Group *argx_group_sequence(struct Argx *argx) {
 
 struct Argx *argx_enum_bind(struct Argx_Group *group, int val, So name, So desc) {
     ASSERT_ARG(group);
+    ASSERT(group->id == ARGX_GROUP_ENUM, "expected group '%.*s' to be of type enum, is: %u", SO_F(group->name), group->id);
     struct Argx *x = argx_opt(group, 0, name, desc);
     //printff("created '%.*s' on table %p",SO_F(name),group->table);
-    x->id = ARGX_TYPE_ENUM;
+    x->attr.is_enum = true;
     x->attr.val_enum = val;
     return x;
 }
