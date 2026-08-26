@@ -1,5 +1,6 @@
 # priority
 
+- fix compgen for sequences... 
 - for the color=auto,off,on -> get pointer to value for user..
 - fix sources of subgroups... (e.g. sequences..)
 - attribute => ignore case
