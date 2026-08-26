@@ -305,10 +305,30 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
         if(argx->group_s->id == ARGX_GROUP_FLAGS) {
             if(!so_splice(so, &so_split, ',')) break;
             flagv = so_split;
-            if(so_at0(so_split) == '+') {
+            bool force_all = false;
+            bool force_value = false;
+            if(!so_cmp(flagv, so("---"))) {
+                /* turn off all flags */
+                force_all = true;
+                force_value = false;
+            } else if(!so_cmp(flagv, so("+++"))) {
+                /* turn on all flags */
+                force_all = true;
+                force_value = true;
+            } else if(so_at0(so_split) == '+') {
                 so_split = so_i0(so_split, 1);
             } else if(so_at0(so_split) == '-') {
                 so_split = so_i0(so_split, 1);
+            }
+            if(force_all) {
+                if(argx->group_s->list) {
+                    Argx **itE = array_itE(argx->group_s->list);
+                    for(Argx **it = argx->group_s->list; it < itE; ++it) {
+                        arg_parse_setval_argx(*it, &(Argx_Value_Union){ .b = &force_value }, stream->source, false);
+                    }
+                }
+                result = 0;
+                break;
             }
         } else if(argx->group_s->id == ARGX_GROUP_SEQUENCE) {
             //if(argx->group_p && (argx->group_p->id == ARGX_GROUP_OPTIONS || argx->group_p->id == ARGX_GROUP_ROOT)) {
@@ -465,6 +485,7 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so_in) {
     bool flag_value = false;
     bool force_on = (bool)(so_at0(so) == '+');
     bool force_off = (bool)(so_at0(so) == '-');
+
     if((force_on || force_off)) {
         so_i0(so, 1);
         if(!so_len(so)) {
