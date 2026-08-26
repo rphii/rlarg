@@ -49,7 +49,7 @@ int list_shortcuts(struct Argx *argx, void *user, So so) {
     printf("Shortcuts:\n");
     for(Shortcut *it = shortcuts; it < array_itE(shortcuts); ++it, ++n) {
         Shortcut *sc = it;
-        printf("[%lu] :: %c, %u|%u|%u|%u :: %u\n", n, sc->key, sc->mod_none, sc->mod_alt, sc->mod_ctrl, sc->mod_shift, sc->func);
+        printf("[%lu] :: [ \"%c\", (%u|%u|%u|%u), (%u) ]\n", n, sc->key, sc->mod_none, sc->mod_alt, sc->mod_ctrl, sc->mod_shift, sc->func);
     }
     arg_runtime_quit_early(argx, true);
     return 0;

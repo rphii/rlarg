@@ -100,6 +100,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             case ARG_PARSE_ERROR_MISSING_SEQUENCE:
             case ARG_PARSE_ERROR_MISSING_POSITIONAL:
             case ARG_PARSE_ERROR_CONFIG:
+            case ARG_PARSE_ERROR_CONFIG_SEQUENCE_TOO_LONG:
             case ARG_PARSE_ERROR_MISSING_VALUE:
             case ARG_PARSE_ERROR_INVALID_STRING:
             case ARG_PARSE_ERROR_INVALID_STRING_END:
@@ -203,6 +204,9 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                 case ARG_PARSE_ERROR_CONFIG: {
                     FFF(c, nc, "Error(s) occured while configuring: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
                 } break;
+                case ARG_PARSE_ERROR_CONFIG_SEQUENCE_TOO_LONG: {
+                    FFF(c, nc, "Sequence too long: %.*s %.*s (have %zu)", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint), array_len(stream->vso));
+                } break;
                 case ARG_PARSE_ERROR_MISSING_VALUE: {
                     FFF(c, nc, "Missing value for argument: %.*s %.*s", FG_RD_B BOLD, SO_F(argx->opt), SO_F(hint));
                 } break;
@@ -274,7 +278,7 @@ int arg_parse_sequence(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
     size_t len = array_len(argx->group_s->list);
     while(i_pos < len) {
         Argx *pos = array_at(argx->group_s->list, i_pos);
-        //printff("GOT SEQUENTIAL ARGX: %.*s", SO_F(pos->opt));
+        //printff("GOT SEQUENTIAL ARGX %zu/%zu: %.*s", i_pos + 1, len, SO_F(pos->opt));
         if(!arg_stream_get_next(stream, &carg, &arg->builtin.compgen_flags)) {
             arg_parse_error(arg, stream, ARG_PARSE_ERROR_MISSING_SEQUENCE, pos);
             status = -1;
@@ -288,6 +292,7 @@ int arg_parse_sequence(struct Arg *arg, Arg_Stream *stream, Argx *argx) {
             ++i_pos;
         }
     }
+    //printff("GOT SEQUENTIAL ARGX TOTAL: %zu/%zu", i_pos, len);
 
     return status;
 }
@@ -696,16 +701,53 @@ static Arg_Parse_Argx_Vector_Callback static_parse_argx_vector_cbs[ARGX_TYPE__CO
 
 /* main parsing section {{{ */
 
+int arg_parse_argx_post_required_config_array(struct Arg *arg, struct Arg_Stream *stream, struct Argx *argx, So so) {
+    int err = 0;
+    if(stream->is_config) {
+        stream->is_config_post = true;
+        /* mark config_post */
+        size_t len = array_len(stream->vso);
+        if(argx->id == ARGX_TYPE_GROUP && argx->group_s && argx->group_s->id == ARGX_GROUP_SEQUENCE) {
+            /* parse the accumulated values in stream->vso */
+            err = arg_parse_argx(arg, stream, argx, so);
+            printff("ERR %i",err);
+        }
+        if(!err && (stream->i + 1 != len)) {
+            arg_parse_error(arg, stream, ARG_PARSE_ERROR_CONFIG_SEQUENCE_TOO_LONG, argx);
+            printff("COUNT WRONG: %zu/%zu - for sequence %.*s",stream->i + 1, len, SO_F(argx->opt));
+            err = -1;
+        }
+        /* free accumulated values in stream->vso */
+        vso_free(&stream->vso);
+        /* unmark config_post */
+        stream->is_config_post = false;
+    }
+    printff("ERROR: %i",err);
+    return err;
+}
+
 int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     ASSERT_ARG(arg);
     ASSERT_ARG(stream);
     ASSERT_ARG(argx);
-    //printff("PARSE: %.*s <== '%.*s'",SO_F(argx->opt), SO_F(so));
+    //printff("PARSE: %.*s <== '%.*s' len %zu",SO_F(argx->opt), SO_F(so), array_len(stream->vso));
     int result = -1;
     arg_parse_set_help_any(arg, argx); /* set help BEFORE doing any further parsing */
-    if(stream->is_config && !argx_is_configurable(argx)) {
-        result = -1;
-        arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNCONFIGURABLE, argx);
+    if(stream->is_config) {
+        if(!stream->is_config_post) {
+            if(!argx_is_configurable(argx)) {
+                result = -1;
+                arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNCONFIGURABLE, argx);
+            //} else if(argx->id == ARGX_TYPE_GROUP && argx->group_s && argx->group_s->id == ARGX_GROUP_SEQUENCE) {
+            //    printff(" > ACCUMULATE: %.*s",SO_F(so));
+            //    /* accumulate values into stream->vso . gets freed in:
+            //     *  `arg_parse_argx_post_required_config_array` */
+            //    vso_push(&stream->vso, so);
+            //    return 0;
+            }
+        //} else {
+        //    result = 0; // ??
+        }
     } else if(argx->attr.is_array) {
         if(argx->id < ARGX_TYPE__COUNT) {
             Arg_Parse_Argx_Callback cb = static_parse_argx_vector_vals_cbs[argx->id];

@@ -17,6 +17,7 @@ typedef enum Arg_Parse_Error_List {
     ARG_PARSE_ERROR_MISSING_SEQUENCE,
     ARG_PARSE_ERROR_MISSING_REQUIRED,
     ARG_PARSE_ERROR_CONFIG,
+    ARG_PARSE_ERROR_CONFIG_SEQUENCE_TOO_LONG,
     ARG_PARSE_ERROR_INVALID_CONVERSION,
     ARG_PARSE_ERROR_INVALID_OPTION_GROUP,
     ARG_PARSE_ERROR_INVALID_OPTION_ROOT,
@@ -40,6 +41,7 @@ struct Arg_Stream_Source;
 int arg_parse_setref_argx(struct Argx *argx);
 int arg_parse_setval_argx(struct Argx *argx, union Argx_Value_Union *ref, struct Arg_Stream_Source src, bool argx_is_array_but_value_is_not);
 int arg_parse_argx(struct Arg *arg, struct Arg_Stream *stream, struct Argx *argx, So so);
+int arg_parse_argx_post_required_config_array(struct Arg *arg, struct Arg_Stream *stream, struct Argx *argx, So so);
 struct Argx *arg_parse_hierarchy(struct Arg *arg, struct Arg_Stream *stream, So lhs, struct Argx_Group **root_group);
 void arg_parse_error_allow_more(struct Arg_Stream *stream);
 void arg_parse_error(struct Arg *arg, struct Arg_Stream *stream, Arg_Parse_Error_List id, struct Argx *argx);
