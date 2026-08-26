@@ -52,6 +52,17 @@ Used from within a callback (`argx_callback`):
 - `arg_runtime_quit_early` quit the parser immediately (once control regained)
 - `arg_runtime_quit_when_all_parsed` quit the parser early after the argument parser is done
 
+## Everything About Something and Nothing
+
+### Flags
+
+Example: `--flag [sfw|nsfw|sketchy]`
+
+- Supply a `--flag ---` to UNSET all
+- Supply a `--flag +++` to SET all
+- Supply a `--flag -sfw` to force that flag off
+- Supply a `--flag +sfw` to force that flag on
+
 ## Everything About Config Files
 
 ### Example

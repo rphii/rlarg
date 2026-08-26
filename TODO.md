@@ -1,7 +1,6 @@
 # priority
 
 - fix sources of subgroups... (e.g. sequences..)
-- .. maybe introduce a special flag value, e.g. '---' to unset all, or OH also one to set all, e.g. '+++'
 - parse sequence with commas separating values..
 - attribute => ignore case
 - array of sequence?
