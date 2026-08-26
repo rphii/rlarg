@@ -270,6 +270,7 @@ void argx_switch_none(struct Argx *switch_argx, struct Argx *argx) {
 struct Argx_Group *argx_group_sequence(struct Argx *argx) {
     ASSERT_ARG(argx);
     ASSERT(!argx->id, "argx->id of '%.*s' is already set to: %u", SO_F(argx->opt), argx->id);
+    if(argx->group_p && argx->group_p->id == ARGX_GROUP_SEQUENCE) ABORT("can't make a sequence of sequences: '%.*s'", SO_F(argx->opt));
     argx->id = ARGX_TYPE_GROUP;
     T_Argx *table;
     NEW(T_Argx, table);
