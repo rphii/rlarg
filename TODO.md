@@ -1,5 +1,6 @@
 # priority
 
+- for the color=auto,off,on -> get pointer to value for user..
 - fix sources of subgroups... (e.g. sequences..)
 - parse sequence with commas separating values..
 - attribute => ignore case
