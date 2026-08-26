@@ -707,22 +707,31 @@ int arg_parse_argx_post_required_config_array(struct Arg *arg, struct Arg_Stream
         stream->is_config_post = true;
         /* mark config_post */
         size_t len = array_len(stream->vso);
+#if 0
+        printff("sequence array: %.*s", SO_F(argx->opt));
+        for(So *it = stream->vso; it < array_itE(stream->vso); ++it) {
+            printff(" %.*s",SO_F(*it));
+        }
+#endif
         if(argx->id == ARGX_TYPE_GROUP && argx->group_s && argx->group_s->id == ARGX_GROUP_SEQUENCE) {
+            if(array_len(stream->vso)) {
+                stream->not_consumed = true;
+            }
             /* parse the accumulated values in stream->vso */
             err = arg_parse_argx(arg, stream, argx, so);
-            printff("ERR %i",err);
-        }
-        if(!err && (stream->i + 1 != len)) {
-            arg_parse_error(arg, stream, ARG_PARSE_ERROR_CONFIG_SEQUENCE_TOO_LONG, argx);
-            printff("COUNT WRONG: %zu/%zu - for sequence %.*s",stream->i + 1, len, SO_F(argx->opt));
-            err = -1;
+            //printff("ERR %i",err);
+            if(!err && (stream->i + 1 != len)) {
+                arg_parse_error(arg, stream, ARG_PARSE_ERROR_CONFIG_SEQUENCE_TOO_LONG, argx);
+                //printff("COUNT WRONG: %zu/%zu - for sequence %.*s",stream->i + 1, len, SO_F(argx->opt));
+                err = -1;
+            }
+            arg_stream_clear(stream);
         }
         /* free accumulated values in stream->vso */
-        vso_free(&stream->vso);
+        vso_clear(&stream->vso);
         /* unmark config_post */
         stream->is_config_post = false;
     }
-    printff("ERROR: %i",err);
     return err;
 }
 
@@ -733,21 +742,16 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
     //printff("PARSE: %.*s <== '%.*s' len %zu",SO_F(argx->opt), SO_F(so), array_len(stream->vso));
     int result = -1;
     arg_parse_set_help_any(arg, argx); /* set help BEFORE doing any further parsing */
-    if(stream->is_config) {
-        if(!stream->is_config_post) {
-            if(!argx_is_configurable(argx)) {
-                result = -1;
-                arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNCONFIGURABLE, argx);
-            //} else if(argx->id == ARGX_TYPE_GROUP && argx->group_s && argx->group_s->id == ARGX_GROUP_SEQUENCE) {
-            //    printff(" > ACCUMULATE: %.*s",SO_F(so));
-            //    /* accumulate values into stream->vso . gets freed in:
-            //     *  `arg_parse_argx_post_required_config_array` */
-            //    vso_push(&stream->vso, so);
-            //    return 0;
-            }
-        //} else {
-        //    result = 0; // ??
-        }
+    if(stream->is_config && !stream->is_config_post
+            && argx->id == ARGX_TYPE_GROUP && argx->group_s && argx->group_s->id == ARGX_GROUP_SEQUENCE) {
+        /* accumulate values into stream->vso . gets freed in:
+         *  `arg_parse_argx_post_required_config_array` */
+        vso_push(&stream->vso, so);
+        return 0;
+    } else if(stream->is_config && !stream->is_config_post
+            && !argx_is_configurable(argx)) {
+        result = -1;
+        arg_parse_error(arg, stream, ARG_PARSE_ERROR_UNCONFIGURABLE, argx);
     } else if(argx->attr.is_array) {
         if(argx->id < ARGX_TYPE__COUNT) {
             Arg_Parse_Argx_Callback cb = static_parse_argx_vector_vals_cbs[argx->id];
