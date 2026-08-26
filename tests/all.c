@@ -228,7 +228,7 @@ int main(const int argc, const char **argv) {
                argx_enum_bind(g3, 3, so("exit"), SO);
                argx_enum_bind(g3, 4, so("refresh"), SO);
     x=argx_opt(g1, 0, so("shortcut-list"), so("list shortcuts"));
-      argx_callback(x, list_shortcuts, &g_shortcuts, ARGX_PRIORITY_IMMEDIATELY);
+      argx_callback(x, list_shortcuts, &g_shortcuts, ARGX_PRIORITY_WHEN_ALL_VALID);
 
 #if 1
     Color col = COLOR_AQUA;

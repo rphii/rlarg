@@ -63,6 +63,13 @@ Example: `--flag [sfw|nsfw|sketchy]`
 - Supply a `--flag -sfw` to force that flag off
 - Supply a `--flag +sfw` to force that flag on
 
+### Sequences
+
+Example: `--shortcut |key,mod,func|`
+
+- CLI:`--shortcut A SHIFT,CTRL some_function`
+- Config file:`shortcut = [A, "SHIFT,CTRL", some_function]` _(see more about config files in the next major section...)_
+
 ## Everything About Config Files
 
 ### Example

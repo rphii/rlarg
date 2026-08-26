@@ -395,9 +395,12 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     } else {
         *head = q;
     }
-    printff("OK? %u --> post '%.*s'",ok, SO_F(p->argx->opt));
+    //printff("OK? %u --> post '%.*s'",ok, SO_F(p->argx->opt));
     int post_status = arg_parse_argx_post_required_config_array(p->arg, &p->stream, p->argx, SO);
-    printff("POST_STATUS: %u",post_status);
+    if(post_status) {
+        ok = false;
+        p->status |= ARG_PARSE_CONFIG_ERR_ASSIGN;
+    }
     //printff("PARSE ARRAY ^^^^^^^^ --- ok? %u", ok);
     //printff("REST:[%.*s]",SO_F(*head));
     return ok;

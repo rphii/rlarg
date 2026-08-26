@@ -2,9 +2,8 @@
 
 - for the color=auto,off,on -> get pointer to value for user..
 - fix sources of subgroups... (e.g. sequences..)
-- parse sequence with commas separating values..
 - attribute => ignore case
-- array of sequence?
+- array of sequence?? -> config -> file()
 - if value is hidden, maybe show value as: blabla <bool> desc =(hidden)
 - test what the callbacks on flags does??
 - add --option and mark required attribute... => check all paths, e.g. enums? how does that work?
