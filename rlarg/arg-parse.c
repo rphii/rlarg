@@ -500,7 +500,7 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so_in) {
     } else {
         flag_value = true;
 
-        if(stream->source.id == ARG_STREAM_SOURCE_STDIN) {
+        if(stream->source.id == ARG_STREAM_SOURCE_STDIN && !(force_on || force_off)) {
             bool reset_related = false;
             bool found_related = false;
             Argx_Group *related = argx->group_p;
