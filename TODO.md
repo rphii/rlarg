@@ -9,8 +9,6 @@
 - if value is hidden, maybe show value as: blabla <bool> desc =(hidden)
 - test what the callbacks on flags does??
 - add --option and mark required attribute... => check all paths, e.g. enums? how does that work?
-- when option file sets flags -> user sets flag via flagname, it's ok - clear previous. but when doing +flag or -flag -> do not clear
-- parse REST in config
 
 - organize so_fmt_fx better..... (they all over the place)
 
