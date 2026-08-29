@@ -467,7 +467,7 @@ bool argx_is_configurable(Argx *argx) {
     if(argx_is_subgroup_of_root(argx, &argx->group_p->arg->pos)) return false;
     if(argx_is_subgroup_of_root(argx, &argx->group_p->arg->env)) return false;
     if(argx->callback.func) return true;
-    if(argx->id == ARGX_TYPE_NONE) return false;
+    if(argx->id == ARGX_TYPE_NONE && !argx->attr.is_enum) return false;
     return true;
 }
 
