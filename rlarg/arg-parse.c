@@ -4,6 +4,24 @@
 #include "arg-compgen.h"
 #include <unistd.h>
 
+int arg_parse_argx_callback_immediately(struct Arg *arg, struct Argx *argx, So so) {
+    int result = 0;
+    if(argx->callback.func) {
+        bool skip = false;
+        if(arg->builtin.compgen && argx->attr.callback_skip_compgen) skip = true;
+        if(!skip) {
+            if(argx->callback.priority == ARGX_PRIORITY_IMMEDIATELY) {
+                result = argx->callback.func(argx, argx->callback.user, so);
+            } else if(argx->callback.priority == ARGX_PRIORITY_WHEN_ALL_VALID) {
+                Argx_Callback_Queue q = { .argx = argx, .so = so };
+                array_push(arg->queue, q);
+            }
+        }
+    }
+    return result;
+}
+
+
 int arg_parse_positional(struct Arg *arg, Arg_Stream *stream, Argx *argx);
 
 /* error messages {{{ */
@@ -326,13 +344,14 @@ int arg_parse_group(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
                 so_split = so_i0(so_split, 1);
             }
             if(force_all) {
+                result = 0;
                 if(argx->group_s->list) {
                     Argx **itE = array_itE(argx->group_s->list);
-                    for(Argx **it = argx->group_s->list; it < itE; ++it) {
+                    for(Argx **it = argx->group_s->list; it < itE && !result; ++it) {
                         arg_parse_setval_argx(*it, &(Argx_Value_Union){ .b = &force_value }, stream->source, false);
+                        result |= arg_parse_argx_callback_immediately(arg, *it, (*it)->opt);
                     }
                 }
-                result = 0;
                 break;
             }
         } else if(argx->group_s->id == ARGX_GROUP_SEQUENCE) {
@@ -779,17 +798,8 @@ int arg_parse_argx(struct Arg *arg, Arg_Stream *stream, Argx *argx, So so) {
             }
         }
     }
-    if(!result && argx->callback.func) {
-        bool skip = false;
-        if(arg->builtin.compgen && argx->attr.callback_skip_compgen) skip = true;
-        if(!skip) {
-            if(argx->callback.priority == ARGX_PRIORITY_IMMEDIATELY) {
-                result = argx->callback.func(argx, argx->callback.user, so);
-            } else if(argx->callback.priority == ARGX_PRIORITY_WHEN_ALL_VALID) {
-                Argx_Callback_Queue q = { .argx = argx, .so = so };
-                array_push(arg->queue, q);
-            }
-        }
+    if(!result) {
+        result |= arg_parse_argx_callback_immediately(arg, argx, so);
     }
     return result;
 }
