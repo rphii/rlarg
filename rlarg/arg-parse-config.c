@@ -16,7 +16,7 @@ Argx *arg_parse_config_get_hierarchy(Arg_Parse_Config *p, Arg_Parse_Config_Head 
     }
     so_extend(tmp, p->hierarchy);
     arg_parse_error_allow_more(&p->stream);
-    p->stream.source.number = head->line_number;
+    p->stream.source.line_number = head->line_number;
     Argx *argx = arg_parse_hierarchy(p->arg, &p->stream, *tmp, 0);
     if(!argx) {
         /* error should be set in arg_parse_hierarchy */
@@ -53,13 +53,18 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
         return -1;
     }
     /* now parse */
-    vso_push(&p->arg->builtin.sources_content, content);
+    bool add_to_sources = true;
     if(in_array) {
         p->stream.carg = content;
-        if(arg_parse_argx(p->arg, &p->stream, p->argx, content)) {
-            arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_INVALID_CONVERSION, p->argx);
-            p->status |= ARG_PARSE_CONFIG_ERR_ASSIGN;
-            p->fatal_error |= p->argx->attr.is_fatal_config_error;
+        if(p->argx && p->argx->id == ARGX_TYPE_STRING && !p->argx->attr.is_array) {
+            vso_push(&p->stream.vso, content);
+            add_to_sources = false;
+        } else {
+            if(arg_parse_argx(p->arg, &p->stream, p->argx, content)) {
+                arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_INVALID_CONVERSION, p->argx);
+                p->status |= ARG_PARSE_CONFIG_ERR_ASSIGN;
+                p->fatal_error |= p->argx->attr.is_fatal_config_error;
+            }
         }
     } else {
         for(So line = SO; so_splice(content, &line, '\n'); ) {
@@ -74,6 +79,9 @@ int arg_parse_config_assign_file_named(Arg_Parse_Config *p, So path, bool in_arr
             }
         }
     }
+    if(add_to_sources) {
+        vso_push(&p->arg->builtin.sources_content, content);
+    }
     return 0;
 }
 
@@ -87,15 +95,28 @@ int arg_parse_config_assign_string(Arg_Parse_Config *p, bool in_array) {
         //TODO_WARN;
         return -1;
     }
-    p->stream.carg = p->tmp_string;
+
+    //So tmp_string_use = p->tmp_string;
+
+    if(in_array) {
+        vso_push(&p->stream.vso, p->tmp_string);
+        p->tmp_string = SO;
+        return 0;
+    }
+    //    so_extend(&p->tmp_string_array, tmp_string_use);
+    //    tmp_string_use = p->tmp_string_array;
+    //}
+    
+    //printff("STRING %.*s", SO_F(tmp_string_use));
     if(arg_parse_argx(p->arg, &p->stream, p->argx, p->tmp_string)) {
-        //printff("STRING %.*s", SO_F(p->tmp_string));
         arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_CONFIG, p->argx);
         p->status |= ARG_PARSE_CONFIG_ERR_ASSIGN;
         p->fatal_error |= p->argx->attr.is_fatal_config_error;
     }
+
     vso_push(&p->arg->builtin.sources_content, p->tmp_string);
     p->tmp_string = SO;
+
     return 0;
 }
 
@@ -105,6 +126,10 @@ int arg_parse_config_assign_other(Arg_Parse_Config *p, So val, bool in_array) {
         return -1;
     }
     //printff("OTHER %.*s", SO_F(val));
+    if(in_array) {
+        vso_push(&p->stream.vso, val);
+        return 0;
+    }
     p->stream.carg = val;
     if(arg_parse_argx(p->arg, &p->stream, p->argx, val)) {
         arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_CONFIG, p->argx);
@@ -203,7 +228,7 @@ bool arg_parse_config_hierarchy(Arg_Parse_Config *p, Arg_Parse_Config_Head *head
         }
     } else {
         Argx pseudo = { .opt = r.so };
-        p->stream.source.number = r.line_number;
+        p->stream.source.line_number = r.line_number;
         arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_MISSING_HIERARCHY_DELIM, &pseudo);
         p->status |= ARG_PARSE_CONFIG_ERR_SYNTAX;
     }
@@ -264,7 +289,7 @@ bool arg_parse_config_file(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, boo
     }
     if(!ok) {
         Argx pseudo = { .opt = (p->argx ? p->argx->opt : so("???")), .desc = so_split_ch(head->so, '\n', 0) };
-        p->stream.source.number = q.line_number - 1; /* we already skipped to the next line, do: - 1 */
+        p->stream.source.line_number = q.line_number - 1; /* we already skipped to the next line, do: - 1 */
         arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_MISSING_FILE_DELIM, &pseudo);
         p->status |= ARG_PARSE_CONFIG_ERR_SYNTAX;
         /* shift until next line */
@@ -272,6 +297,7 @@ bool arg_parse_config_file(Arg_Parse_Config *p, Arg_Parse_Config_Head *head, boo
         *head = q;
     } else {
         *head = q;
+        if(!so_len(p->tmp_string)) used_path = false;
         if(used_path) arg_parse_config_assign_file_named(p, p->tmp_string, in_array);
         else arg_parse_config_assign_file_auto(p, in_array);
     }
@@ -333,7 +359,7 @@ bool arg_parse_config_section(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) 
     } else {
         so_clear(&p->section);
         Argx pseudo = { .opt = so_split_ch(r.so, '\n', 0) };
-        p->stream.source.number = r.line_number;
+        p->stream.source.line_number = r.line_number;
         arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_INVALID_SECTION, &pseudo);
         p->status |= ARG_PARSE_CONFIG_ERR_SYNTAX;
     } 
@@ -350,6 +376,7 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     arg_parse_config_ws(p, &q);
     size_t values_parsed_old = 0;
     size_t values_parsed_now = 0;
+    //p->tmp_string_array = SO;
     while(q.so.len) {
         arg_parse_config_ws(p, &q);
         //printff("ARRAY PASS %zu/%zu: %.*s",values_parsed_now,values_parsed_old,SO_F(so_split_ch(q.so,'\n',0)));
@@ -370,7 +397,7 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
             if(arg_parse_config_ch(p, &q, ']')) { ok = true; break; }
             if(arg_parse_config_ch(p, &q, ',')) {
                 Argx pseudo = { .opt = so_split_ch(head->so, '\n', 0) };
-                p->stream.source.number = q.line_number;
+                p->stream.source.line_number = q.line_number;
                 arg_parse_error(p->arg, &p->stream, ARG_PARSE_ERROR_MISSING_ARRAY_VALUE, &pseudo);
                 p->status |= ARG_PARSE_CONFIG_ERR_SYNTAX;
                 break;
@@ -395,6 +422,9 @@ bool arg_parse_config_array(Arg_Parse_Config *p, Arg_Parse_Config_Head *head) {
     } else {
         *head = q;
     }
+    //if(so_len(p->tmp_string_array)) {
+    //    vso_push(&p->arg->builtin.sources_content, p->tmp_string_array);
+    //}
     //printff("OK? %u --> post '%.*s'",ok, SO_F(p->argx->opt));
     int post_status = arg_parse_argx_post_required_config_array(p->arg, &p->stream, p->argx, SO);
     if(post_status) {
@@ -470,7 +500,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
         .stream.is_config = true,
         .stream.source.id = ARG_STREAM_SOURCE_CONFIG,
         .stream.source.path = path,
-        .stream.source.number = 1,
+        .stream.source.line_number = 1,
     };
 
     while(head.so.len) {
@@ -491,6 +521,7 @@ int arg_parse_config(struct Arg *arg, So config, So path) {
     so_free(&p.tmp_file_path_wordexp);
     so_free(&p.tmp_full_hierarchy);
     so_free(&p.tmp_string);
+    //so_free(&p.tmp_string_array);
     so_free(&p.file);
     so_free(&p.hierarchy);
     so_free(&p.section);

@@ -93,7 +93,7 @@ bool arg_stream_advance(Arg_Stream *stream) {
     if(next_i) {
         ++stream->i;
         if(stream->source.id == ARG_STREAM_SOURCE_STDIN) {
-            ++stream->source.number;
+            ++stream->source.line_number;
         }
     }
     //printff("i %lu < len %zu / not consumed %u", stream->i, len, stream->not_consumed);

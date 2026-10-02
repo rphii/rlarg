@@ -269,7 +269,7 @@ int main(const int argc, const char **argv) {
 
 #if 1
     bool posb = false;
-    int pose;
+    int pose = 0;
     So soa = SO, sob = SO, soc = SO, sod = SO, soe = SO;
     x=argx_pos(arg, so("kind"), so("kind of thing to do"));
       argx_type_bool(x, &posb, 0);
@@ -336,6 +336,7 @@ int main(const int argc, const char **argv) {
 
 clean:
     so_free(&content);
+    array_free(g_shortcuts);
 
     arg_free(&arg);
     arg_config_free(&cfg);

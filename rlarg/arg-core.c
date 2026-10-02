@@ -197,10 +197,10 @@ void arg_stream_source_so(So *out, Arg_Stream_Source *src) {
     ASSERT_ARG(src);
     switch(src->id) {
         case ARG_STREAM_SOURCE_CONFIG:
-            so_fmt(out, "%.*s:%u", SO_F(src->path), src->number);
+            so_fmt(out, "%.*s:%u", SO_F(src->path), src->line_number);
             break;
         case ARG_STREAM_SOURCE_STDIN:
-            so_fmt(out, "stdin@%u", src->number);
+            so_fmt(out, "stdin@%u", src->line_number);
             break;
         case ARG_STREAM_SOURCE_ENVVARS:
             so_fmt(out, "envvars");
@@ -209,7 +209,7 @@ void arg_stream_source_so(So *out, Arg_Stream_Source *src) {
             so_fmt(out, "refval");
             break;
         case ARG_STREAM_SOURCE_FORCED:
-            so_fmt(out, "forced@%.*s:%u ", SO_F(src->path), src->number);
+            so_fmt(out, "forced@%.*s:%u ", SO_F(src->path), src->line_number);
             break;
         default: break;
     }

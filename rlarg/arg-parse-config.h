@@ -34,6 +34,7 @@ typedef struct Arg_Parse_Config {
     So tmp_full_hierarchy;
     So tmp_file_path;
     So tmp_string;
+    //So tmp_string_array;
     So tmp_file_path_wordexp;
     bool fatal_error;
     Argx *argx;

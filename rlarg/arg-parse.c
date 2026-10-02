@@ -139,13 +139,13 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
             switch(stream->source.id) {
                 default: break;
                 case ARG_STREAM_SOURCE_CONFIG: {
-                    fprintf(stderr, FF(nc, "%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.number);
+                    fprintf(stderr, FF(nc, "%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.line_number);
                 } break;
                 case ARG_STREAM_SOURCE_HELP: {
-                    fprintf(stderr, FF(nc, "help@%u: ", FG_MG_B BOLD), stream->source.number);
+                    fprintf(stderr, FF(nc, "help@%u: ", FG_MG_B BOLD), stream->source.line_number);
                 } break;
                 case ARG_STREAM_SOURCE_STDIN: {
-                    fprintf(stderr, FF(nc, "stdin@%u: ", FG_MG_B BOLD), stream->source.number);
+                    fprintf(stderr, FF(nc, "stdin@%u: ", FG_MG_B BOLD), stream->source.line_number);
                 } break;
                 case ARG_STREAM_SOURCE_REFVAL: {
                     fprintf(stderr, FF(nc, "refval: ", FG_MG_B BOLD));
@@ -154,7 +154,7 @@ void arg_parse_error(Arg *arg, Arg_Stream *stream, Arg_Parse_Error_List id, Argx
                     fprintf(stderr, FF(nc, "envvars: ", FG_MG_B BOLD));
                 } break;
                 case ARG_STREAM_SOURCE_FORCED: {
-                    fprintf(stderr, FF(nc, "forced@%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.number);
+                    fprintf(stderr, FF(nc, "forced@%.*s:%u: ", FG_MG_B BOLD), SO_F(stream->source.path), stream->source.line_number);
                 } break;
             }
             So c = arg->builtin.custom_err_msg;
@@ -529,7 +529,7 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so_in) {
                 for(Arg_Stream_Source *jt = (*it)->sources; jt < jtE; ++jt) {
                     reset_related = true;
                     if(jt->id == ARG_STREAM_SOURCE_STDIN) {
-                        if(jt->number == stream->source.number) {
+                        if(jt->line_number == stream->source.line_number) {
                             found_related = true;
                             goto break2;
                         }
@@ -543,7 +543,7 @@ int arg_parse_argx_flag(Arg *arg, Arg_Stream *stream, Argx *argx, So so_in) {
                 bool off = false;
                 for(Argx **it = related->list; it < itE; ++it) {
                     arg_parse_setval_argx(*it, &(Argx_Value_Union){ .b = &off }, (Arg_Stream_Source){
-                            .id = ARG_STREAM_SOURCE_FORCED, .number = stream->i, .path = argx->opt, }, false);
+                            .id = ARG_STREAM_SOURCE_FORCED, .line_number = stream->i, .path = argx->opt, }, false);
                 }
             }
         }
@@ -744,10 +744,29 @@ int arg_parse_argx_post_required_config_array(struct Arg *arg, struct Arg_Stream
                 //printff("COUNT WRONG: %zu/%zu - for sequence %.*s",stream->i + 1, len, SO_F(argx->opt));
                 err = -1;
             }
+            for(size_t i = 0; i < array_len(stream->vso); ++i) {
+                So add = array_at(stream->vso, i);
+                vso_push(&arg->builtin.sources_content, add);
+                //so_free(&add);
+            }
             arg_stream_clear(stream);
         }
+
+        if(argx->id == ARGX_TYPE_STRING && !argx->attr.is_array && array_len(stream->vso)) {
+            So combined = SO;
+            for(size_t i = 0; i < array_len(stream->vso); ++i) {
+                So add = array_at(stream->vso, i);
+                so_extend(&combined, add);
+                //so_free(&add);
+            }
+            vso_push(&arg->builtin.sources_content, combined);
+
+            /* parse the accumulated values in stream->vso */
+            err = arg_parse_argx(arg, stream, argx, combined);
+        }
+
         /* free accumulated values in stream->vso */
-        vso_clear(&stream->vso);
+        vso_free(&stream->vso);
         /* unmark config_post */
         stream->is_config_post = false;
     }
@@ -1295,7 +1314,7 @@ int arg_parse_help(Arg *arg, bool do_not_recurse) {
         };
 
         for(size_t i = 0; i < help_len || help_compgen; ++i) {
-            ++stream_help.source.number;
+            ++stream_help.source.line_number;
             help_compgen = false;
             So search = i < help_len ? array_at(arg->help.sub, i) : SO;
             stream_help.error_id = 0;
